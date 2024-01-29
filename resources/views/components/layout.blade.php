@@ -54,7 +54,7 @@
                         <a href="/listings/manage" class="hover:text-laravel"><i class="fa-solid fa-gear"></i> Manage Listings</a>
                     </li> --}}
                     <li class="text-center">
-                        <a href="/monitor" class="hover:text-laravel"><i class="fa-solid fa-shield"></i> Monitoring</a>
+                        <a href="/monitor" class="text-laravel"><i class="fa-solid fa-shield"></i> Monitoring</a>
                     </li>
                 @endif
                 <li class="text-center">
