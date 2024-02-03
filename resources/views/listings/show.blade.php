@@ -20,7 +20,7 @@
                         Album Description
                     </h3>
                     <div class="text-lg space-y-6">
-                        {{$listing->description}}
+                        {!!$listing->description!!}
                         <br>
                         <a href="{{$listing->albumLink}}" target="_blank" class="block bg-black text-white py-2 rounded-xl hover:opacity-80"><i class="fa-solid fa-globe"></i> Visit
                             Album</a>
