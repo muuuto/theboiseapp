@@ -11,27 +11,39 @@ use App\Models\Slogan;
 class AccountController extends Controller
 {
     // Show all listings
-    public function index() {
+    public function index()
+    {
         $user = auth()->user();
 
+        if (!is_null($user->wallet)) {
+            $walletName = json_decode($user->wallet, true)['name'];
+            $walletMedia = json_decode($user->wallet, true)['path'];
+        } else {
+            $walletName = null;
+            $walletMedia = null;
+        }
+
         return view('account.index', [
-            'user' => $user
+            'user' => $user,
+            'walletName' => $walletName,
+            'walletMedia' => $walletMedia
         ]);
     }
 
-    public function update(Request $request) {
+    public function update(Request $request)
+    {
         $user = auth()->user();
-        
+
         $formFields = $request->validate([
             'profilePicture' => 'image|nullable',
             'name' => 'string|nullable',
         ]);
 
-        if($request->hasFile('profilePicture')) {
+        if ($request->hasFile('profilePicture')) {
             $resizedImage = $this->resizeImage($request->file('profilePicture')->path(), 144, 144);
             $image = $this->imageConvert($resizedImage, 100);
-            
-            if(is_null($user->profilePicture)) {
+
+            if (is_null($user->profilePicture)) {
                 $formFields['profilePicture'] = $image->store('profilePic', 'public');
             } else {
                 Storage::disk('public')->delete($user->profilePicture);
@@ -39,18 +51,18 @@ class AccountController extends Controller
             }
         }
 
-        if($request->has('name')) {
+        if ($request->has('name')) {
             if ($user->name != $formFields['name']) {
-                if(User::where('name', '=',($formFields['name']))->exists()) {
+                if (User::where('name', '=', ($formFields['name']))->exists()) {
                     return redirect('/account')->with('message', 'Account update failed - username already taken!');
                 } else {
-                    Slogan::where('author', '=',($user->name))
+                    Slogan::where('author', '=', ($user->name))
                         ->update(['author' => $formFields['name']]);
                 }
             }
         }
 
-        if(!$request->has('name') && !$request->hasFile('profilePicture')) {
+        if (!$request->has('name') && !$request->hasFile('profilePicture')) {
             return redirect('/account')->with('message', 'Account update failed');
         }
 
@@ -58,24 +70,25 @@ class AccountController extends Controller
         return redirect('/account')->with('message', 'Account updated successfully!');
     }
 
-    public function linkNoImage(Request $request) {
+    public function linkNoImage(Request $request)
+    {
         $users = User::all();
-        
+
         $formFields = $request->validate([
             'profilePicture' => 'required',
         ]);
 
         foreach ($users as $user) {
-            if($request->hasFile('profilePicture')) {
+            if ($request->hasFile('profilePicture')) {
                 $formFields['profilePicture'] = $request->file('profilePicture')->store('profilePic', 'public');
             }
             $user->update($formFields);
-
         }
         return redirect('/account')->with('message', 'Accounts updated successfully!');
     }
 
-    public function imageConvert ($file, $compression_quality) {
+    public function imageConvert($file, $compression_quality)
+    {
         // check if file exists
         if (!file_exists($file)) {
             return false;
@@ -100,13 +113,13 @@ class AccountController extends Controller
                     $image = imagecreatefromjpeg($file);
                     break;
                 case '3': //IMAGETYPE_PNG
-                        $image = imagecreatefrompng($file);
-                        break;
+                    $image = imagecreatefrompng($file);
+                    break;
                 case '6': // IMAGETYPE_BMP
                     $image = imagecreatefrombmp($file);
                     break;
                 case '15': //IMAGETYPE_Webp
-                return false;
+                    return false;
                     break;
                 case '16': //IMAGETYPE_XBM
                     $image = imagecreatefromxbm($file);
@@ -146,7 +159,8 @@ class AccountController extends Controller
     }
 
 
-    public function resizeImage($sourceImage, $maxWidth, $maxHeight, $quality = 100) {
+    public function resizeImage($sourceImage, $maxWidth, $maxHeight, $quality = 100)
+    {
         $file_type = exif_imagetype($sourceImage);
         $output_file = $sourceImage . '.jpg';
         $fileName = basename($sourceImage . '.jpg');
@@ -165,7 +179,7 @@ class AccountController extends Controller
                 $image = imagecreatefrombmp($sourceImage);
                 break;
             case '15': //IMAGETYPE_Webp
-            return false;
+                return false;
                 break;
             case '16': //IMAGETYPE_XBM
                 $image = imagecreatefromxbm($sourceImage);
@@ -173,19 +187,19 @@ class AccountController extends Controller
             default:
                 return false;
         }
-        
+
         $file_type != '3' ?? $exif = exif_read_data($sourceImage);
-        
-        if(!empty($exif['Orientation'])) {
-            switch($exif['Orientation']) {
+
+        if (!empty($exif['Orientation'])) {
+            switch ($exif['Orientation']) {
                 case 8:
-                    $image = imagerotate($image,90,0);
+                    $image = imagerotate($image, 90, 0);
                     break;
                 case 3:
-                    $image = imagerotate($image,180,0);
+                    $image = imagerotate($image, 180, 0);
                     break;
                 case 6:
-                    $image = imagerotate($image,-90,0);
+                    $image = imagerotate($image, -90, 0);
                     break;
             }
         }
@@ -194,13 +208,11 @@ class AccountController extends Controller
         $origWidth = (imagesx($image));
         $origHeight = imagesy($image);
 
-        if ($maxWidth == 0)
-        {
+        if ($maxWidth == 0) {
             $maxWidth  = $origWidth;
         }
 
-        if ($maxHeight == 0)
-        {
+        if ($maxHeight == 0) {
             $maxHeight = $origHeight;
         }
 
@@ -219,11 +231,42 @@ class AccountController extends Controller
         $newImage = imagecreatetruecolor($newWidth, $newHeight);
         imagecopyresampled($newImage, $image, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
         imagejpeg($newImage, $output_file, $quality);
-        
+
         // Free up the memory.
         imagedestroy($image);
         imagedestroy($newImage);
-        
+
         return new UploadedFile($output_file, $fileName, 'image/jpg');
+    }
+
+    public function addWallet(Request $request)
+    {
+        $user = auth()->user();
+
+        $request->validate([
+            'mediaName' => 'string',
+            'addWallet' => 'image',
+        ]);
+
+        if ($request->file('addWallet')->getSize() < 5242880) {
+            if (is_null($user->wallet)) {
+                $formFields['wallet'] = [
+                    'name' => $request["mediaName"],
+                    'path' => $request->file('addWallet')->store('wallet', 'public')
+                ];
+            } else {
+                $wallet = json_decode($user->wallet, true);
+                Storage::disk('public')->delete($wallet['path']);
+                $formFields['wallet'] = [
+                    'name' => $request["mediaName"],
+                    'path' => $request->file('addWallet')->store('wallet', 'public')
+                ];
+            }
+
+            $user->update($formFields);
+            return redirect('/account')->with('message', 'Wallet added to profile');
+        } else {
+            return redirect('/account')->with('message', 'Error, file size greater than 3Mb');
+        }
     }
 }

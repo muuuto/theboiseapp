@@ -39,5 +39,52 @@
                 </button>
             </div>
         </form>
+        <br>
+        <form method="POST" action="/account/addWallet" enctype="multipart/form-data">
+            @csrf
+            @method('PUT')
+            <div class="flex flex-col items-center justify-center text-center mt-16">
+                <h2 class="text-3xl font-bold mb-4">
+                    Your wallet
+                </h2>
+                <p class="mb-4">Here you can add personal media to your profile</p>
+                <p class="mb-4">The current maximum media upload limit is 1. Uploading a new media will replace the old one</p>
+            </div>
+            <div class="mb-6">
+                <label for="mediaName" class="inline-block text-lg mb-2">Name of media</label>
+                <input type="text" class="border border-gray-200 rounded p-2 w-full" name="mediaName" />
+        
+                @error('mediaName')
+                <p class="text-red-500 text-xs mt-1">{{$message}}</p>
+                @enderror
+            </div>
+            <div class="mb-6">
+                <label for="addWallet" class="inline-block text-lg mb-2">Media upload</label>
+                <input type="file" class="border border-gray-200 rounded p-2 w-full" name="addWallet"
+                accept="capture=camera; image/*" />
+        
+                @error('addWallet')
+                    <p class="text-red-500 text-xs mt-1">{{$message}}</p>
+                @enderror
+            </div>
+            <div class="mb-6">
+                <button class="bg-laravel text-white rounded py-2 px-4 hover:bg-black" type="submit">
+                    Add media
+                </button>
+            </div>
+        </form>
+
+        <div class="w-full">
+            @if($walletName)
+                <div class="flex flex-wrap border-gray-300">
+                    <img class="mt-6" src="{{asset('storage/app/public/' . $walletMedia)}}" />
+                    <h3 class="flex-1 text-center text-2xl mt-2">{{$walletName}}</h3>
+                </div>
+            @else
+                <div class="border-gray-300">
+                    <p class="text-center">No media associated</p>
+                </div>
+            @endunless
+        </div>
     </x-card>
 </x-layout>

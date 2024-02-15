@@ -103,6 +103,8 @@ Route::get('/account', [AccountController::class, 'index'])->middleware('auth');
 // Update account
 Route::put('/account/update', [AccountController::class, 'update'])->middleware('auth');
 
+// Add media to wallet
+Route::put('/account/addWallet', [AccountController::class, 'addWallet'])->middleware('auth');
 
 // Update all the users with blank avatar
 // Route::put('/account/linkNoImage', [AccountController::class, 'linkNoImage'])->middleware('auth');
