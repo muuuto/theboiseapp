@@ -77,7 +77,7 @@
         <div class="w-full">
             @if($walletName)
                 <div class="flex flex-wrap border-gray-300">
-                    <img class="mt-6" src="{{asset('storage/app/public/' . $walletMedia)}}" />
+                    <img class="w-full mt-6" src="{{asset('storage/app/public/' . $walletMedia)}}" />
                     <h3 class="flex-1 text-center text-2xl mt-2">{{$walletName}}</h3>
                 </div>
             @else
