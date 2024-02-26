@@ -4,7 +4,7 @@
     <a href="/listings/{{$listing->id}}">
         <div class="flex flex-column flex-wrap">
             <img
-                class="w-full w-48 mr-6 md:block"
+                class="w-full mr-6 md:block"
                 src="{{$listing->logo ? asset('storage/app/public/' . $listing->logo) : asset('/images/no-image.png')}}"
                 alt=""
             />
