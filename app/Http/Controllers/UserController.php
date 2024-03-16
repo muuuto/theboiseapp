@@ -94,6 +94,14 @@ class UserController extends Controller
         return back()->withErrors(['email' => 'Invalid Credentials'])->onlyInput('email');
     }
 
+    public function guest() {
+        $user = auth()->loginUsingId(28, true);
+        date_default_timezone_set('Europe/Rome');
+        $user->update(array('last_login' => date('Y-m-d H:i:s', time())));
+
+        return redirect()->intended('/')->with('message', 'You are now logged in!');
+    }
+
     // display form for resetting password
     public function forgotPasswordShow() {
         return view('users.forgot-password');

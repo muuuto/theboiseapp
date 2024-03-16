@@ -83,10 +83,8 @@
             {{$slot}}
         </main>
 
-        <footer
-            class="fixed z-10 bottom-0 left-0 w-full flex flex-row font-bold bg-teal-600 text-white h-16 mt-24 opacity-90 justify-between"
-        >
-            @if(auth()->user())
+        @if(auth()->user())
+            <footer class="fixed z-10 bottom-0 left-0 w-full flex flex-row font-bold bg-teal-600 text-white h-16 mt-24 opacity-90 justify-between">
                 @if(Route::is('forum.categories.*'))
                     <a
                         href="/forum/category/manage"
@@ -126,9 +124,9 @@
                         >Post Album</a
                     >
                 @endif
+                {{-- <p class="lg:absolute relative top-2/3 text-white text-center">Copyright &copy; 2023, All Rights reserved</p> --}}
+            </footer>
             @endif
-            {{-- <p class="lg:absolute relative top-2/3 text-white text-center">Copyright &copy; 2023, All Rights reserved</p> --}}
-        </footer>
         <x-flash-message />
     </body>
 </html>
