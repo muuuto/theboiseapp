@@ -88,19 +88,19 @@
                 @if(Route::is('forum.categories.*'))
                     <a
                         href="/forum/category/manage"
-                        class="bg-black text-white py-2 px-5 self-center ml-9"
+                        class="bg-black rounded-xl text-white py-2 px-5 self-center ml-9"
                         >Manage Categories</a
                     >
                 @elseif(Route::is('forum.posts.*') )
                     <a
                         href="/forum/{{$category->id}}/manage"
-                        class="bg-black text-white py-2 px-5 self-center ml-9"
+                        class="bg-black rounded-xl text-white py-2 px-5 self-center ml-9"
                         >Manage Posts</a
                     >
                 @else
                     <a
                         href="/slogan/create"
-                        class="bg-black text-white py-2 px-5 self-center ml-9"
+                        class="bg-black rounded-xl text-white py-2 px-5 self-center ml-9"
                         >Post Slogan</a
                     >
                 @endif
@@ -108,19 +108,19 @@
                 @if(Route::is('forum.categories.*') )
                     <a
                         href="/forum/category/create"
-                        class="bg-black text-white py-2 px-5 self-center mr-9"
+                        class="bg-black rounded-xl text-white py-2 px-5 self-center mr-9"
                         >Create Category</a
                     >
                 @elseif(Route::is('forum.posts.*'))
                     <a
                         href="/forum/{{$category->id}}/create"
-                        class="bg-black text-white py-2 px-5 self-center mr-9"
+                        class="bg-black rounded-xl text-white py-2 px-5 self-center mr-9"
                         >New Post</a
                     >
                 @elseif(auth()->user() ? auth()->user()->getAttribute('isAdmin') == 1 : null)
                     <a
                         href="/listings/create"
-                        class="bg-black text-white py-2 px-5 self-center mr-9"
+                        class="bg-black rounded-xl text-white py-2 px-5 self-center mr-9"
                         >Post Album</a
                     >
                 @endif
