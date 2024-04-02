@@ -76,7 +76,7 @@
                 </div>
             </x-card>
         @else
-            <div x-data="{ input: '{{$listing->albumLink}}', showMsg: false }" > 
+            <div class ="mx-4" x-data="{ input: '{{$listing->albumLink}}', showMsg: false }" > 
                 <div class="w-full overflow-hidden">
                     <a type="button" @click="navigator.clipboard.writeText(input), showMsg = true, setTimeout(() => showMsg = false, 1000)">
                         <i class="fa fa-share" aria-hidden="true"></i> <button id="clipboard">Share</button>
