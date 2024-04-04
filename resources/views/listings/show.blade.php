@@ -6,7 +6,7 @@
     <div class="mx-4">
         <x-card class="p-10">
             <div class="flex flex-col items-center justify-center text-center">
-                <img class="lg:w-8/12 lg:mr-6 mb-6" src="{{$listing->logo ? asset('storage/app/public/' . $listing->logo) : asset('/public/images/no-image.png')}}" alt="" />
+                <img class="lg:w-8/12 mb-6" src="{{$listing->logo ? asset('storage/app/public/' . $listing->logo) : asset('/public/images/no-image.png')}}" alt="" />
 
                 <h3 class="text-2xl mb-2">{{$listing->title}}</h3>
                 <div class="text-xl font-bold mb-4">{{date('l j F, Y', strtotime($listing->dateFrom))}} - {{date('l j F, Y', strtotime($listing->dateTo))}}</div>
