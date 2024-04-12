@@ -90,7 +90,7 @@
         <label for="people" class="inline-block text-lg mb-2">
           People present in album
         </label>
-        <select data-live-search="true" multiple="multiple" class="js-select2 form-control border border-gray-200 rounded p-2 w-full" name="people[]" id="people" >
+        <select data-live-search="true" multiple="multiple" class="js-select2 form-control border border-gray-200 rounded p-2 w-full" name="people[]" id="people" size="{{count($users)}}" >
           @foreach ($users as $user)
               <option value="{{$user->id}}" >
                 {{$user->name}}
