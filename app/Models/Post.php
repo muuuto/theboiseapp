@@ -39,4 +39,9 @@ class Post extends Model
     {
         return $this->hasMany(PostComment::class);
     }
+
+    public function hidedUser(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class);
+    }
 }

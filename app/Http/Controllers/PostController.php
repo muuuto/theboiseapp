@@ -27,6 +27,13 @@ class PostController extends Controller
             $posts = $category->posts;
         }
 
+        $hided = $user->hidedPost()->allRelatedIds()->all();
+        $posts->filter(function($value, $key) use ($hided, $posts) {
+            if(in_array($value->id, $hided)) {
+                $posts->forget($key);
+            }
+        });
+        
         $slogan = Slogan::all();
 
         if(count($slogan) > 0) {

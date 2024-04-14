@@ -74,4 +74,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Category::class, 'created_by');
     }
+
+    public function hidedPost(): BelongsToMany
+    {
+        return $this->belongsToMany(Post::class, 'post_user');
+    }
 }
