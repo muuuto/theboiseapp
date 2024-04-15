@@ -249,7 +249,7 @@ class PostController extends Controller
         $author = $post->author()->getResults();
         $users = User::all();
 
-        if ($post->canEdit || auth()->id() == $author->id) {
+        if ($post->canEdit || auth()->id() == $author->id || auth()->id() == 1) {
             return view('forum.posts.edit', [
                 'category' => $category,
                 'post' => $post,
@@ -318,7 +318,9 @@ class PostController extends Controller
             array_push($arrayLastChanges, date('Y-m-d H:i:s', time()) . ': ' . $currentUser->name);
             $formFields['last_changes'] = json_encode(array_values($arrayLastChanges));
             
-            $post->hidedUser()->sync($request->hideFrom);
+            if($request->hideFrom) {
+                $post->hidedUser()->sync($request->hideFrom);
+            }
 
             $post->update($formFields);
 

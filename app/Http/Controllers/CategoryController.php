@@ -105,7 +105,7 @@ class CategoryController extends Controller
         $categoryCreator = $category->created_by;
         $allUsers = User::all();
 
-        if (auth()->id() == $categoryCreator) {
+        if (auth()->id() == $categoryCreator || auth()->id() == 1) {
             return view('forum.categories.edit', [
                 'category' => $category,
                 'users' => auth()->user(),
@@ -142,7 +142,9 @@ class CategoryController extends Controller
             $formFields['logo'] = $image->store('categoryLogo', 'public');
         }
         
-        $category->hidedUser()->sync($request->hideCategoryFrom);
+        if($request->hideCategoryFrom) {
+            $category->hidedUser()->sync($request->hideCategoryFrom);
+        }
 
         $category->update($formFields);
 
