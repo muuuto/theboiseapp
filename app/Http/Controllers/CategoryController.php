@@ -121,7 +121,7 @@ class CategoryController extends Controller
         $categoryCreator = $category->created_by;
 
         // Make sure logged in user is owner
-        if($categoryCreator != auth()->id()) {
+        if($categoryCreator != auth()->id() || auth()->id() == 1) {
             abort(403, 'Unauthorized Action');
         }
         
