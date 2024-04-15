@@ -6,6 +6,7 @@ use App\Models\Post;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Category extends Model
 {
@@ -26,5 +27,10 @@ class Category extends Model
     // Relationship With Posts
     public function posts() {
         return $this->hasMany(Post::class, 'category_id')->latest();
+    }
+
+    public function hidedUser(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'categories_user');
     }
 }

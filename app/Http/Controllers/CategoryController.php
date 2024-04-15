@@ -25,6 +25,14 @@ class CategoryController extends Controller
             $categories = Category::all()->sortBy('title');
         }
 
+        $hided = $user->hidedCategories()->allRelatedIds()->all();
+        $categories->filter(function($value, $key) use ($hided, $categories) {
+            if(in_array($value->id, $hided)) {
+                $categories->forget($key);
+            }
+        });
+        
+
         $slogan = Slogan::all();
 
         if(count($slogan) > 0) {
@@ -43,9 +51,12 @@ class CategoryController extends Controller
      // Show Create Form
     public function create() {
         $user = auth()->user();
+        $users = User::all();
+
         if (auth()->user()) {
             return view('forum.categories.create', [
-                'user' => $user
+                'user' => $user,
+                'users' => $users
             ]);
         } else {
             abort(403, 'Unauthorized Action');
@@ -70,6 +81,12 @@ class CategoryController extends Controller
 
         $category = Category::create($formFields);
 
+        if($request->hideCategoryFrom) {
+            foreach($request->hideCategoryFrom as $person) {
+                $category->hidedUser()->attach($person);
+            }
+        }
+
         return redirect('/forum')->with('message', 'Category created successfully!');
     }
 
@@ -86,9 +103,14 @@ class CategoryController extends Controller
     // Show Edit Form
     public function edit(Category $category) {
         $categoryCreator = $category->created_by;
+        $allUsers = User::all();
 
         if (auth()->id() == $categoryCreator) {
-            return view('forum.categories.edit', ['category' => $category, 'users' => auth()->user()]);
+            return view('forum.categories.edit', [
+                'category' => $category,
+                'users' => auth()->user(),
+                'allUsers' => $allUsers
+            ]);
         } else {
             abort(403, 'Unauthorized Action');
         }
@@ -120,6 +142,10 @@ class CategoryController extends Controller
             $formFields['logo'] = $image->store('categoryLogo', 'public');
         }
         
+        if($request->hideCategoryFrom) {
+            $category->hidedUser()->sync($request->hideCategoryFrom);
+        }
+
         $category->update($formFields);
 
         return redirect('/forum/category/manage')->with('message', 'Category updated successfully!');
@@ -153,23 +179,6 @@ class CategoryController extends Controller
         $category->delete();
 
         return redirect('/forum/category/manage')->with('message', 'Category deleted successfully');
-    }
-
-    // Show single Category
-    public function show(Listing $listing) {
-        $user = auth()->user()['id'];
-        $username = auth()->user()['name'];
-        $comments = $listing->comments;
-        foreach($listing->users as $currentUser) {
-            if ($currentUser['id'] == $user) {
-                return view('listings.show', [
-                    'listing' => $listing,
-                    'comments' => $comments,
-                    'user' => $username
-                ]);
-            }
-        }
-        abort(403, 'Unauthorized Action');
     }
     
     // Store Comments Data

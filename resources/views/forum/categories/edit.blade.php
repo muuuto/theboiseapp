@@ -1,3 +1,10 @@
+@php
+    $oldPeople = [];
+    foreach($category->hidedUser as $people) {
+        array_push($oldPeople, $people->id);
+    }
+@endphp
+
 <x-layout>
     <a href="/forum/category/manage" class="inline-block text-black ml-5"><i class="fa-solid fa-arrow-left"></i> Back </a>
 
@@ -45,6 +52,25 @@
                     src="{{$category->logo ? asset('storage/' . $category->logo) : asset('/images/no-image.png')}}" alt="" value="{{asset('storage/' . $category->logo)}}" />
 
                 @error('logo')
+                    <p class="text-red-500 text-xs mt-1">{{$message}}</p>
+                @enderror
+            </div>
+
+            <div class="mb-6">
+                <label for="hideCategoryFrom" class="inline-block text-lg mb-2">
+                    Post hided from
+                </label>
+                
+                <select data-live-search="true" multiple="multiple" class="js-select2 form-control border border-gray-200 rounded p-2 w-full" name="hideCategoryFrom[]" id="hideCategoryFrom" >
+                    @foreach ($allUsers as $user)
+                        <option value="{{$user->id}}" @if (in_array($user->id, $oldPeople)) selected="selected" @style([
+                            'background-color: lightgreen']) @endif >
+                            {{$user->name}}
+                        </option>
+                    @endforeach
+                </select>
+                
+                @error('people')
                     <p class="text-red-500 text-xs mt-1">{{$message}}</p>
                 @enderror
             </div>

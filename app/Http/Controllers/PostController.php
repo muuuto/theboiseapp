@@ -23,6 +23,14 @@ class PostController extends Controller
     // Show all categories
     public function index(Category $category) {
         $user = auth()->user();
+        if ($category->hidedUser) {
+            $category->hidedUser->each(function ($hidedUser) use ($user) {
+                if($hidedUser->id == $user->id) {
+                    abort(403, 'Unauthorized Action');
+                };
+            });
+        }
+
         if ($user) {
             $posts = $category->posts;
         }
@@ -310,7 +318,7 @@ class PostController extends Controller
             array_push($arrayLastChanges, date('Y-m-d H:i:s', time()) . ': ' . $currentUser->name);
             $formFields['last_changes'] = json_encode(array_values($arrayLastChanges));
             
-            if($post->hidedUser()) {
+            if($request->hideFrom) {
                 $post->hidedUser()->sync($request->hideFrom);
             }
 
@@ -336,11 +344,10 @@ class PostController extends Controller
         }
         
         $attachments = json_decode($post->attachments, true);
-        if($attachments) {
-            foreach($attachments as $attachment) {
-                if($attachment && Storage::disk('public')->exists($attachment)) {
-                    Storage::disk('public')->delete($attachment);
-                }
+
+        foreach($attachments as $attachment) {
+            if($attachment && Storage::disk('public')->exists($attachment)) {
+                Storage::disk('public')->delete($attachment);
             }
         }
 
