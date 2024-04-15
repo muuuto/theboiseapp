@@ -318,9 +318,7 @@ class PostController extends Controller
             array_push($arrayLastChanges, date('Y-m-d H:i:s', time()) . ': ' . $currentUser->name);
             $formFields['last_changes'] = json_encode(array_values($arrayLastChanges));
             
-            if($request->hideFrom) {
-                $post->hidedUser()->sync($request->hideFrom);
-            }
+            $post->hidedUser()->sync($request->hideFrom);
 
             $post->update($formFields);
 

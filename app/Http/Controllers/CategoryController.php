@@ -142,9 +142,7 @@ class CategoryController extends Controller
             $formFields['logo'] = $image->store('categoryLogo', 'public');
         }
         
-        if($request->hideCategoryFrom) {
-            $category->hidedUser()->sync($request->hideCategoryFrom);
-        }
+        $category->hidedUser()->sync($request->hideCategoryFrom);
 
         $category->update($formFields);
 
