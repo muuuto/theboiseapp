@@ -55,9 +55,12 @@ class PostController extends Controller
      // Show Create Form
     public function create(Category $category) {
         $user = auth()->user();
+        $users = User::all();
+
         if (auth()->user()) {
             return view('forum.posts.create', [
                 'user' => $user,
+                'users' => $users,
                 'category' => $category
             ]);
         } else {
@@ -101,8 +104,14 @@ class PostController extends Controller
         $formFields['counter'] = 0;
         $formFields['category_id'] = $category->id;
 
-        Post::create($formFields);
+        $post = Post::create($formFields);
         
+        if($request->hideFrom) {
+            foreach($request->hideFrom as $person) {
+                $post->hidedUser()->attach($person);
+            }
+        }
+
         $email_data = array(
             'name' => $formFields['title']
         );
@@ -118,10 +127,18 @@ class PostController extends Controller
     // Show single Post
     public function show(Category $category, Post $post) {
         $user = auth()->user();
+        if ($post->hidedUser) {
+            $post->hidedUser->each(function ($hidedUser) use ($user) {
+                if($hidedUser->id == $user->id) {
+                    abort(403, 'Unauthorized Action');
+                };
+            });
+        }
+        
         $comments = $post->comments;
         $author = $post->author()->getResults()->name; 
         $attachments = json_decode($post->attachments, true);
-
+        
         if($post->is_private && ($post->author()->getResults()->id != auth()->id())) {
             abort(403, 'Unauthorized Action');
         }
@@ -222,13 +239,15 @@ class PostController extends Controller
     // Show Edit Form
     public function edit(Category $category, Post $post) {
         $author = $post->author()->getResults();
+        $users = User::all();
 
         if ($post->canEdit || auth()->id() == $author->id) {
             return view('forum.posts.edit', [
                 'category' => $category,
                 'post' => $post,
                 'author' => $author,
-                'user' => auth()->user()
+                'user' => auth()->user(),
+                'users' => $users
             ]);
         } else {
             abort(403, 'Unauthorized Action');
@@ -291,6 +310,10 @@ class PostController extends Controller
             array_push($arrayLastChanges, date('Y-m-d H:i:s', time()) . ': ' . $currentUser->name);
             $formFields['last_changes'] = json_encode(array_values($arrayLastChanges));
             
+            if($post->hidedUser()) {
+                $post->hidedUser()->sync($request->hideFrom);
+            }
+
             $post->update($formFields);
 
             return $this->show($category, $post)->with('message', 'Post updated successfully!');
@@ -313,22 +336,16 @@ class PostController extends Controller
         }
         
         $attachments = json_decode($post->attachments, true);
-        foreach($attachments as $attachment) {
-            if($attachment && Storage::disk('public')->exists($attachment)) {
-                Storage::disk('public')->delete($attachment);
+        if($attachments) {
+            foreach($attachments as $attachment) {
+                if($attachment && Storage::disk('public')->exists($attachment)) {
+                    Storage::disk('public')->delete($attachment);
+                }
             }
         }
 
         $post->delete();
 
         return redirect('/forum/' . $category->id)->with('message', 'Post deleted successfully');
-    }
-
-    public function likePost(Category $category, Post $post) {
-        // implement
-    }
-
-    public function dislikePost(Category $category, Post $post) {
-        // implement
     }
 }

@@ -1,3 +1,10 @@
+@php
+    $oldPeople = [];
+    foreach($post->hidedUser as $people) {
+        array_push($oldPeople, $people->id);
+    }
+@endphp
+
 <x-layout :category="$category" :post="$post">
     <a href="/forum/{{$category->id}}/{{$post->id}}" class="inline-block text-black ml-5"><i class="fa-solid fa-arrow-left"></i> Back </a>
 
@@ -108,6 +115,25 @@
                 <input type="checkbox" class="border border-gray-200 p-2 rounded-full grow h-6" name="is_private" value="{{$post->is_private}}" />
         
                 @error('is_private')
+                    <p class="text-red-500 text-xs mt-1">{{$message}}</p>
+                @enderror
+            </div>
+
+            <div class="mb-6">
+                <label for="hideFrom" class="inline-block text-lg mb-2">
+                    Post hided from
+                </label>
+                
+                <select data-live-search="true" multiple="multiple" class="js-select2 form-control border border-gray-200 rounded p-2 w-full" name="hideFrom[]" id="hideFrom" >
+                    @foreach ($users as $user)
+                        <option value="{{$user->id}}" @if (in_array($user->id, $oldPeople)) selected="selected" @style([
+                            'background-color: lightgreen']) @endif >
+                            {{$user->name}}
+                        </option>
+                    @endforeach
+                </select>
+                
+                @error('people')
                     <p class="text-red-500 text-xs mt-1">{{$message}}</p>
                 @enderror
             </div>
