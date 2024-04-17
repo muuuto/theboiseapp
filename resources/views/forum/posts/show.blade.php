@@ -49,7 +49,7 @@
                     <a href="/forum/{{$category->id}}/{{$post->id}}/edit">
                         <i class="fa-solid fa-pencil"></i> Edit post
                     </a>
-                    <form method="POST" action="/forum/{{$category->id}}/{{$post->id}}">
+                    <form method="POST" action="/forum/{{$category->id}}/{{$post->id}}/delete">
                         @csrf
                         @method('DELETE')
                         <button class="text-red-500"><i class="fa-solid fa-trash"></i> Delete Post</button>

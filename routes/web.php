@@ -148,10 +148,10 @@ Route::post('/forum/{category}/store', [PostController::class, 'store'])->middle
 Route::get('/forum/{category}/{post}/edit', [PostController::class, 'edit'])->middleware('auth')->name('forum.posts.edit');
 
 // Update Post
-Route::put('/forum/{category}/{post}', [PostController::class, 'update'])->middleware('auth')->name('forum.posts.update');
+Route::put('/forum/{category}/{post}/update', [PostController::class, 'update'])->middleware('auth')->name('forum.posts.update');
 
 // Delete Post
-Route::delete('/forum/{category}/{post}', [PostController::class, 'destroy'])->middleware('auth')->name('forum.posts.delete');
+Route::delete('/forum/{category}/{post}/delete', [PostController::class, 'destroy'])->middleware('auth')->name('forum.posts.delete');
 
 // Manage Post
 Route::get('/forum/{category}/manage', [PostController::class, 'manage'])->middleware('auth')->name('forum.posts.manage');

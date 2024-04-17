@@ -14,7 +14,7 @@
             <p class="mb-4">Edit: {{$post->title}}</p>
         </header>
 
-        <form method="POST" action="/forum/{{$category->id}}/{{$post->id}}" enctype="multipart/form-data">
+        <form method="POST" action="/forum/{{$category->id}}/{{$post->id}}/update" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 
