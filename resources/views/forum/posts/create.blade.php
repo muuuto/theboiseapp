@@ -72,7 +72,7 @@
           Post attachments
         </label>
         
-        <input type="file" multiple class="border border-gray-200 rounded p-2 w-full" accept="image/*" name="attachments[]" />
+        <input type="file" multiple class="border border-gray-200 rounded p-2 w-full" accept="image/*, application/pdf" name="attachments[]" />
 
         @error('attachments')
           <p class="text-red-500 text-xs mt-1">{{$message}}</p>

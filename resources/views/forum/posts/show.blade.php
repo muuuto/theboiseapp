@@ -17,12 +17,12 @@
                     </div>
                 </div>
 
-                @if($attachments)
+                @if($imageAttachments)
                     <br>
-                    <h3 class="text-xl mb-2">Attachments:</h3>
+                    <h3 class="text-xl mb-2">Image attachments:</h3>
                     <div class="w-8/12 flex flew-row items-center justify-center">
                         <br>
-                        @foreach ($attachments as $key => $attachment)
+                        @foreach ($imageAttachments as $key => $attachment)
                             <a href="{{asset('storage/app/public/' . $attachment)}}">
                                 <img class="lg:w-8/12 lg:mr-6 mb-6" src="{{asset('storage/app/public/' . $attachment)}}" />
                             </a>
@@ -30,6 +30,17 @@
                     </div>
                 @endif
             </div>
+            @if($pdfAttachments)
+                <br>
+                <h3 class="text-xl mb-2">Pdf attachments:</h3>
+                
+                <div class="w-8/12 flex flew-row">
+                    @foreach ($pdfAttachments as $key => $attachment)
+                        <br>
+                        <a href="{{asset('storage/app/public/' . $attachment)}}" target="_blank">{{$attachment}}</a>
+                    @endforeach
+                </div>
+            @endif
 
             @if(auth()->user()->id == $post->author()->getResults()->id)
                 <x-card class="mt-4 p-2 flex space-x-6">

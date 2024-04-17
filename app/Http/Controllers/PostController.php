@@ -99,13 +99,15 @@ class PostController extends Controller
             $jsonPaths = [];
             foreach($request->file('attachments') as $key => $file)
             {
-                $resizedImage = $this->accountController->resizeImage($file->path(), 256, 256);
-                $image = $this->accountController->imageConvert($resizedImage, 100);
-
-                array_push($jsonPaths, $image->store('attachments', 'public'));
+                if ($file->getMimeType() == "application/pdf") {
+                    array_push($jsonPaths, $file->store('attachments', 'public'));
+                } else {
+                    $resizedImage = $this->accountController->resizeImage($file->path(), 256, 256);
+                    $image = $this->accountController->imageConvert($resizedImage, 100);
+                    array_push($jsonPaths, $image->store('attachments', 'public'));
+                }
             }
-
-            $formFields['attachments'] = json_encode(array_values($jsonPaths));
+            $formFields['attachments'] = json_encode(array_values($jsonPaths));            
         }
 
         $formFields['author'] = auth()->id();
@@ -145,12 +147,24 @@ class PostController extends Controller
         
         $comments = $post->comments;
         $author = $post->author()->getResults()->name; 
+
+        $imageAttachments = [];
+        $pdfAttachments = [];
         $attachments = json_decode($post->attachments, true);
-        
+        if ($attachments) {
+            foreach ($attachments as $key => $attachment) {
+                if (pathinfo($attachment)["extension"] == "pdf") {
+                    array_push($pdfAttachments, $attachment);
+                } else {
+                    array_push($imageAttachments, $attachment);
+                }
+            }
+        }
+
         if($post->is_private && ($post->author()->getResults()->id != auth()->id())) {
             abort(403, 'Unauthorized Action');
         }
-
+        
         $formFields['counter'] = $post->counter + 1;
         $post->update($formFields);
 
@@ -160,7 +174,8 @@ class PostController extends Controller
             'comments' => $comments,
             'user' => $user,
             'author' => $author,
-            'attachments' => $attachments
+            'imageAttachments' => $imageAttachments,
+            'pdfAttachments' => $pdfAttachments
         ]);
     }
 
@@ -299,12 +314,14 @@ class PostController extends Controller
                 }
 
                 $jsonPaths = [];
-                foreach($request->file('attachments') as $key => $file)
-                {
-                    $resizedImage = $this->accountController->resizeImage($file->path(), 256, 256);
-                    $image = $this->accountController->imageConvert($resizedImage, 100);
-
-                    array_push($jsonPaths, $image->store('attachments', 'public'));
+                foreach($request->file('attachments') as $key => $file) {
+                    if ($file->getMimeType() == "application/pdf") {
+                        array_push($jsonPaths, $file->store('attachments', 'public'));
+                    } else {
+                        $resizedImage = $this->accountController->resizeImage($file->path(), 256, 256);
+                        $image = $this->accountController->imageConvert($resizedImage, 100);
+                        array_push($jsonPaths, $image->store('attachments', 'public'));
+                    }
                 }
 
                 $formFields['attachments'] = json_encode(array_values($jsonPaths));
