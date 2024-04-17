@@ -35,10 +35,12 @@
                 <h3 class="text-xl mb-2">Pdf attachments:</h3>
                 
                 <div class="w-8/12 flex flex-col">
-                    @foreach ($pdfAttachments as $key => $attachment)
+                    <p>
+                        @foreach ($pdfAttachments as $key => $attachment)
                         <br>
-                        <a href="{{asset('storage/app/public/' . $attachment)}}" target="_blank">{{$attachment}}</a>
-                    @endforeach
+                        <a href="{{asset('storage/app/public/' . $attachment)}}" target="_blank">Attachment {{($key + 1)}}</a>
+                        @endforeach
+                    </p>
                 </div>
             @endif
 
