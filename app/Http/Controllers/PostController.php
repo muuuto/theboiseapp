@@ -306,10 +306,12 @@ class PostController extends Controller
 
             if($request->file('attachments')) {
                 $attachments = json_decode($post->attachments, true);
-                foreach($attachments as $attachment)
-                {
-                    if($attachment && Storage::disk('public')->exists($attachment)) {
-                        Storage::disk('public')->delete($attachment);
+                if ($attachments) {
+                    foreach($attachments as $attachment)
+                    {
+                        if($attachment && Storage::disk('public')->exists($attachment)) {
+                            Storage::disk('public')->delete($attachment);
+                        }
                     }
                 }
 
