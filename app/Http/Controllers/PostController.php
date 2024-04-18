@@ -24,9 +24,9 @@ class PostController extends Controller
     public function index(Category $category) {
         $user = auth()->user();
         if ($category->hidedUser) {
-            $category->hidedUser->each(function ($hidedUser) use ($user, $category) {
+            $category->hidedUser->each(function ($hidedUser) use ($user) {
                 if($hidedUser->id == $user->id) {
-                    return redirect('/forum')->with('message', 'You do not have privileges to view this content');
+                    abort(403, 'Unauthorized Action');
                 };
             });
         }
@@ -72,7 +72,7 @@ class PostController extends Controller
                 'category' => $category
             ]);
         } else {
-            return redirect('/forum/' . $category->id)->with('message', 'You do not have privileges to perform this action');
+            abort(403, 'Unauthorized Action');
         }
     }
 
@@ -138,9 +138,9 @@ class PostController extends Controller
     public function show(Category $category, Post $post) {
         $user = auth()->user();
         if ($post->hidedUser) {
-            $post->hidedUser->each(function ($hidedUser) use ($user, $category) {
+            $post->hidedUser->each(function ($hidedUser) use ($user) {
                 if($hidedUser->id == $user->id) {
-                    return redirect('/forum/' . $category->id)->with('message', 'You do not have privileges to view this content');
+                    abort(403, 'Unauthorized Action');
                 };
             });
         }
@@ -162,7 +162,7 @@ class PostController extends Controller
         }
 
         if($post->is_private && ($post->author()->getResults()->id != auth()->id())) {
-            return redirect('/forum/' . $category->id)->with('message', 'You do not have privileges to view this content');
+            abort(403, 'Unauthorized Action');
         }
         
         $formFields['counter'] = $post->counter + 1;
@@ -273,7 +273,7 @@ class PostController extends Controller
                 'users' => $users
             ]);
         } else {
-            return redirect('/forum/' . $category->id)->with('message', 'You do not have privileges to perform this action');
+            abort(403, 'Unauthorized Action');
         }
     }
 
@@ -345,7 +345,7 @@ class PostController extends Controller
 
             return $this->show($category, $post)->with('message', 'Post updated successfully!');
         } else {
-            return redirect('/forum/' . $category->id)->with('message', 'You do not have privileges to perform this action');
+            abort(403, 'Unauthorized Action');
         }
     }
 
@@ -355,7 +355,7 @@ class PostController extends Controller
         $author = $post->author()->getResults();
 
         if($author->id != auth()->id()) {
-            return redirect('/forum/' . $category->id)->with('message', 'You do not have privileges to perform this action');
+            abort(403, 'Unauthorized Action');
         }
 
         if($post->cover && Storage::disk('public')->exists($post->cover)) {
