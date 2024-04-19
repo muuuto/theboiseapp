@@ -31,19 +31,19 @@
                     People in this album
                 </h3>
                 @if(count($listing->users) < 6)
-                    <div class="lg:grid lg:grid-cols-{{count($listing->users)}} gap-4 grid grid-cols-2 space-y-4 md:space-y-0 mx-4">
+                    <div class="lg:grid lg:grid-cols-{{count($listing->users)}} gap-4 w-full grid grid-cols-2 space-y-4 md:space-y-0 mx-4">
                 @else
-                    <div class="lg:grid lg:grid-cols-6 gap-4 grid grid-cols-2 space-y-4 md:space-y-0 mx-4">
+                    <div class="lg:grid lg:grid-cols-6 gap-4 grid grid-cols-2 w-full space-y-4 md:space-y-0 mx-4">
                 @endif
                     @unless (count($listing->users) == 0)
                         @foreach ($listing->users as $user)
                             <div class="flex-column flex-warp text-center justify-self-center self-end">
                                 <img
-                                    class="lg:mr-6 md:block mb-4"
+                                    class="md:block max-w-24 m-auto mb-4"
                                     src="{{$user->profilePicture ? asset('storage/app/public/' . $user->profilePicture) : asset('/images/user.webp')}}"
                                     alt=""
                                 />
-                                <div class="lg:mr-6 md:block mb-4">
+                                <div class="m-auto md:block mb-4">
                                     {{$user->name}}
                                 </div>
                             </div>

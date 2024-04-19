@@ -40,7 +40,7 @@ class AccountController extends Controller
         ]);
 
         if ($request->hasFile('profilePicture')) {
-            $resizedImage = $this->resizeImage($request->file('profilePicture')->path(), 144, 144);
+            $resizedImage = $this->resizeImage($request->file('profilePicture')->path(), 384, 384);
             $image = $this->imageConvert($resizedImage, 100);
 
             if (is_null($user->profilePicture)) {
