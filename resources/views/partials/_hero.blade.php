@@ -8,7 +8,7 @@
             The<span class="text-black">Boise</span>
         </h1>
         <p class="text-2xl text-gray-200 font-bold my-4">
-            {{$slogan["sloganPhrase"]}} - by {{$slogan["author"]}}
+            {!! $slogan["sloganPhrase"] !!} - by {{$slogan["author"]}}
         </p>
         <div>
             <a href="/zeccaGay"
