@@ -102,7 +102,7 @@ class PostController extends Controller
                 if ($file->getMimeType() == "application/pdf") {
                     array_push($jsonPaths, $file->store('attachments', 'public'));
                 } else {
-                    $resizedImage = $this->accountController->resizeImage($file->path(), 256, 256);
+                    $resizedImage = $this->accountController->resizeImage($file->path(), 512, 512);
                     $image = $this->accountController->imageConvert($resizedImage, 100);
                     array_push($jsonPaths, $image->store('attachments', 'public'));
                 }
@@ -320,7 +320,7 @@ class PostController extends Controller
                     if ($file->getMimeType() == "application/pdf") {
                         array_push($jsonPaths, $file->store('attachments', 'public'));
                     } else {
-                        $resizedImage = $this->accountController->resizeImage($file->path(), 256, 256);
+                        $resizedImage = $this->accountController->resizeImage($file->path(), 512, 512);
                         $image = $this->accountController->imageConvert($resizedImage, 100);
                         array_push($jsonPaths, $image->store('attachments', 'public'));
                     }
