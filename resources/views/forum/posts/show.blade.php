@@ -44,8 +44,8 @@
                 </div>
             @endif
 
-            @if(auth()->user()->id == $post->author()->getResults()->id)
-                <x-card class="mt-4 p-2 flex space-x-6">
+            <x-card class="mt-4 p-2 flex space-x-6">
+                @if(auth()->user()->id == $post->author()->getResults()->id)
                     <a href="/forum/{{$category->id}}/{{$post->id}}/edit">
                         <i class="fa-solid fa-pencil"></i> Edit post
                     </a>
@@ -65,9 +65,7 @@
                             </a>
                         </div>
                     </div>
-                </x-card>
-            @elseif($post->canEdit)
-                <x-card class="mt-4 p-2 flex space-x-6">
+                @elseif($post->canEdit)
                     <a href="/forum/{{$category->id}}/{{$post->id}}/edit">
                         <i class="fa-solid fa-pencil"></i> Edit post
                     </a>
@@ -81,9 +79,7 @@
                             </a>
                         </div>
                     </div>
-                </x-card>
-            @else
-                <x-card class="mt-4 p-2 flex space-x-6">
+                @else
                     <div x-data="{ input: '{{url()->full()}}', showMsg: false }" > 
                         <div class="w-full overflow-hidden">
                             <a type="button" @click="navigator.clipboard.writeText(input), showMsg = true, setTimeout(() => showMsg = false, 1000)">
@@ -94,8 +90,13 @@
                             </a>
                         </div>
                     </div>
-                </x-card>
-            @endif
+                @endif
+                @if(auth()->user()->id == 1)
+                    <a href="/forum/{{$category->id}}/{{$post->id}}/notify">
+                        <i class="fa-solid fa-envelope"></i> Notify all
+                    </a>
+                @endif
+            </x-card>
             
             <div class="mx-2">
                 <h2>Comments</h2>

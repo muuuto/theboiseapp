@@ -162,6 +162,9 @@ Route::get('/forum/{category}/{post}', [PostController::class, 'show'])->middlew
 // Show Create Form
 Route::post('/forum/{category}/{post}/comment', [PostController::class, 'comment'])->middleware('auth')->name('forum.posts.comment');
 
+// Send Post
+Route::get('/forum/{category}/{post}/notify', [PostController::class, 'notify'])->middleware('auth')->name('forum.posts.notify');
+
 Route::get('/clear-cache', function() {
     $exitCode = Artisan::call('cache:clear');
     $exitCode = Artisan::call('optimize:clear');

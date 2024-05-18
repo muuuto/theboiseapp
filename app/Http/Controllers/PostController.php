@@ -277,6 +277,30 @@ class PostController extends Controller
         }
     }
 
+    // Send post
+    public function notify(Category $category, Post $post) {
+        if($post->hidedUser) {
+            $users = User::all();
+            $allowedUsers = $users->diff($post->hidedUser);
+            foreach ($allowedUsers as $key => $user) {
+                $email_data = array(
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'postTitle' => $post->title,
+                    'postLink' => 'https://theboise.it/forum/' . $category->id . '/' . $post->id
+                );
+        
+                Mail::send('/mails/notify_post', $email_data, function ($message) use ($email_data, $post) {
+                    $message->to($email_data['email'], $email_data['name'])
+                        ->subject('Check out this new post inside forum: ' . $post->title . ' - theboise.it')
+                        ->from('info@theboise.it', 'TheBoise');
+                });
+            }
+
+            return back()->with('message', 'Notification created successfully!');
+        }
+    }
+
     // Update Post Data
     public function update(Request $request, Category $category, Post $post) {
         $author = $post->author()->getResults();
