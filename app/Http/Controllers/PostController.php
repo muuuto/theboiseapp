@@ -297,7 +297,7 @@ class PostController extends Controller
                 });
             }
 
-            return back()->with('message', 'Notification created successfully!');
+            return $this->redirect('/forum/' . $category->id . '/' . $post->id)->with('message', 'Notification created successfully!');
         }
     }
 
@@ -367,7 +367,7 @@ class PostController extends Controller
 
             $post->update($formFields);
 
-            return $this->show($category, $post)->with('message', 'Post updated successfully!');
+            return $this->redirect('/forum/' . $category->id . '/' . $post->id)->with('message', 'Post updated successfully!');
         } else {
             abort(403, 'Unauthorized Action');
         }
