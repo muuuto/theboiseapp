@@ -98,11 +98,13 @@
                         >Manage Posts</a
                     >
                 @else
-                    <a
-                        href="/slogan/create"
-                        class="bg-black rounded-xl text-white py-2 px-5 self-center ml-9"
-                        >Post Slogan</a
-                    >
+                    @if(auth()->user()->id != 28)
+                        <a
+                            href="/slogan/create"
+                            class="bg-black rounded-xl text-white py-2 px-5 self-center ml-9"
+                            >Post Slogan</a
+                        >
+                    @endif
                 @endif
 
                 @if(Route::is('forum.categories.*') )

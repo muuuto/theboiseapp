@@ -8,17 +8,34 @@
             The<span class="text-black">Boise</span>
         </h1>
         <p class="text-2xl text-gray-200 font-bold my-4">
-            {!! $slogan["sloganPhrase"] !!} - by {{$slogan["author"]}}
+            @if (auth()->user()->id == 28)
+                Welcome to THEBOISE.IT
+            @else
+                {!! $slogan["sloganPhrase"] !!} - by {{$slogan["author"]}}
+            @endif
         </p>
-        <div>
-            <a href="/zeccaGay"
-                class="inline-block my-2 border-2 border-white text-white py-2 px-4 rounded-xl uppercase mt-2 hover:text-black hover:border-black"
-            >Is Zecca gay?</a>
-        </div>
-        <div>
-            <a href="https://paypal.me/zeccasupergay"
-                class="inline-block  my-4 border-2 border-white text-white py-2 px-4 rounded-xl uppercase mt-2 hover:text-black hover:border-black"
+        @if (auth()->user()->id != 28)
+            <div>
+                <a href="/zeccaGay"
+                    class="inline-block my-2 border-2 border-white text-white py-2 px-4 rounded-xl uppercase mt-2 hover:text-black hover:border-black"
+                >Is Zecca gay?</a>
+            </div>
+            <div>
+                <a href="https://paypal.me/zeccasupergay"
+                    class="inline-block  my-4 border-2 border-white text-white py-2 px-4 rounded-xl uppercase mt-2 hover:text-black hover:border-black"
                 >Offer me a sprissino</a>
-        </div>
+            </div>
+            @else
+            <div>
+                <a href="https://theboise.it/forum"
+                class="inline-block  my-4 border-2 border-white text-white py-2 px-4 rounded-xl uppercase mt-2 hover:text-black hover:border-black"
+                >Visit our Forum</a>
+            </div>
+            <div>
+                <a href="https://github.com/muuuto/theboiseapp.git"
+                    class="inline-block  my-4 border-2 border-white text-white py-2 px-4 rounded-xl uppercase mt-2 hover:text-black hover:border-black"
+                >Source code of the project</a>
+            </div>
+        @endif
     </div>
 </section>
