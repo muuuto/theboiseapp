@@ -5,11 +5,6 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="title" content="TheBoise.it" />
-        @if(Route::is('forum.posts.show'))
-            <meta name="description" content="Post inside TheBoise: {{$post->title}}">
-        @else
-            <meta name="description" content="TheBoise: more than 100 albumses, find out if zecca is truly gay and visit the forumses.">
-        @endif
         <link rel="icon" href="{{asset('images/logo.png')}}" />
         <x-head.tinymce-config/>
         <link
