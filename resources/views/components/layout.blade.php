@@ -33,7 +33,13 @@
                 },
             };
         </script>
-        <title>TheBoise | Find your album XD</title>
+        @if(auth()->user()->id == 28)
+            <title>TheBoise | Find your album</title>
+            <meta name="description" content="TheBoise: more than 100 albums, visit the forum and much more.">
+        @else
+            <title>TheBoise | Find your album XD</title>
+            <meta name="description" content="TheBoise: more than 100 albumses, find out if zecca is truly gay and visit the forumses.">
+        @endif
     </head>
     <body class="mb-48 bg-slate-100">
         <nav class="flex justify-between items-center mb-4">
