@@ -28,7 +28,7 @@
                 },
             };
         </script>
-        @if(auth()->user()->id == 28)
+        @if(auth()->user() && auth()->user()->id == 28)
             <title>TheBoise | Find your album</title>
             <meta name="description" content="TheBoise: more than 100 albums, visit the forum and much more.">
         @else
