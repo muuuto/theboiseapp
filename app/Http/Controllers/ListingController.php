@@ -28,7 +28,7 @@ class ListingController extends Controller
         }
         
         return view('listings.index', [
-            'listings' => $user ? $listings->filter(request(['tag', 'search']))->paginate(24) : [],
+            'listings' => $user ? $listings->filter(request(['tag', 'search']))->paginate(24)->withQueryString() : [],
             'slogan' => $randomSlogan
         ]);
     }
