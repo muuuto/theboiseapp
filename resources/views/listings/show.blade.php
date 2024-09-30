@@ -95,8 +95,8 @@
                     <div class="mb-6 flex flex-col items-center justify-center">
                         <input type="hidden" name="user_id" value="{{$user->id}}">
                         <input type="hidden" name="listing_id" value="{{$listing->id}}">
-                        <input type="text" class="m-2 border border-gray-200 rounded p-2 w-full" name="comment"
-                            placeholder="Example: my favorite photo is.." value="{{old('comment')}}" />
+                        <textarea id="tinyMceTextArea" class="m-2 border border-gray-200 rounded p-2 w-full" name="comment"
+                            placeholder="Example: my favorite photo is.." value="{{old('comment')}}">{{old('description')}}</textarea>
                         <button class="lg:w-4/12 m-2 bg-laravel text-white rounded py-2 px-4 hover:bg-black">
                             Add Comment
                         </button>
