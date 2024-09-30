@@ -92,7 +92,7 @@
             <div>
                 <form method="POST" action="/listings/comments">
                     @csrf
-                    <div class="mb-6 flex flex-col items-center justify-center">
+                    <div class="mb-6 flex flex-col">
                         <input type="hidden" name="user_id" value="{{$user->id}}">
                         <input type="hidden" name="listing_id" value="{{$listing->id}}">
                         <textarea id="tinyMceTextArea" class="m-2 border border-gray-200 rounded p-2 w-full" name="comment"
