@@ -64,7 +64,7 @@
                     @method('DELETE')
                     <button class="text-red-500"><i class="fa-solid fa-trash"></i> Delete</button>
                 </form>
-                <div x-data="{ input: '{{$listing->albumLink}}', showMsg: false }" > 
+                <div x-data="{ input: '{{$listing->albumLink}}', showMsg: false }" >
                     <div class="w-full overflow-hidden">
                         <a type="button" @click="navigator.clipboard.writeText(input), showMsg = true, setTimeout(() => showMsg = false, 1000)">
                             <i class="fa fa-share" aria-hidden="true"></i> <button id="clipboard">Share</button>
@@ -76,7 +76,7 @@
                 </div>
             </x-card>
         @else
-            <div class ="mx-4" x-data="{ input: '{{$listing->albumLink}}', showMsg: false }" > 
+            <div class ="mx-4" x-data="{ input: '{{$listing->albumLink}}', showMsg: false }" >
                 <div class="w-full overflow-hidden">
                     <a type="button" @click="navigator.clipboard.writeText(input), showMsg = true, setTimeout(() => showMsg = false, 1000)">
                         <i class="fa fa-share" aria-hidden="true"></i> <button id="clipboard">Share</button>
@@ -112,14 +112,14 @@
                                 class="w-16 max-h-16 mr-6 md:block rounded-full items-center object-cover"
                                 src="{{$comment->user->profilePicture ? asset('storage/app/public/' . $comment->user->profilePicture) : asset('/images/user.webp')}}"
                                 alt=""
-                                />                            
+                                />
                             </div>
                             <div>
                                 <div class="font-bold">
-                                    {{$comment->user->name}} 
+                                    {{$comment->user->name}}
                                 </div>
                                 <p>
-                                    {{$comment->comment}} XD
+                                    {!! $comment->comment !!}} XD
                                 </p>
                                 <div class="text-slate-400">
                                     {{date('j F, Y h:i:s A', strtotime($comment->created_at))}}
