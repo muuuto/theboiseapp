@@ -119,7 +119,7 @@
                                     {{$comment->user->name}}
                                 </div>
                                 <p>
-                                    {!! $comment->comment !!}} XD
+                                    {!! $comment->comment !!} XD
                                 </p>
                                 <div class="text-slate-400">
                                     {{date('j F, Y h:i:s A', strtotime($comment->created_at))}}
