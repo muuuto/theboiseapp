@@ -26,7 +26,7 @@ class ListingController extends Controller
         } else {
             $randomSlogan["sloganPhrase"] = "Find your albums";
         }
-        
+
         return view('listings.index', [
             'listings' => $user ? $listings->filter(request(['tag', 'search']))->paginate(24)->withQueryString() : [],
             'slogan' => $randomSlogan
@@ -87,7 +87,7 @@ class ListingController extends Controller
         $users = User::findOrFail($request->people);
 
         $albumTitle = $formFields['title'];
-        
+
         $listing = Listing::create($formFields);
 
         foreach($users as $user) {
@@ -128,7 +128,7 @@ class ListingController extends Controller
         if($listing->user_id != auth()->id()) {
             abort(403, 'Unauthorized Action');
         }
-        
+
         $formFields = $request->validate([
             'title' => 'required',
             'dateFrom' => 'required',
@@ -138,7 +138,7 @@ class ListingController extends Controller
             'tags' => 'required',
             'description' => 'required'
         ]);
-        
+
         $formPeopleField = $request->validate([
             'people' => 'required'
         ]);
@@ -147,7 +147,7 @@ class ListingController extends Controller
             Storage::disk('public')->delete($listing->logo);
             $formFields['logo'] = $request->file('logo')->store('logos', 'public');
         }
-        
+
         $listing->users()->sync($request->people);
 
         $listing->update($formFields);
@@ -177,7 +177,7 @@ class ListingController extends Controller
 
         return view('listings.manage', ['listings' => $user ? $listings : []]);
     }
-    
+
     // Store Comments Data
     public function comments(Request $request, Listing $listing) {
         $formFields = $request->validate([
@@ -192,16 +192,17 @@ class ListingController extends Controller
 
         $users = Listing::findOrFail($request->listing_id)->users;
         $albumTitle = Listing::findOrFail($request->listing_id)->title;
+        $commentOfUser = User::findOrFail($userId)->name;
 
         foreach($users as $user) {
             if($userId == $user['id']) {
                 continue;
             }
-            
+
             $email_data = array(
                 'name' => $user['name'],
                 'email' => $user['email'],
-                'commentOfUser' => $user->name,
+                'commentOfUser' => $commentOfUser,
                 'comment' => $formFields['comment'],
                 'albumTitle' => $albumTitle,
                 'albumLink' => 'https://theboise.it/listings/' . $formFields['listing_id']
@@ -214,7 +215,7 @@ class ListingController extends Controller
         }
 
         Comment::create($formFields);
-        
+
         return back()->with('message', 'Comment created successfully!');
     }
 }

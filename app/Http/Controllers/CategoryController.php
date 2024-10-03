@@ -190,7 +190,7 @@ class CategoryController extends Controller
         ]);
 
         $users = Listing::findOrFail($request->listing_id)->users;
-        $commentOfUser = User::findOrFail($formFields['user_id'])->name;
+        $commentOfUser = User::findOrFail(auth()->id())->name;
         $albumTitle = Listing::findOrFail($request->listing_id)->title;
 
         foreach($users as $user) {
