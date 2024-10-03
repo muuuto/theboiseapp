@@ -31,7 +31,7 @@ class CategoryController extends Controller
                 $categories->forget($key);
             }
         });
-        
+
 
         $slogan = Slogan::all();
 
@@ -40,7 +40,7 @@ class CategoryController extends Controller
         } else {
             $randomSlogan["sloganPhrase"] = "Find your albums";
         }
-        
+
         return view('forum.categories.index', [
             'user' => $user,
             'slogan' => $randomSlogan,
@@ -76,7 +76,7 @@ class CategoryController extends Controller
         $image = $this->accountController->imageConvert($resizedImage, 100);
 
         $formFields['logo'] = $image->store('categoryLogo', 'public');
-        
+
         $formFields['created_by'] = auth()->id();
 
         $category = Category::create($formFields);
@@ -124,7 +124,7 @@ class CategoryController extends Controller
         if($categoryCreator != auth()->id() || auth()->id() != 1) {
             abort(403, 'Unauthorized Action');
         }
-        
+
         $formFields = $request->validate([
             'title' => 'required',
             'tags' => 'required',
@@ -141,7 +141,7 @@ class CategoryController extends Controller
 
             $formFields['logo'] = $image->store('categoryLogo', 'public');
         }
-        
+
         if($request->hideCategoryFrom) {
             $category->hidedUser()->sync($request->hideCategoryFrom);
         }
@@ -167,7 +167,7 @@ class CategoryController extends Controller
             if($post->cover && Storage::disk('public')->exists($post->cover)) {
                 Storage::disk('public')->delete($post->cover);
             }
-            
+
             $attachments = json_decode($post->attachments, true);
             foreach($attachments as $attachment) {
                 if($attachment && Storage::disk('public')->exists($attachment)) {
@@ -180,7 +180,7 @@ class CategoryController extends Controller
 
         return redirect('/forum/category/manage')->with('message', 'Category deleted successfully');
     }
-    
+
     // Store Comments Data
     public function comments(Request $request) {
         $formFields = $request->validate([
@@ -190,7 +190,7 @@ class CategoryController extends Controller
         ]);
 
         $users = Listing::findOrFail($request->listing_id)->users;
-        $commentOfUser = User::findOrFail($request->user_id)->name;
+        $commentOfUser = User::findOrFail(auth()->id())->name;
         $albumTitle = Listing::findOrFail($request->listing_id)->title;
 
         foreach($users as $user) {
@@ -209,7 +209,7 @@ class CategoryController extends Controller
         }
 
         $listing = Comment::create($formFields);
-        
+
         return back()->with('message', 'Comment created successfully!');
     }
 }
