@@ -16,7 +16,7 @@ class ListingController extends Controller
     public function index() {
         $user = auth()->user();
         if ($user) {
-            $listings = $user->listing()->orderBy('dateFrom', 'desc');
+            $listings = $user->listing();
         }
 
         $slogan = Slogan::all();
@@ -28,7 +28,7 @@ class ListingController extends Controller
         }
 
         return view('listings.index', [
-            'listings' => $user ? $listings->filter(request(['tag', 'search']))->paginate(24)->withQueryString() : [],
+            'listings' => $user ? $listings->filter(request(['tag', 'search']))->paginate(24)->withQueryString()->orderBy('dateFrom', 'desc') : [],
             'slogan' => $randomSlogan
         ]);
     }
