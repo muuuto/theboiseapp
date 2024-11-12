@@ -21,11 +21,19 @@
       @if($randomNum > 98)
         <a class="lg:w-4/12 m-2 bg-laravel text-white rounded py-2 px-4 hover:bg-black text-center self-center" href="https://theboise.it/zeccaGay">Try again</a>
       @else
-        <div class="hidden">
-          <audio controls>
-            <source src="{{asset('zue.mp3')}}" autoplay type="audio/mpeg"> 
-          </audio>
+        <audio id="audio-player" src="{{ asset('zue.mp3') }}" preload="auto"></audio>
+        <div class="flex self-center">
+          <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full" onclick="document.getElementById('audio-player').play();">Try me</button>
         </div>
+
+        <script>
+          document.addEventListener('DOMContentLoaded', function () {
+                const audio = document.getElementById('audio-player');
+                audio.play().catch(error => {
+                    console.log("Audio playback failed:", error);
+                });
+          });
+        </script>
       @endif
     </x-card>
   </x-layout>
