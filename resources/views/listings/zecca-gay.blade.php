@@ -20,6 +20,7 @@
       </h2>
       @if($randomNum > 98)
         <a class="lg:w-4/12 m-2 bg-laravel text-white rounded py-2 px-4 hover:bg-black text-center self-center" href="https://theboise.it/zeccaGay">Try again</a>
+      @else
         <audio controls>
           <source src="{{asset('zue.mp3')}}" type="audio/mpeg"> 
         </audio>
