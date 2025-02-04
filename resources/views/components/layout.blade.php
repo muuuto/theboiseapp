@@ -37,7 +37,7 @@
         @endif
     </head>
     <body class="mb-48 bg-slate-100">
-        <header class="navbar navbar-expand bd-navbar flex justify-between items-center mb-4">
+        <nav class="sticky top-0 bg-slate-100 flex justify-between items-center mb-4">
             <a href="/"
                 ><img class="w-24" src="{{asset('images/logo.png')}}" alt="" class="logo"
             /></a>
@@ -78,7 +78,7 @@
                 </li>
                 @endauth
             </ul>
-        </header>
+        </nav>
 
         <main>
             {{$slot}}
