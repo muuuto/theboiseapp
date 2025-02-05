@@ -8,7 +8,7 @@
                 src="{{$listing->logo ? asset('storage/app/public/' . $listing->logo) : asset('/images/no-image.png')}}"
                 alt=""
             />
-            <div class="pl-4 pb-4">
+            <div class="md:pl-3 md:pb-3 md:pr-3 pt-2">
                 <h3 class="text-2xl">
                     <div>{{$listing->title}}</div>
                 </h3>
