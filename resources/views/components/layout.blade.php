@@ -85,7 +85,7 @@
         </main>
 
         @if(auth()->user())
-            <footer class="fixed z-10 bottom-0 left-0 w-full flex flex-row font-bold bg-teal-600 text-white h-16 mt-24 opacity-90 justify-between">
+            <footer class="fixed z-10 bottom-0 left-0 w-full flex flex-row font-bold bg-teal-600 text-white h-16 mt-4 justify-between">
                 @if(Route::is('forum.categories.*'))
                     <a
                         href="/forum/category/manage"
