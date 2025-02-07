@@ -36,7 +36,7 @@
             <meta name="description" content="TheBoise: more than 100 albumses, find out if zecca is truly gay and visit the forumses.">
         @endif
     </head>
-    <body class="mb-48 bg-slate-100">
+    <body class="mb-24 bg-slate-100">
         <nav class="sticky top-0 z-20 bg-slate-100 flex justify-between items-center">
             <a href="/"
                 ><img class="w-24" src="{{asset('images/logo.png')}}" alt="" class="logo"
