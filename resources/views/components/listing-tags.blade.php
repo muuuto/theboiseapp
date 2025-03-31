@@ -1,13 +1,12 @@
-@props(['tagsCsv', 'containVideo'])
+@props([
+    'tagsCsv',
+    'containVideo' => null,
+])
 
 @php
     $tags = explode(',', $tagsCsv);
     
-    if ($containVideo != null) {
-        $videoLinks = true;
-    } else {
-        $videoLinks = false;
-    }
+    $videoLinks = !empty($containVideo);
 @endphp
 
 <ul class="flex flex-wrap">
