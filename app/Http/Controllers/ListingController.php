@@ -13,7 +13,8 @@ use App\Models\Comment;
 class ListingController extends Controller
 {
     // Show all listings
-    public function index() {
+    public function index()
+    {
         $user = auth()->user();
         if ($user) {
             $listings = $user->listing();
@@ -21,7 +22,7 @@ class ListingController extends Controller
 
         $slogan = Slogan::all();
 
-        if(count($slogan) > 0) {
+        if (count($slogan) > 0) {
             $randomSlogan = $slogan->random();
         } else {
             $randomSlogan["sloganPhrase"] = "Find your albums";
@@ -34,13 +35,14 @@ class ListingController extends Controller
     }
 
     // Show single listing
-    public function show(Listing $listing) {
+    public function show(Listing $listing)
+    {
         $user = auth()->user()['id'];
         $username = auth()->user()['name'];
         $comments = $listing->comments;
         $videoLinks = explode(',', $listing->videoLinks);
 
-        foreach($listing->users as $currentUser) {
+        foreach ($listing->users as $currentUser) {
             if ($currentUser['id'] == $user) {
                 return view('listings.show', [
                     'listing' => $listing,
@@ -54,7 +56,8 @@ class ListingController extends Controller
     }
 
     // Show Create Form
-    public function create() {
+    public function create()
+    {
         $users = User::all();
         $user = auth()->user()['isAdmin'];
         if ($user == 1) {
@@ -65,7 +68,8 @@ class ListingController extends Controller
     }
 
     // Store Listing Data
-    public function store(Request $request, Listing $listing) {
+    public function store(Request $request, Listing $listing)
+    {
         $formFields = $request->validate([
             'title' => 'required',
             'dateFrom' => 'required',
@@ -80,11 +84,12 @@ class ListingController extends Controller
             'people' => 'required'
         ]);
 
-        if($request->hasFile('logo')) {
+        if ($request->hasFile('logo')) {
             $formFields['logo'] = $request->file('logo')->store('logos', 'public');
         }
 
-        if($request->has('videoLinks')) {
+        if ($request->has('videoLinks')) {
+            array_push($formFields['tags'], 'Youtube');
             $formFields['videoLinks'] = $request->videoLinks;
         }
 
@@ -97,7 +102,7 @@ class ListingController extends Controller
 
         $listing = Listing::create($formFields);
 
-        foreach($users as $user) {
+        foreach ($users as $user) {
             // email data
             $email_data = array(
                 'name' => $user['name'],
@@ -111,7 +116,7 @@ class ListingController extends Controller
                     ->from('info@theboise.it', 'TheBoise');
             });
         }
-        foreach($request->people as $person) {
+        foreach ($request->people as $person) {
             $listing->users()->attach($person);
         }
 
@@ -119,7 +124,8 @@ class ListingController extends Controller
     }
 
     // Show Edit Form
-    public function edit(Listing $listing) {
+    public function edit(Listing $listing)
+    {
         $users = User::all();
         $user = auth()->user()['isAdmin'];
         if ($user == 1) {
@@ -130,9 +136,10 @@ class ListingController extends Controller
     }
 
     // Update Listing Data
-    public function update(Request $request, Listing $listing) {
+    public function update(Request $request, Listing $listing)
+    {
         // Make sure logged in user is owner
-        if($listing->user_id != auth()->id()) {
+        if ($listing->user_id != auth()->id()) {
             abort(403, 'Unauthorized Action');
         }
 
@@ -150,11 +157,14 @@ class ListingController extends Controller
             'people' => 'required'
         ]);
 
-        if($request->has('videoLinks')) {
+        if ($request->has('videoLinks')) {
+            if (str_contains($listing->tags, 'Youtube')) {
+                array_push($formFields['tags'], 'Youtube');
+            }
             $formFields['videoLinks'] = $request->videoLinks;
         }
 
-        if($request->hasFile('logo')) {
+        if ($request->hasFile('logo')) {
             Storage::disk('public')->delete($listing->logo);
             $formFields['logo'] = $request->file('logo')->store('logos', 'public');
         }
@@ -167,12 +177,13 @@ class ListingController extends Controller
     }
 
     // Delete Listing
-    public function destroy(Listing $listing) {
+    public function destroy(Listing $listing)
+    {
         // Make sure logged in user is owner
-        if($listing->user_id != auth()->id()) {
+        if ($listing->user_id != auth()->id()) {
             abort(403, 'Unauthorized Action');
         }
-        if($listing->logo && Storage::disk('public')->exists($listing->logo)) {
+        if ($listing->logo && Storage::disk('public')->exists($listing->logo)) {
             Storage::disk('public')->delete($listing->logo);
         }
         $listing->delete();
@@ -180,7 +191,8 @@ class ListingController extends Controller
     }
 
     // Manage Listings
-    public function manage() {
+    public function manage()
+    {
         $user = auth()->user();
         if ($user) {
             $listings = $user->listing()->get();
@@ -190,7 +202,8 @@ class ListingController extends Controller
     }
 
     // Store Comments Data
-    public function comments(Request $request, Listing $listing) {
+    public function comments(Request $request, Listing $listing)
+    {
         $formFields = $request->validate([
             'listing_id' => 'required',
             'comment' => 'required'
@@ -205,8 +218,8 @@ class ListingController extends Controller
         $albumTitle = Listing::findOrFail($request->listing_id)->title;
         $commentOfUser = User::findOrFail($userId)->name;
 
-        foreach($users as $user) {
-            if($userId == $user['id']) {
+        foreach ($users as $user) {
+            if ($userId == $user['id']) {
                 continue;
             }
 
