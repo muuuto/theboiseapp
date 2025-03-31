@@ -62,6 +62,18 @@
       </div>
 
       <div class="mb-6">
+        <label for="videoLinks" class="inline-block text-lg mb-2">
+          Youtube URL (separated by comma)
+        </label>
+        <input type="text" class="border border-gray-200 rounded p-2 w-full" name="videoLinks"
+          value="{{old('videoLinks')}}" />
+
+        @error('videoLinks')
+        <p class="text-red-500 text-xs mt-1">{{$message}}</p>
+        @enderror
+      </div>
+
+      <div class="mb-6">
         <label for="tags" class="inline-block text-lg mb-2">
           Tags (Comma Separated)
         </label>

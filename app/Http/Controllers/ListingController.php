@@ -38,12 +38,15 @@ class ListingController extends Controller
         $user = auth()->user()['id'];
         $username = auth()->user()['name'];
         $comments = $listing->comments;
+        $videoLinks = explode(',', $listing->videoLinks);
+
         foreach($listing->users as $currentUser) {
             if ($currentUser['id'] == $user) {
                 return view('listings.show', [
                     'listing' => $listing,
                     'comments' => $comments,
-                    'user' => $username
+                    'user' => $username,
+                    'videoLinks' => $videoLinks
                 ]);
             }
         }
@@ -79,6 +82,10 @@ class ListingController extends Controller
 
         if($request->hasFile('logo')) {
             $formFields['logo'] = $request->file('logo')->store('logos', 'public');
+        }
+
+        if($request->has('videoLinks')) {
+            $formFields['videoLinks'] = $request->videoLinks;
         }
 
         $formFields['user_id'] = auth()->id();

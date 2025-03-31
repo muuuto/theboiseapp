@@ -1,10 +1,21 @@
-@props(['tagsCsv'])
+@props(['tagsCsv', 'containVideo'])
 
 @php
     $tags = explode(',', $tagsCsv);
+    
+    if ($containVideo != null) {
+        $videoLinks = true;
+    } else {
+        $videoLinks = false;
+    }
 @endphp
 
 <ul class="flex flex-wrap">
+    @if ($videoLinks)
+        <li class="flex items-center justify-center bg-red text-white rounded-xl py-1 px-3 mr-2 mb-2 text-xs ">
+            <a href="/?tag=Youtube">Youtube</a>
+        </li>
+    @endif
     @foreach ($tags as $tag)    
         <li class="flex items-center justify-center bg-black text-white rounded-xl py-1 px-3 mr-2 mb-2 text-xs ">
             <a href="/?tag={{$tag}}">{{$tag}}</a>

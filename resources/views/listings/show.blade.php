@@ -26,6 +26,11 @@
                         <br>
                         <a href="{{$listing->albumLink}}" target="_blank" class="block bg-black text-white py-2 rounded-xl hover:opacity-80"><i class="fa-solid fa-globe"></i> Visit
                             Album</a>
+                        @if(count($videoLinks) > 0)
+                            @foreach ($videoLinks as $key => $videoLink)
+                                <a href="{{$videoLink}}" target="_blank" class="block bg-red text-white py-2 rounded-xl hover:opacity-80"><i class="fa-solid fa-globe"></i> Go to video {{$key}}</a>
+                            @endforeach
+                        @endif
                     </div>
                 </div>
                 <div class="border border-gray-200 w-full mb-6"></div>
