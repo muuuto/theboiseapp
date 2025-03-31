@@ -150,6 +150,10 @@ class ListingController extends Controller
             'people' => 'required'
         ]);
 
+        if($request->has('videoLinks')) {
+            $formFields['videoLinks'] = $request->videoLinks;
+        }
+
         if($request->hasFile('logo')) {
             Storage::disk('public')->delete($listing->logo);
             $formFields['logo'] = $request->file('logo')->store('logos', 'public');
