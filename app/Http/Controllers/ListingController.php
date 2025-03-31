@@ -40,7 +40,13 @@ class ListingController extends Controller
         $user = auth()->user()['id'];
         $username = auth()->user()['name'];
         $comments = $listing->comments;
-        $videoLinks = explode(',', $listing->videoLinks);
+        
+        if (!is_null($listing->videoLinks))
+        {
+            $videoLinks = explode(',', $listing->videoLinks);
+        } else {
+            $videoLinks = null;
+        }
 
         foreach ($listing->users as $currentUser) {
             if ($currentUser['id'] == $user) {
