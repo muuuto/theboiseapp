@@ -159,7 +159,7 @@ class ListingController extends Controller
 
         if ($request->has('videoLinks')) {
             if (!str_contains($listing->tags, 'Youtube')) {
-                array_push($formFields['tags'], 'Youtube');
+                $formFields['tags'] .= ', Youtube';
             }
             $formFields['videoLinks'] = $request->videoLinks;
         }
