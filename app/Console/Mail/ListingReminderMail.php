@@ -25,6 +25,7 @@ class ListingReminderMail extends Mailable
     {
         return $this
             ->subject('Reminder: Check your new Album')
+            ->from('info@theboise.it', 'TheBoise')
             ->view('mails.listing_reminder');
     }
 }

@@ -9,4 +9,4 @@
     </a>
 </p>
 
-<p>Thanks,<br>{{ config('app.name') }}</p>
+<p>Thanks,<br> theboise.it team</p>
