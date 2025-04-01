@@ -40,7 +40,13 @@ class ListingController extends Controller
         $user = auth()->user()['id'];
         $username = auth()->user()['name'];
         $comments = $listing->comments;
-        
+
+        $listingUsers = $listing->listingUser()->where('user_id', '=', $user)->first();
+        if ($listingUsers->seen == false)
+        {
+            $listingUsers->update(['seen' => true]);
+        }
+
         if (!is_null($listing->videoLinks))
         {
             $videoLinks = explode(',', $listing->videoLinks);

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Comment;
+use App\Models\ListingUser;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -44,5 +45,13 @@ class Listing extends Model
     public function comments(): HasMany
     {
         return $this->hasMany(Comment::class);
+    }
+
+        /**
+     * Get the listing user for the album post.
+    */
+    public function listingUser(): HasMany
+    {
+        return $this->hasMany(ListingUser::class);
     }
 }
