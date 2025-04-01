@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\ListingUser;
-use App\Mail\ListingReminderMail;
+use App\Console\Mail\ListingReminderMail;
 use Illuminate\Support\Facades\Mail;
 
 class SendListingReminderEmails extends Command
