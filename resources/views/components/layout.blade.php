@@ -45,6 +45,7 @@
                 @auth
                 <li class="ml-2">
                     <a href="/account">
+                        <i class="text-teal-600 hover:text-laravel fa-solid fa-user"></i>
                         <span class="font-bold uppercase text-teal-600 hover:text-laravel">
                             Hi {{auth()->user()->name}}
                         </span>
