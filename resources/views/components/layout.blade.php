@@ -45,29 +45,59 @@
                 @auth
                 <li class="ml-2">
                     <a href="/account">
-                        <span class="font-bold uppercase text-teal-600">
-                            Welcome {{auth()->user()->name}}
+                        <span class="font-bold uppercase text-teal-600 hover:text-laravel">
+                            Hi {{auth()->user()->name}}
                         </span>
                     </a>
+                </li>
+                <li class="text-center">
+                    <form class="inline" method="POST" action="/logout">
+                    @csrf
+                    <button class="hover:text-laravel" type="submit">
+                        <i class="fa-solid fa-door-closed"></i> Logout
+                    </button>
+                    </form>
                 </li>
                 @if(auth()->user() ? auth()->user()->getAttribute('isAdmin') == 1 : null)
                     {{-- <li>
                         <a href="/listings/manage" class="hover:text-laravel"><i class="fa-solid fa-gear"></i> Manage Listings</a>
                     </li> --}}
                     <li class="text-center">
-                        <a href="/monitor" class="text-laravel"><i class="fa-solid fa-shield"></i> Monitoring</a>
+                        <a href="/monitor" class="text-laravel"><i class="fa-solid fa-shield"></i> Monitor</a>
                     </li>
                 @endif
                 <li class="text-center">
                     <a href="/forum" class="hover:text-laravel text-green-600"><i class="fa-solid fa-folder"></i> Forum</a>
                 </li>
                 <li class="text-center">
-                    <form class="inline" method="POST" action="/logout">
-                    @csrf
-                    <button type="submit">
-                        <i class="fa-solid fa-door-closed"></i> Logout
-                    </button>
-                    </form>
+                    <div id="notificationButton" class="relative cursor-pointer group">
+                        <div class="hover:text-laravel">
+                            <i class="relative fa-solid fa-bell hover:text-laravel">
+                                @if ($unseenListings->count())
+                                <span class="absolute top-0 right-0 w-2 h-2 bg-red-600 rounded-full"></span>
+                                @endif
+                            </i>
+                            New
+                        </div>
+                        <!-- Dropdown -->
+                        <div id="notificationDropdown"
+                             class="hidden absolute right-0 mt-2 w-64 bg-white shadow-lg rounded-lg z-50">
+                            <div class="p-2">
+                                @forelse ($unseenListings as $item)
+                                    <div class="p-2 hover:text-laravel">
+                                        <a href="https://theboise.it/listings/{{$item->id}}">
+                                            <strong>{{ $item->title }}</strong>
+                                        </a>
+                                    </div>
+                                    @if (!$loop->last)
+                                        <hr>
+                                    @endif
+                                @empty
+                                    <div class="p-2 text-gray-500">No new album</div>
+                                @endforelse
+                            </div>
+                        </div>
+                    </div>                    
                 </li>
                 @else
                 <li class="text-center">
@@ -131,5 +161,23 @@
             </footer>
             @endif
         <x-flash-message />
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const btn = document.getElementById('notificationButton');
+                const dropdown = document.getElementById('notificationDropdown');
+        
+                btn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    dropdown.classList.toggle('hidden');
+                });
+        
+                // Hide dropdown if clicking outside
+                document.addEventListener('click', function (e) {
+                    if (!dropdown.classList.contains('hidden')) {
+                        dropdown.classList.add('hidden');
+                    }
+                });
+            });
+        </script>
     </body>
 </html>
