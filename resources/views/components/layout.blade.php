@@ -84,10 +84,22 @@
                         <div id="notificationDropdown"
                              class="hidden absolute right-0 mt-2 w-96 bg-white shadow-lg rounded-lg z-50">
                             <div class="p-2">
+                                @forelse ($anniversaryNotification as $item)
+                                    <div class="p-2 hover:text-laravel">
+                                        <a href="https://theboise.it/listings/{{$item->id}}">
+                                            {{$item->diffInYears}} years ago: <strong>{{ $item->title }}</strong>
+                                        </a>
+                                    </div>
+                                    @if (!$loop->last)
+                                        <hr>
+                                    @endif
+                                @empty
+                                    <div class="p-2 text-gray-500">No memories today</div>
+                                @endforelse
                                 @forelse ($unseenListings as $item)
                                     <div class="p-2 hover:text-laravel">
                                         <a href="https://theboise.it/listings/{{$item->id}}">
-                                            <strong>{{ $item->title }}</strong>
+                                            New album: <strong>{{ $item->title }}</strong>
                                         </a>
                                     </div>
                                     @if (!$loop->last)

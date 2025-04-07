@@ -43,22 +43,39 @@ class GenerateAnniversaryNotifications extends Command
         $this->info('Anniversary notifications generated.');
     }
 
-    public function getMemoriesOfTheDay(bool $userSpecific = false)
+    public static function getMemoriesOfTheDay(bool $userSpecific = false)
     {
         $today = now();
+        $todayMonthDay = now()->format('m-d');
         $notifyUsersCollection = [];
 
         // Fetch listings created on this day in past years
         if ($userSpecific == false) {
-            $listings = Listing::whereMonth('dateFrom', $today->month)
-                ->whereDay('dateFrom', $today->day)->get();
+            $listings = Listing::where(function ($query) use ($todayMonthDay) {
+                $query->whereRaw("DATE_FORMAT(dateFrom, '%m-%d') <= DATE_FORMAT(dateTo, '%m-%d')")
+                    ->whereRaw("? BETWEEN DATE_FORMAT(dateFrom, '%m-%d') AND DATE_FORMAT(dateTo, '%m-%d')", [$todayMonthDay]);
+            })->orWhere(function ($query) use ($todayMonthDay) {
+                $query->whereRaw("DATE_FORMAT(dateFrom, '%m-%d') > DATE_FORMAT(dateTo, '%m-%d')")
+                    ->where(function ($q) use ($todayMonthDay) {
+                        $q->whereRaw("DATE_FORMAT(dateFrom, '%m-%d') <= ?", [$todayMonthDay])
+                            ->orWhereRaw("DATE_FORMAT(dateTo, '%m-%d') >= ?", [$todayMonthDay]);
+                    });
+            })->get();
         } else {
             $listings = Listing::with('users')
                 ->whereHas('users', function ($query) {
                     $query->where('id', auth()->id());
                 })
-                ->whereMonth('dateFrom', $today->month)
-                ->whereDay('dateFrom', $today->day)
+                ->where(function ($query) use ($todayMonthDay) {
+                    $query->whereRaw("DATE_FORMAT(dateFrom, '%m-%d') <= DATE_FORMAT(dateTo, '%m-%d')")
+                        ->whereRaw("? BETWEEN DATE_FORMAT(dateFrom, '%m-%d') AND DATE_FORMAT(dateTo, '%m-%d')", [$todayMonthDay]);
+                })->orWhere(function ($query) use ($todayMonthDay) {
+                    $query->whereRaw("DATE_FORMAT(dateFrom, '%m-%d') > DATE_FORMAT(dateTo, '%m-%d')")
+                        ->where(function ($q) use ($todayMonthDay) {
+                            $q->whereRaw("DATE_FORMAT(dateFrom, '%m-%d') <= ?", [$todayMonthDay])
+                                ->orWhereRaw("DATE_FORMAT(dateTo, '%m-%d') >= ?", [$todayMonthDay]);
+                        });
+                })
                 ->get();
         }
 

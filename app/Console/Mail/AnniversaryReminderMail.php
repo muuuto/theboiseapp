@@ -7,6 +7,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use App\Models\User;
 use Illuminate\Support\Collection; 
+use Illuminate\Support\Carbon;
 
 class AnniversaryReminderMail extends Mailable
 {
@@ -23,6 +24,16 @@ class AnniversaryReminderMail extends Mailable
 
     public function build()
     {
+        $todayMd = Carbon::today()->format('m-d');
+
+        $this->listings = $this->listings->filter(function ($listing) use ($todayMd) {
+            return Carbon::parse($listing->dateFrom)->format('m-d') === $todayMd;
+        });
+
+        if ($this->listings->isEmpty()) {
+            return $this; // This prevents the email from being sent
+        }
+
         return $this
             ->subject('On this day, many years ago')
             ->from('info@theboise.it', 'TheBoise')

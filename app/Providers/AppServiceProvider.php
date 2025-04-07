@@ -7,6 +7,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use App\Models\ListingUser;
+use App\Console\Commands\GenerateAnniversaryNotifications;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -25,13 +26,18 @@ class AppServiceProvider extends ServiceProvider
     {
         View::composer('components.layout', function ($view) {
             if (auth()->check()) {
+                $anniversaryNotification = GenerateAnniversaryNotifications::getMemoriesOfTheDay(true);
+
                 $unseenListings = ListingUser::where('user_id', '=', auth()->user()->id)
                     ->where('seen', false)
                     ->get();
                 
                 $unseenListings = $unseenListings->map(fn($unseenListing) => $unseenListing->listing);
 
-                $view->with('unseenListings', $unseenListings);
+                $view->with([
+                    'unseenListings' => $unseenListings,
+                    'anniversaryNotification' => $anniversaryNotification[auth()->id()]
+                ]);
             }
         });
 
