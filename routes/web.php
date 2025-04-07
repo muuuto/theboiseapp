@@ -165,6 +165,10 @@ Route::post('/forum/{category}/{post}/comment', [PostController::class, 'comment
 // Send Post
 Route::get('/forum/{category}/{post}/notify', [PostController::class, 'notify'])->middleware('auth')->name('forum.posts.notify');
 
+Route::get('/test', function() {
+    // Artisan::call('listings:send-reminders');
+});
+
 Route::get('/clear-cache', function() {
     $exitCode = Artisan::call('cache:clear');
     $exitCode = Artisan::call('optimize:clear');

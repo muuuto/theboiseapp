@@ -6,19 +6,19 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use App\Models\User;
-use App\Models\Listing;
+use Illuminate\Support\Collection; 
 
 class ListingReminderMail extends Mailable
 {
     use Queueable, SerializesModels;
 
     public $user;
-    public $listing;
+    public $listings;
 
-    public function __construct(User $user, Listing $listing)
+    public function __construct(User $user, Collection $listings)
     {
         $this->user = $user;
-        $this->listing = $listing;
+        $this->listings = $listings;
     }
 
     public function build()

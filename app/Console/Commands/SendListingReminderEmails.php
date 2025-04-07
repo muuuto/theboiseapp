@@ -18,12 +18,14 @@ class SendListingReminderEmails extends Command
         $listingUsers = ListingUser::with(['user', 'listing'])
             ->where('seen', false)
             ->get();
+        
+        $listingUsers->groupBy('user_id')->each(function ($groupedModels, $userId) {
+            $user = $groupedModels->first()->user;
+            $listings = $groupedModels->pluck('listing');
 
-        foreach ($listingUsers as $listingUser) {
-            // Send reminder email
-            Mail::to($listingUser->user->email)
-                ->send(new ListingReminderMail($listingUser->user, $listingUser->listing));
-        }
+            Mail::to($user->email)
+                ->send(new ListingReminderMail($user, $listings));
+        });
 
         $this->info('Reminder emails have been sent successfully.');
     }
