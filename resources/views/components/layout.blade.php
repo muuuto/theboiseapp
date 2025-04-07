@@ -82,7 +82,7 @@
                         </div>
                         <!-- Dropdown -->
                         <div id="notificationDropdown"
-                             class="hidden absolute right-0 mt-2 w-64 bg-white shadow-lg rounded-lg z-50">
+                             class="hidden absolute right-0 mt-2 w-96 bg-white shadow-lg rounded-lg z-50">
                             <div class="p-2">
                                 @forelse ($unseenListings as $item)
                                     <div class="p-2 hover:text-laravel">
