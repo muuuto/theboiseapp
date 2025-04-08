@@ -31,11 +31,11 @@
                 class="inline-block  my-4 border-2 border-white text-white py-2 px-4 rounded-xl uppercase mt-2 hover:text-black hover:border-black"
                 >Visit our Forum</a>
             </div>
-            <div>
+            {{-- <div>
                 <a href="https://github.com/muuuto/theboiseapp.git"
                     class="inline-block  my-4 border-2 border-white text-white py-2 px-4 rounded-xl uppercase mt-2 hover:text-black hover:border-black"
                 >Source code of the project</a>
-            </div>
+            </div> --}}
         @endif
     </div>
 </section>
