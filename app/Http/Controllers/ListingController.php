@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
 use App\Models\Comment;
+use App\Models\ListingUser;
 
 class ListingController extends Controller
 {
@@ -44,7 +45,9 @@ class ListingController extends Controller
         $listingUsers = $listing->listingUser()->where('user_id', '=', $user)->where('listing_id', '=', $listing->id)->first();
         if ($listingUsers->seen == false)
         {
-            $listingUsers->update(['seen' => true]);
+            ListingUser::where('user_id', $user)
+                ->where('listing_id', $listing->id)
+                ->update(['seen' => true]); 
         }
 
         if (!is_null($listing->videoLinks))
