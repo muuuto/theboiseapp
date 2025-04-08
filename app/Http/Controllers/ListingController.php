@@ -89,7 +89,8 @@ class ListingController extends Controller
             'location' => 'required',
             'albumLink' => 'required',
             'tags' => 'required',
-            'description' => 'required'
+            'description' => 'required',
+            'videoLinks' => 'nullable|string'
         ]);
 
         $formPeopleField = $request->validate([
@@ -100,9 +101,8 @@ class ListingController extends Controller
             $formFields['logo'] = $request->file('logo')->store('logos', 'public');
         }
 
-        if ($request->has('videoLinks')) {
-            array_push($formFields['tags'], 'Youtube');
-            $formFields['videoLinks'] = $request->videoLinks;
+        if (!empty($formFields['videoLinks'])) {
+            $formFields['tags'] .= ', Youtube';
         }
 
         $formFields['user_id'] = auth()->id();
@@ -163,18 +163,18 @@ class ListingController extends Controller
             'location' => 'required',
             'albumLink' => 'required',
             'tags' => 'required',
-            'description' => 'required'
+            'description' => 'required',
+            'videoLinks' => 'nullable|string'
         ]);
 
         $formPeopleField = $request->validate([
             'people' => 'required'
         ]);
 
-        if ($request->has('videoLinks')) {
+        if (!empty($formFields['videoLinks'])) {
             if (!str_contains($listing->tags, 'Youtube')) {
                 $formFields['tags'] .= ', Youtube';
             }
-            $formFields['videoLinks'] = $request->videoLinks;
         }
 
         if ($request->hasFile('logo')) {
