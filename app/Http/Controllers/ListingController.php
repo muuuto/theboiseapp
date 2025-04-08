@@ -120,7 +120,8 @@ class ListingController extends Controller
                 'name' => $user['name'],
                 'email' => $user['email'],
                 'albumTitle' => $formFields['title'],
-                'albumLink' => 'https://theboise.it/listings/' . $listing->id
+                'albumLink' => 'https://theboise.it/listings/' . $listing->id,
+                'albumLogo' => $listing->logo
             );
             Mail::send('/mails/new_album', $email_data, function ($message) use ($email_data, $albumTitle) {
                 $message->to($email_data['email'], $email_data['name'])
