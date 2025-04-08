@@ -74,7 +74,7 @@
                     <div id="notificationButton" class="relative cursor-pointer group">
                         <div class="hover:text-laravel">
                             <i class="relative fa-solid fa-bell hover:text-laravel">
-                                @if ($unseenListings->count() || empty($anniversaryNotification))
+                                @if (($unseenListings->count()) || (!empty($anniversaryNotification)))
                                     <span class="absolute top-0 right-0 w-2 h-2 bg-red-600 rounded-full"></span>
                                 @endif
                             </i>
