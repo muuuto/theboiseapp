@@ -28,6 +28,12 @@ class AppServiceProvider extends ServiceProvider
             if (auth()->check()) {
                 $anniversaryNotification = GenerateAnniversaryNotifications::getMemoriesOfTheDay(true);
 
+                if (isset($anniversaryNotification[auth()->id()])) {
+                    $userAnniversaryNotification = $anniversaryNotification[auth()->id()];
+                } else {
+                    $userAnniversaryNotification = [];
+                }
+                
                 $unseenListings = ListingUser::where('user_id', '=', auth()->user()->id)
                     ->where('seen', false)
                     ->get();
@@ -36,7 +42,7 @@ class AppServiceProvider extends ServiceProvider
 
                 $view->with([
                     'unseenListings' => $unseenListings,
-                    'anniversaryNotification' => $anniversaryNotification[auth()->id()]
+                    'anniversaryNotification' => $userAnniversaryNotification
                 ]);
             }
         });
