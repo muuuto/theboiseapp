@@ -41,7 +41,7 @@ class ListingController extends Controller
         $username = auth()->user()['name'];
         $comments = $listing->comments;
 
-        $listingUsers = $listing->listingUser()->where('user_id', '=', $user)->first();
+        $listingUsers = $listing->listingUser()->where('user_id', '=', $user)->where('listing_id', '=', $listing->id)->first();
         if ($listingUsers->seen == false)
         {
             $listingUsers->update(['seen' => true]);
