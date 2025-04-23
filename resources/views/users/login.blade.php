@@ -42,12 +42,12 @@
         </p>
       </div>
 
-      <div class="mt-2">
-        <p>
-          Login as guest
-          <a href="/guest" class="text-laravel">Demo</a>
-        </p>
-      </div>
+{{--      <div class="mt-2">--}}
+{{--        <p>--}}
+{{--          Login as guest--}}
+{{--          <a href="/guest" class="text-laravel">Demo</a>--}}
+{{--        </p>--}}
+{{--      </div>--}}
 
       <div class="mt-2">
         <p>

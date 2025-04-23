@@ -28,7 +28,7 @@ use App\Models\Listing;
 // store - Store new listing
 // edit - Show form to edit listing
 // update - Update listing
-// destroy - Delete listing  
+// destroy - Delete listing
 
 // All Listings
 Route::get('/', [ListingController::class, 'index'])->middleware('auth');
@@ -67,7 +67,7 @@ Route::post('/logout', [UserController::class, 'logout']);
 Route::get('/login', [UserController::class, 'login'])->name('login')->middleware('guest');
 
 // Show Login Form
-Route::get('/guest', [UserController::class, 'guest'])->name('guest');
+//Route::get('/guest', [UserController::class, 'guest'])->name('guest');
 
 // Log In User
 Route::post('/users/authenticate', [UserController::class, 'authenticate']);
