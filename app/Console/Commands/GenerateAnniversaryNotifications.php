@@ -17,6 +17,7 @@ class GenerateAnniversaryNotifications extends Command
     public function handle()
     {
         $user = auth()->user();
+        $todayMd = now()->format('m-d');
 
         if ($this->argument('user')) {
             $specificUser = true;
@@ -35,8 +36,13 @@ class GenerateAnniversaryNotifications extends Command
             foreach ($notifyUsersCollection as $key => $userWithAlbums) {
                 $user = User::where('id', '=', $key)->first();
 
-                Mail::to($user->email)
-                    ->send(new AnniversaryReminderMail($user, collect($userWithAlbums)));
+                $filteredListings = collect($userWithAlbums)->filter(function ($listing) use ($todayMd) {
+                    return Carbon::parse($listing->dateFrom)->format('m-d') === $todayMd;
+                });
+
+                if ($filteredListings->isNotEmpty()) {
+                    Mail::to($user->email)->send(new AnniversaryReminderMail($user, $filteredListings));
+                }
             }
         }
 
