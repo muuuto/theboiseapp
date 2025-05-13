@@ -15,15 +15,19 @@ class Listing extends Model
     use HasFactory;
 
     public function scopeFilter($query, array $filters) {
-        if($filters['tag'] ?? false) {
-            return DB::table('listings')->where('tags', 'like', '%' . request('tag') . '%');
+        if ($filters['tag'] ?? false) {
+            $query->where('tags', 'like', '%' . $filters['tag'] . '%');
         }
-
-        if($filters['search'] ?? false) {
-            return DB::table('listings')->where('title', 'like', '%' . request('search') . '%')
-                ->orWhere('description', 'like', '%' . request('search') . '%')
-                ->orWhere('tags', 'like', '%' . request('search') . '%');
+    
+        if ($filters['search'] ?? false) {
+            $query->where(function ($q) use ($filters) {
+                $q->where('title', 'like', '%' . $filters['search'] . '%')
+                ->orWhere('description', 'like', '%' . $filters['search'] . '%')
+                ->orWhere('tags', 'like', '%' . $filters['search'] . '%');
+            });
         }
+    
+        return $query; 
     }
 
     /**
