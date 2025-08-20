@@ -6,9 +6,8 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SloganController;
 use App\Http\Controllers\AccountController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\SplitwiseController;
 use Illuminate\Support\Facades\Route;
-use App\Models\Listing;
 
 /*
 |--------------------------------------------------------------------------
@@ -168,6 +167,26 @@ Route::get('/forum/{category}/{post}/notify', [PostController::class, 'notify'])
 Route::get('/test', function() {
     // Artisan::call('listings:send-reminders');
 });
+
+Route::get('/splitwise/', [SplitwiseController::class, 'index'])->middleware('auth')->name('splitwise.index');
+
+// Show Create Splitwise
+Route::get('/splitwise/create', [SplitwiseController::class, 'create'])->middleware('auth')->name('splitwise.create');
+
+// Store Splitwise Data
+Route::post('/splitwise/store', [SplitwiseController::class, 'store'])->middleware('auth')->name('splitwise.store');
+
+// Show Edit Splitwise
+Route::get('/splitwise/{group}/edit', [SplitwiseController::class, 'edit'])->middleware('auth')->name('splitwise.edit');
+
+// Update Splitwise
+Route::put('/splitwise/{group}/update', [SplitwiseController::class, 'update'])->middleware('auth')->name('splitwise.update');
+
+// Delete Splitwise
+Route::delete('/splitwise/{group}/delete', [SplitwiseController::class, 'destroy'])->middleware('auth')->name('splitwise.delete');
+
+// Manage Splitwise
+Route::get('/splitwise/{group}/manage', [SplitwiseController::class, 'manage'])->middleware('auth')->name('splitwise.manage');
 
 Route::get('/clear-cache', function() {
     $exitCode = Artisan::call('cache:clear');
