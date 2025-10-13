@@ -92,7 +92,7 @@ class GenerateAnniversaryNotifications extends Command
                     $notifyUsersCollection[$user->id] = [];
                 }
 
-                $albumDate = Carbon::createFromFormat('Y-m-d', $listing->dateFrom);
+                $albumDate = Carbon::createFromFormat('Y-m-d', $listing->dateFrom)->startOfDay();
                 $diffYears = $albumDate->diffInYears($today);
                 $listing['diffInYears'] = $diffYears;
 
