@@ -6,7 +6,7 @@
 </p>
 
 <p>
-    We’d like to celebrate your {{ $difference }} years of life the way my grandfather always liked to say it in {{ $key }}:
+    We’d like to celebrate your {{ $age }} years of life the way my grandfather always liked to say it in {{ $key }}:
 </p>
 
 <p>

@@ -94,15 +94,25 @@ class SendBirthdayMail extends Command
 
     public function handle()
     {
-        $todayMd = now()->format('m-d');
-        $user = User::where('birthday', 'ilike', "%$todayMd")->first();
+        $today = now();
 
-        if ($user) {
+        $users = User::whereMonth('birthday', $today->month)
+            ->whereDay('birthday', $today->day)
+            ->get();
+
+        foreach ($users as $user) {
             $key = array_rand($this->greetings);
             $greeting = $this->greetings[$key];
-            $difference = now()->diffInYears($user->birthday);
 
-            Mail::to($user->email)->send(new BirthdayReminderMail($user, $key, $greeting, $difference));
+            $age = $today->diffInYears($user->birthday);
+
+            Mail::to($user->email)
+                ->send(new BirthdayReminderMail(
+                    $user,
+                    $key,
+                    $greeting,
+                    $age
+                ));
         }
     }
 }

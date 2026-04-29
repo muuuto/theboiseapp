@@ -14,18 +14,18 @@ class BirthdayReminderMail extends Mailable
     public $user;
     public $key;
     public $greeting;
-    public $difference;
+    public $age;
 
     public function __construct(
         User $user,
         string $key,
         string $greeting,
-        int $difference
+        int $age
     ) {
         $this->user = $user;
         $this->key = $key;
         $this->greeting = $greeting;
-        $this->difference = $difference;
+        $this->age = $age;
     }
 
     public function build()
