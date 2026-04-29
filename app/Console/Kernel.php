@@ -14,6 +14,7 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('listings:send-reminders')->twiceMonthly(1, 16, '9:00');;
         $schedule->command('notifications:anniversaries')->dailyAt('09:00');
+        $schedule->command('notifications:birthday')->dailyAt('00:00');
     }
 
     /**
