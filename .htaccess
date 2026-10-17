@@ -15,10 +15,10 @@ RewriteRule ^(.*)$ public/$1 [L]
 # SP BEGIN php handler
 <IfModule mod_fcgid.c>
           AddHandler fcgid-script .php .php5 .php7 .phtml
-          FcgidWrapper    /usr/local/cpanel/cgi-sys/sp-ea-php81 .php
-          FcgidWrapper    /usr/local/cpanel/cgi-sys/sp-ea-php81 .php5
-          FcgidWrapper    /usr/local/cpanel/cgi-sys/sp-ea-php81 .php7
-          FcgidWrapper    /usr/local/cpanel/cgi-sys/sp-ea-php81 .phtml
+          FcgidWrapper    /usr/local/cpanel/cgi-sys/sp-ea-php84 .php
+          FcgidWrapper    /usr/local/cpanel/cgi-sys/sp-ea-php84 .php5
+          FcgidWrapper    /usr/local/cpanel/cgi-sys/sp-ea-php84 .php7
+          FcgidWrapper    /usr/local/cpanel/cgi-sys/sp-ea-php84 .phtml
 </IfModule>
 # SP END php handler
 

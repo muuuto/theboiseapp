@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -16,14 +17,17 @@ class ListingFactory extends Factory
      */
     public function definition(): array
     {
+        $dateFrom = $this->faker->dateTimeBetween('-5 years', '-1 year');
+
         return [
-            'title' => $this->faker->sentence(),
-            'tags' => 'laravel, api, backend',
-            'company' => $this->faker->company(),
-            'email' => $this->faker->companyEmail(),
-            'website' => $this->faker->url(),
+            'user_id' => User::factory(),
+            'title' => $this->faker->sentence(3),
+            'tags' => 'mountains, friends',
+            'dateFrom' => $dateFrom->format('Y-m-d'),
+            'dateTo' => (clone $dateFrom)->modify('+2 days')->format('Y-m-d'),
             'location' => $this->faker->city(),
-            'description' => $this->faker->paragraph(5),
+            'albumLink' => $this->faker->url(),
+            'description' => $this->faker->paragraph(),
         ];
     }
 }

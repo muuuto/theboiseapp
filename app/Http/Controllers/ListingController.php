@@ -27,6 +27,7 @@ class ListingController extends Controller
             $randomSlogan = $slogan->random();
         } else {
             $randomSlogan["sloganPhrase"] = "Find your albums";
+            $randomSlogan["author"] = "TheBoise";
         }
 
         return view('listings.index', [
@@ -43,6 +44,10 @@ class ListingController extends Controller
         $comments = $listing->comments;
 
         $listingUsers = $listing->listingUser()->where('user_id', '=', $user)->where('listing_id', '=', $listing->id)->first();
+        if (is_null($listingUsers)) {
+            abort(403, 'Unauthorized Action');
+        }
+
         if ($listingUsers->seen == false)
         {
             ListingUser::where('user_id', $user)

@@ -59,6 +59,9 @@ return [
 
     'asset_url' => env('ASSET_URL'),
 
+    // Production always forces https; set FORCE_HTTPS=false in a local .env
+    'force_https' => env('FORCE_HTTPS', true),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone

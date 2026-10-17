@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\User;
+use Carbon\Carbon;
 use App\Console\Mail\BirthdayReminderMail;
 use Illuminate\Support\Facades\Mail;
 
@@ -104,7 +105,8 @@ class SendBirthdayMail extends Command
             $key = array_rand($this->greetings);
             $greeting = $this->greetings[$key];
 
-            $age = $today->diffInYears($user->birthday);
+            // Carbon 3 returns a signed float: count from the birthday to today and keep whole years
+            $age = (int) Carbon::parse($user->birthday)->diffInYears($today);
 
             Mail::to($user->email)
                 ->send(new BirthdayReminderMail(

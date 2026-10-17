@@ -93,7 +93,8 @@ class GenerateAnniversaryNotifications extends Command
                 }
 
                 $albumDate = Carbon::createFromFormat('Y-m-d', $listing->dateFrom)->startOfDay();
-                $diffYears = $albumDate->diffInYears($today);
+                // Carbon 3 returns a float (e.g. 3.02), we want whole years
+                $diffYears = (int) $albumDate->diffInYears($today);
                 $listing['diffInYears'] = $diffYears;
 
                 // Add this listing's title to the user's list

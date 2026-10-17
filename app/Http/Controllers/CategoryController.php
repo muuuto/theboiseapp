@@ -39,6 +39,7 @@ class CategoryController extends Controller
             $randomSlogan = $slogan->random();
         } else {
             $randomSlogan["sloganPhrase"] = "Find your albums";
+            $randomSlogan["author"] = "TheBoise";
         }
 
         return view('forum.categories.index', [

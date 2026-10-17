@@ -7,6 +7,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\SloganController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\SplitwiseController;
+use App\Http\Controllers\MaintenanceController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -164,10 +165,6 @@ Route::post('/forum/{category}/{post}/comment', [PostController::class, 'comment
 // Send Post
 Route::get('/forum/{category}/{post}/notify', [PostController::class, 'notify'])->middleware('auth')->name('forum.posts.notify');
 
-Route::get('/test', function() {
-    // Artisan::call('listings:send-reminders');
-});
-
 Route::get('/splitwise/', [SplitwiseController::class, 'index'])->middleware('auth')->name('splitwise.index');
 
 // Show Create Splitwise
@@ -188,8 +185,9 @@ Route::delete('/splitwise/{group}/delete', [SplitwiseController::class, 'destroy
 // Manage Splitwise
 Route::get('/splitwise/{group}/manage', [SplitwiseController::class, 'manage'])->middleware('auth')->name('splitwise.manage');
 
-Route::get('/clear-cache', function() {
-    $exitCode = Artisan::call('cache:clear');
-    $exitCode = Artisan::call('optimize:clear');
-    // return what you want
+// Maintenance (admin only): clear caches, backups and migrations without SSH
+Route::middleware(['auth', 'can:admin'])->prefix('admin/maintenance')->group(function () {
+    Route::get('/', [MaintenanceController::class, 'index']);
+    Route::post('/{action}', [MaintenanceController::class, 'run']);
+    Route::get('/backups/{file}', [MaintenanceController::class, 'download']);
 });

@@ -48,6 +48,7 @@ class PostController extends Controller
             $randomSlogan = $slogan->random();
         } else {
             $randomSlogan["sloganPhrase"] = "Find your albums";
+            $randomSlogan["author"] = "TheBoise";
         }
         
         date_default_timezone_set('Europe/Rome');
