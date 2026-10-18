@@ -6,6 +6,7 @@ use App\Models\Invite;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
@@ -94,8 +95,12 @@ class UserController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/')->with('message', 'You have been logged out!');
+        // From a Vue page: full page load, the login page is still Blade
+        if ($request->header('X-Inertia')) {
+            return Inertia::location('/login');
+        }
 
+        return redirect('/')->with('message', 'You have been logged out!');
     }
 
     // Show Login Form
@@ -123,12 +128,30 @@ class UserController extends Controller
         return back()->withErrors(['email' => 'Invalid Credentials'])->onlyInput('email');
     }
 
-    public function guest() {
-        $user = auth()->loginUsingId(28, true);
+    // Secret link for the CV: logs straight into the read-only demo account
+    public function demo(string $secret) {
+        $expected = config('app.demo_secret');
+        abort_unless($expected && hash_equals($expected, $secret), 404);
+
+        $user = User::where('is_demo', true)->firstOrFail();
+        auth()->login($user);
+        request()->session()->regenerate();
+
         date_default_timezone_set('Europe/Rome');
         $user->update(array('last_login' => date('Y-m-d H:i:s', time())));
 
-        return redirect()->intended('/')->with('message', 'You are now logged in!');
+        return redirect('/');
+    }
+
+    // Light, dark or follow the device (null)
+    public function theme(Request $request) {
+        $request->validate(['theme' => 'required|in:system,light,dark']);
+
+        $request->user()->update([
+            'dark_mode' => ['system' => null, 'light' => 0, 'dark' => 1][$request->theme],
+        ]);
+
+        return back();
     }
 
     // display form for resetting password

@@ -1,1 +1,22 @@
-import './bootstrap';
+import '../css/app.css';
+
+import { createApp, h } from 'vue';
+import { createInertiaApp } from '@inertiajs/vue3';
+import AppLayout from './layouts/AppLayout.vue';
+
+createInertiaApp({
+    title: (title) => (title ? `${title} | TheBoise` : 'TheBoise'),
+    resolve: (name) => {
+        const pages = import.meta.glob('./pages/**/*.vue', { eager: true });
+        const page = pages[`./pages/${name}.vue`];
+        // Every page uses the app layout unless it sets its own
+        page.default.layout ??= AppLayout;
+        return page;
+    },
+    setup({ el, App, props, plugin }) {
+        createApp({ render: () => h(App, props) })
+            .use(plugin)
+            .mount(el);
+    },
+    progress: { color: '#ef3b2d' },
+});

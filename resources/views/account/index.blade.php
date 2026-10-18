@@ -12,6 +12,10 @@
             </h1>
             <p class="mb-4">Here you can customize your profile inside theboise.it</p>
         </div>
+        @if (auth()->user()->is_demo)
+            <p class="mt-4 text-center text-gray-500">This is a demo account: it can only look around.</p>
+        @endif
+        @unless (auth()->user()->is_demo)
         <form method="POST" action="/account/update" enctype="multipart/form-data">
             @csrf
             @method('PUT')
@@ -73,6 +77,7 @@
                 </button>
             </div>
         </form>
+        @endunless
 
         <div class="w-full">
             @if($walletName)

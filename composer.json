@@ -11,6 +11,7 @@
         "php": "^8.3",
         "druidfi/mysqldump-php": "^2.0",
         "guzzlehttp/guzzle": "^8.2",
+        "inertiajs/inertia-laravel": "^3.5",
         "laravel/framework": "^13.37",
         "laravel/sanctum": "^4.3",
         "laravel/tinker": "^3.0",

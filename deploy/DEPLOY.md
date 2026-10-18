@@ -35,6 +35,28 @@ Useful commands:
 ./vendor/bin/sail artisan optimize:clear          # if something looks cached
 ```
 
+### Frontend (Vue pages, `resources/js` and `resources/css`)
+
+The Vue pages are compiled by Vite into `public/build`. While working on them:
+
+```sh
+./vendor/bin/sail npm run dev     # keep it running: every change shows up instantly at http://localhost
+```
+
+Before committing, **build** and commit the result: the server can't build it (shared hosting has
+no Node.js), it uses exactly the files in `public/build` from git.
+
+```sh
+./vendor/bin/sail npm run build
+git add public/build
+```
+
+You don't have to remember it: a git hook (`.githooks/pre-commit`) refuses a commit that changes
+frontend files without `public/build`, and prints the command above.
+
+Committing while `npm run dev` is running is fine: the file it creates (`public/hot`) is ignored
+by git, so it never reaches the server.
+
 ### Refresh the data from production
 
 1. phpMyAdmin on cPanel → select the database → *Export* → save the `.sql` file
@@ -69,11 +91,16 @@ The dump has emails and password hashes: never put it inside the project folder 
    WWWUSER=1000
    WWWGROUP=1000
    ```
-4. Start everything and create the app key:
+4. Start everything, create the app key, install the frontend packages and turn on the build
+   reminder hook:
    ```sh
    ./vendor/bin/sail up -d --build
    ./vendor/bin/sail artisan key:generate
+   ./vendor/bin/sail npm install
+   git config core.hooksPath .githooks
    ```
+   Optional, to try the demo account locally: `DEMO_LOGIN_SECRET=local-demo-secret` in `.env`,
+   then open http://localhost/demo/local-demo-secret
 5. Import the database (see *Refresh the data from production*).
 6. Uploaded images: in cPanel File Manager compress `public_html/storage/app/public`, download it
    and extract its content into `storage/app/public`. Then create the links that serve them
@@ -104,7 +131,8 @@ Always commit and push to `main` first.
 
 ### Quick release (only code changed)
 
-1. Commit and push to `main`.
+1. If the frontend changed: `./vendor/bin/sail npm run build`. Commit (with `public/build`) and
+   push to `main`.
 2. `/admin/maintenance` → **Backup database now**.
 3. cPanel → *Git Version Control* → *Pull or Deploy* → **Update from Remote** → **Deploy HEAD Commit**.
 4. `/admin/maintenance` → **Clear caches**. If there are pending migrations: **Backup + run migrations**.
@@ -116,7 +144,8 @@ To undo a quick release: `git revert` the commit, push, and deploy again.
 
 Pick a quiet moment: from step 3 to step 6 the site is down for a few minutes.
 
-1. Commit and push to `main`.
+1. If the frontend changed: `./vendor/bin/sail npm run build`. Commit (with `public/build`) and
+   push to `main`.
 2. Back up:
    - `/admin/maintenance` → **Backup database now** → download the file
    - File Manager → select `public_html` → *Compress* → download the archive (optional, but it

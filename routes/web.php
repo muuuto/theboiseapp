@@ -67,17 +67,20 @@ Route::post('/logout', [UserController::class, 'logout']);
 // Show Login Form
 Route::get('/login', [UserController::class, 'login'])->name('login')->middleware('guest');
 
-// Show Login Form
-//Route::get('/guest', [UserController::class, 'guest'])->name('guest');
+// Demo account for recruiters: secret link in the CV, read-only (see DEMO_LOGIN_SECRET)
+Route::get('/demo/{secret}', [UserController::class, 'demo'])->middleware(['guest', 'throttle:10,1']);
+
+// Theme: light, dark or follow the device
+Route::put('/account/theme', [UserController::class, 'theme'])->middleware(['auth', 'not-demo']);
 
 // Log In User
 Route::post('/users/authenticate', [UserController::class, 'authenticate']);
 
 // Show Create SloganForm
-Route::get('/slogan/create', [SloganController::class, 'create'])->middleware('auth');
+Route::get('/slogan/create', [SloganController::class, 'create'])->middleware(['auth', 'not-demo']);
 
 // Store Slogan Data
-Route::post('/slogan', [SloganController::class, 'store'])->middleware('auth');
+Route::post('/slogan', [SloganController::class, 'store'])->middleware(['auth', 'not-demo']);
 
 // Zecca Gay page
 Route::get('/zeccaGay', function() {
@@ -88,7 +91,7 @@ Route::get('/zeccaGay', function() {
 Route::get('/monitor', [UserController::class, 'monitor'])->middleware('auth');
 
 // Show Create Form
-Route::post('/listings/comments', [ListingController::class, 'comments'])->middleware('auth');
+Route::post('/listings/comments', [ListingController::class, 'comments'])->middleware(['auth', 'not-demo']);
 
 // Reset password form
 Route::get('/forgot-password', [UserController::class, 'forgotPasswordShow'])->middleware('guest')->name('password.request');
@@ -105,66 +108,66 @@ Route::post('/reset-password', [UserController::class, 'forgotPasswordUpdate'])-
 Route::get('/account', [AccountController::class, 'index'])->middleware('auth');
 
 // Update account
-Route::put('/account/update', [AccountController::class, 'update'])->middleware('auth');
+Route::put('/account/update', [AccountController::class, 'update'])->middleware(['auth', 'not-demo']);
 
 // Add media to wallet
-Route::put('/account/addWallet', [AccountController::class, 'addWallet'])->middleware('auth');
+Route::put('/account/addWallet', [AccountController::class, 'addWallet'])->middleware(['auth', 'not-demo']);
 
 // Update all the users with blank avatar
 // Route::put('/account/linkNoImage', [AccountController::class, 'linkNoImage'])->middleware('auth');
 
 
 // All Categories
-Route::get('/forum', [CategoryController::class, 'index'])->middleware('auth')->name('forum.categories.index');
+Route::get('/forum', [CategoryController::class, 'index'])->middleware(['auth', 'not-demo'])->name('forum.categories.index');
 
 // Show Create Categories
-Route::get('/forum/category/create', [CategoryController::class, 'create'])->middleware('auth')->name('forum.categories.create');
+Route::get('/forum/category/create', [CategoryController::class, 'create'])->middleware(['auth', 'not-demo'])->name('forum.categories.create');
 
 // Store Categories Data
-Route::post('/forum/category/store', [CategoryController::class, 'store'])->middleware('auth')->name('forum.categories.store');
+Route::post('/forum/category/store', [CategoryController::class, 'store'])->middleware(['auth', 'not-demo'])->name('forum.categories.store');
 
 // Show Edit Categories
-Route::get('/forum/{category}/edit', [CategoryController::class, 'edit'])->middleware('auth')->name('forum.categories.edit');
+Route::get('/forum/{category}/edit', [CategoryController::class, 'edit'])->middleware(['auth', 'not-demo'])->name('forum.categories.edit');
 
 // Update Categories
-Route::put('/forum/{category}', [CategoryController::class, 'update'])->middleware('auth')->name('forum.categories.update');
+Route::put('/forum/{category}', [CategoryController::class, 'update'])->middleware(['auth', 'not-demo'])->name('forum.categories.update');
 
 // Delete Categories
-Route::delete('/forum/{category}', [CategoryController::class, 'destroy'])->middleware('auth')->name('forum.categories.delete');
+Route::delete('/forum/{category}', [CategoryController::class, 'destroy'])->middleware(['auth', 'not-demo'])->name('forum.categories.delete');
 
 // Manage Categories
-Route::get('/forum/category/manage', [CategoryController::class, 'manage'])->middleware('auth')->name('forum.categories.manage');
+Route::get('/forum/category/manage', [CategoryController::class, 'manage'])->middleware(['auth', 'not-demo'])->name('forum.categories.manage');
 
 
 // All Posts in Category
-Route::get('/forum/{category}', [PostController::class, 'index'])->middleware('auth')->name('forum.posts.index');
+Route::get('/forum/{category}', [PostController::class, 'index'])->middleware(['auth', 'not-demo'])->name('forum.posts.index');
 
 // Show Create Post
-Route::get('/forum/{category}/create', [PostController::class, 'create'])->middleware('auth')->name('forum.posts.create');
+Route::get('/forum/{category}/create', [PostController::class, 'create'])->middleware(['auth', 'not-demo'])->name('forum.posts.create');
 
 // Store Post Data
-Route::post('/forum/{category}/store', [PostController::class, 'store'])->middleware('auth')->name('forum.posts.store');
+Route::post('/forum/{category}/store', [PostController::class, 'store'])->middleware(['auth', 'not-demo'])->name('forum.posts.store');
 
 // Show Edit Post
-Route::get('/forum/{category}/{post}/edit', [PostController::class, 'edit'])->middleware('auth')->name('forum.posts.edit');
+Route::get('/forum/{category}/{post}/edit', [PostController::class, 'edit'])->middleware(['auth', 'not-demo'])->name('forum.posts.edit');
 
 // Update Post
-Route::put('/forum/{category}/{post}/update', [PostController::class, 'update'])->middleware('auth')->name('forum.posts.update');
+Route::put('/forum/{category}/{post}/update', [PostController::class, 'update'])->middleware(['auth', 'not-demo'])->name('forum.posts.update');
 
 // Delete Post
-Route::delete('/forum/{category}/{post}/delete', [PostController::class, 'destroy'])->middleware('auth')->name('forum.posts.delete');
+Route::delete('/forum/{category}/{post}/delete', [PostController::class, 'destroy'])->middleware(['auth', 'not-demo'])->name('forum.posts.delete');
 
 // Manage Post
-Route::get('/forum/{category}/manage', [PostController::class, 'manage'])->middleware('auth')->name('forum.posts.manage');
+Route::get('/forum/{category}/manage', [PostController::class, 'manage'])->middleware(['auth', 'not-demo'])->name('forum.posts.manage');
 
 // Show Post in Category
-Route::get('/forum/{category}/{post}', [PostController::class, 'show'])->middleware('auth')->name('forum.posts.show');
+Route::get('/forum/{category}/{post}', [PostController::class, 'show'])->middleware(['auth', 'not-demo'])->name('forum.posts.show');
 
 // Show Create Form
-Route::post('/forum/{category}/{post}/comment', [PostController::class, 'comment'])->middleware('auth')->name('forum.posts.comment');
+Route::post('/forum/{category}/{post}/comment', [PostController::class, 'comment'])->middleware(['auth', 'not-demo'])->name('forum.posts.comment');
 
 // Send Post
-Route::post('/forum/{category}/{post}/notify', [PostController::class, 'notify'])->middleware('auth')->name('forum.posts.notify');
+Route::post('/forum/{category}/{post}/notify', [PostController::class, 'notify'])->middleware(['auth', 'not-demo'])->name('forum.posts.notify');
 
 // Maintenance (admin only): clear caches, backups and migrations without SSH
 Route::middleware(['auth', 'can:admin'])->prefix('admin/maintenance')->group(function () {

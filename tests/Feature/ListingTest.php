@@ -139,7 +139,9 @@ class ListingTest extends TestCase
         ]);
 
         $this->actingAs($user)->get('/')
-            ->assertSee('<a href="https://example.com" rel="noopener noreferrer">here</a>', false)
-            ->assertDontSee('alert(', false);
+            ->assertInertia(fn ($page) => $page
+                ->component('Albums/Index')
+                ->where('slogan.html', 'check <a href="https://example.com" rel="noopener noreferrer">here</a>')
+                ->where('slogan.author', 'Zecca'));
     }
 }

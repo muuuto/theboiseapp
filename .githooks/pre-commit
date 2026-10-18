@@ -1,0 +1,18 @@
+#!/bin/sh
+# The server can't build the frontend (no Node.js on shared hosting): the built files in
+# public/build must be committed together with any frontend change.
+# Enabled with: git config core.hooksPath .githooks
+
+changed=$(git diff --cached --name-only -- resources/js resources/css resources/views/app.blade.php package.json package-lock.json vite.config.js)
+built=$(git diff --cached --name-only -- public/build)
+
+if [ -n "$changed" ] && [ -z "$built" ]; then
+    echo ""
+    echo "  Frontend files changed, but the new build (public/build) is not in this commit:"
+    echo "$changed" | sed 's/^/    /'
+    echo ""
+    echo "  Run:  ./vendor/bin/sail npm run build && git add public/build"
+    echo "  Then commit again. (To commit anyway: git commit --no-verify)"
+    echo ""
+    exit 1
+fi

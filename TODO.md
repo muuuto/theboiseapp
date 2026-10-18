@@ -7,14 +7,12 @@ Feature wishlist is in `notes.md`. How-to for local development and deploying is
 
 1. ~~**Full release: Laravel 13 upgrade**~~ ✅ deployed 2026-10-17. Contains the upgrade, tests,
    backups, maintenance page, and the `symfony/html-sanitizer` package needed later for slogans.
-2. **Quick release 1: bug fixes** (only code → usual cPanel Git deploy). See *Decided fixes*.
-   ✅ Done locally, 58 tests passing, ready to commit and deploy. After deploying you can delete
-   `public_html/app/Http/Controllers/SplitwiseController.php` (deploys never delete files).
-3. **Quick release 2: invite-only registration** (needs a migration → run it from `/admin/maintenance`).
-   ✅ Done locally, 69 tests passing, rehearsed on a copy of the production database.
-   Deploy: quick release, then `/admin/maintenance` → **Backup + run migrations**.
-4. **Redesign** with Inertia + Vue 3 + Tailwind 4, page by page. This adds built frontend assets
-   (`public/build`, not in git): decide how to ship them (commit them, or build on the server).
+2. ~~**Quick release 1: bug fixes**~~ ✅ deployed 2026-10-18 (commit `6e798fe`). See *Decided fixes*.
+   - [ ] On the server you can delete `public_html/app/Http/Controllers/SplitwiseController.php`
+         (deploys never delete files)
+3. **Quick release 2: invite-only registration** (commit `c1457f9`), needs a migration.
+   - [ ] Push, quick release, then `/admin/maintenance` → **Backup + run migrations**
+4. **Redesign**, see *Decided: redesign* below for the steps.
 
 ## On the server (after the Laravel 13 deploy)
 
@@ -86,11 +84,53 @@ Also done in the same release:
 
 ## Decided: redesign
 
-- Stack: **Inertia + Vue 3 + Tailwind 4**, migrated page by page (layout and drawer first,
-  then albums, then forum).
-- Look: **keep the current colors** (familiar to the friends), modernize style and add modern
-  features, no complete redesign. Simple, clean, dynamic, functional.
-- Replace the crowded top navbar with a **sidebar / drawer**.
+- Stack: **Inertia + Vue 3 + Tailwind 4** built with Vite. Laravel keeps routes, controllers and
+  permission checks, pages become Vue components. Old Blade pages and new Vue pages live side by
+  side: one section per release, the site always works.
+- Look: **keep the current colors** (red `#ef3b2d`, teal, forum green, light slate background),
+  modernize style: rounded cards, soft shadows, more spacing, mobile-first. Simple, clean,
+  dynamic, functional. **Dark mode** saved per user (`users.dark_mode` already exists), following
+  the device setting by default.
+- Layout: **sidebar** on desktop, **drawer** on phones (Albums, Forum, Memories/New, Account, admin
+  group). Slim top bar (logo, search, notifications, avatar). The bottom bar's buttons move into
+  each page's header.
+- **Built files are committed:** `npm run build` before committing, `public/build` goes in git, so
+  the usual Git deploy keeps working (shared hosting has no Node.js). ⚠️ Reminder: forgetting the
+  build = the server shows the old frontend. To be documented in `deploy/DEPLOY.md` in step 1.
+- **Maps: Leaflet + OpenStreetMap** (free, no API key). The current `location` text stays as the
+  label on the album card (it's free text, not always a real place). Albums get separate
+  coordinates of the real place, set with a map picker in the album form. For the existing 194
+  albums: suggest coordinates from the location text, the admin confirms or fixes them.
+  Idea: a page with all albums on one map.
+- **Editor: Tiptap** instead of TinyMCE (TinyMCE cloud needs an API key and has a monthly limit).
+  It must keep showing the existing formatted content.
+- **Demo account** (now hard-coded as user id 28 "Guest", for recruiters reading the CV) becomes a
+  proper demo mode (`is_demo` flag instead of id 28):
+  - logs in with a **secret demo link** for the CV (e.g. `/demo/<secret>`, secret in `.env`,
+    changing it disables old links), no password
+  - **forum hidden entirely** (menu and pages), no slogans, neutral page title and texts
+  - sees only the albums it is a member of (as today)
+  - **read-only**: no comments, no likes, no account changes
+  - never receives emails (reminders, anniversaries, notifications)
+
+Steps (one release each):
+
+1. **Foundation**: Inertia + Vue + Tailwind setup, new layout with sidebar/drawer, dark mode,
+   flash messages, demo mode; first Vue page: the album home. Document the build in `DEPLOY.md`.
+   Adds a PHP package (Inertia) → full release.
+   ✅ Done locally, 84 tests passing, checked with screenshots (desktop, phone, dark mode).
+   To deploy (after quick release 2):
+   - [ ] **Full release** (Composer cron job), then **Backup + run migrations**
+   - [ ] Server `.env`: add `DEMO_LOGIN_SECRET=` followed by a long random secret, then put
+         `https://theboise.it/demo/<that secret>` in the CV (changing the secret disables old links)
+   - [ ] Optional: delete on the server the files removed from the repo:
+         `resources/views/listings/index.blade.php`, `resources/views/components/listing-card.blade.php`,
+         `resources/js/bootstrap.js`
+2. **Albums**: album page, comments with **likes** and **emoji picker**, previews cropped by the
+   site (fixes the black bars, trim the 60 existing), **maps**, responsive email images.
+3. **Forum**: categories, posts, post page, Tiptap editor, likes and emojis on comments.
+4. **The rest**: account, login/password pages, invite page, admin pages.
+5. After the redesign: **Splitwise**.
 
 ## Found later (to plan)
 
@@ -102,5 +142,6 @@ Also done in the same release:
 
 ## Still open
 
-- [ ] Maps: Google Maps (needs an API key with billing) or Leaflet + OpenStreetMap (free)?
 - [ ] Database table `slogan` is empty and duplicates `slogans`: drop it?
+- [ ] The `/zeccaGay` page is public (no login needed): put it behind login and hide it from the
+      demo account? Relevant now that recruiters may visit the site.

@@ -23,7 +23,8 @@ class ForumEmailsTest extends TestCase
         $this->comment($friend, $post);
 
         $this->assertEquals([$author->email], $this->recipients());
-        $this->assertStringContainsString('Zecca', $this->sentMessages()->first()->toString());
+        // The decoded body: the raw message wraps long lines and could split the name
+        $this->assertStringContainsString('Zecca', $this->sentMessages()->first()->getOriginalMessage()->getHtmlBody());
     }
 
     public function test_author_gets_no_email_for_their_own_comment(): void

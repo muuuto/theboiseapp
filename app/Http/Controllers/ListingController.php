@@ -10,29 +10,51 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
 use App\Models\Comment;
 use App\Models\ListingUser;
+use App\Support\Media;
+use App\Support\SafeHtml;
+use Inertia\Inertia;
 
 class ListingController extends Controller
 {
-    // Show all listings
+    // Show all listings (the albums the user is in)
     public function index()
     {
         $user = auth()->user();
-        if ($user) {
-            $listings = $user->listing();
+        $filters = request()->only(['tag', 'search']);
+
+        $albums = $user->listing()
+            ->withPivot('seen')
+            ->filter($filters)
+            ->orderBy('dateFrom', 'desc')
+            ->paginate(24)
+            ->withQueryString()
+            ->through(fn (Listing $listing) => [
+                'id' => $listing->id,
+                'title' => $listing->title,
+                'cover' => Media::url($listing->logo) ?? asset('images/no-image.png'),
+                'dateFrom' => $listing->dateFrom,
+                'dateTo' => $listing->dateTo,
+                'location' => $listing->location,
+                'tags' => array_values(array_filter(array_map('trim', explode(',', $listing->tags)))),
+                'isNew' => ! $listing->pivot->seen,
+            ]);
+
+        // No slogans for the demo account
+        $slogan = null;
+        if (! $user->is_demo) {
+            $random = Slogan::inRandomOrder()->first();
+            $slogan = $random
+                ? ['html' => SafeHtml::clean($random->sloganPhrase), 'author' => $random->author]
+                : ['html' => 'Find your albums', 'author' => 'TheBoise'];
         }
 
-        $slogan = Slogan::all();
-
-        if (count($slogan) > 0) {
-            $randomSlogan = $slogan->random();
-        } else {
-            $randomSlogan["sloganPhrase"] = "Find your albums";
-            $randomSlogan["author"] = "TheBoise";
-        }
-
-        return view('listings.index', [
-            'listings' => $user ? $listings->filter(request(['tag', 'search']))->orderBy('dateFrom', 'desc')->paginate(24)->withQueryString() : [],
-            'slogan' => $randomSlogan
+        return Inertia::render('Albums/Index', [
+            'albums' => $albums,
+            'slogan' => $slogan,
+            'filters' => [
+                'search' => $filters['search'] ?? '',
+                'tag' => $filters['tag'] ?? '',
+            ],
         ]);
     }
 

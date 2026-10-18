@@ -1,0 +1,29 @@
+@import 'tailwindcss';
+
+/* Pages not converted to Vue yet still use the Tailwind CDN: only scan the new frontend */
+@source not '../views';
+@source '../views/app.blade.php';
+
+/* Dark mode follows the "dark" class on <html> (set from the user's choice or the device) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    /* The site's historic colors */
+    --color-brand: #ef3b2d;
+    --color-brand-dark: #c92a1e;
+    --color-accent: var(--color-teal-600);
+    --color-forum: var(--color-green-600);
+
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+}
+
+/* Label shown on hover next to an icon of the collapsed sidebar (desktop only) */
+@utility sidebar-tooltip {
+    @apply pointer-events-none absolute left-full z-50 ml-3 hidden rounded-lg bg-slate-900 px-2.5 py-1 text-xs font-medium whitespace-nowrap text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 lg:block dark:bg-white dark:text-slate-900;
+}
+
+@layer base {
+    body {
+        @apply bg-slate-100 text-slate-800 antialiased dark:bg-slate-950 dark:text-slate-200;
+    }
+}

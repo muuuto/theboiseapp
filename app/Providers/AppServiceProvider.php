@@ -7,7 +7,10 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use App\Models\ListingUser;
+use App\Models\User;
 use App\Console\Commands\GenerateAnniversaryNotifications;
+use Illuminate\Mail\Events\MessageSending;
+use Illuminate\Support\Facades\Event;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -24,6 +27,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // The demo account never receives emails: cancel any email addressed only to demo users
+        Event::listen(MessageSending::class, function (MessageSending $event) {
+            $recipients = collect($event->message->getTo())->map(fn ($address) => strtolower($address->getAddress()));
+            $demoEmails = User::where('is_demo', true)->pluck('email')->map(fn ($email) => strtolower($email));
+
+            if ($recipients->isNotEmpty() && $recipients->diff($demoEmails)->isEmpty()) {
+                return false;
+            }
+        });
+
         View::composer('components.layout', function ($view) {
             if (auth()->check()) {
                 $anniversaryNotification = GenerateAnniversaryNotifications::getMemoriesOfTheDay(true);

@@ -62,6 +62,9 @@ return [
     // Production always forces https; set FORCE_HTTPS=false in a local .env
     'force_https' => env('FORCE_HTTPS', true),
 
+    // Secret of the demo link for recruiters (/demo/{secret}); empty = demo link disabled
+    'demo_secret' => env('DEMO_LOGIN_SECRET'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone
