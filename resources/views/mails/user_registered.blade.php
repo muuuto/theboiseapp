@@ -1,11 +1,15 @@
-<html>
-    Hello there admin,<br><br>
+@extends('mails.layouts.base')
 
-    there is a new user: {{ $name }}, {{$email}}.<br>
+@section('preheader', $name . ' joined theboise.it')
+
+@section('content')
+    <p style="font-size: 22px; font-weight: bold; margin: 0 0 12px;">Hello there admin 👋</p>
+
+    <p>There is a new user: <strong>{{ $name }}</strong>, {{ $email }}.</p>
+
     @if ($note)
-    Invite: {{ $note }}<br>
+        <p>Invite: {{ $note }}</p>
     @endif
-    <br>
 
-    theboise.it team
-</html>
+    <p style="margin-bottom: 0;"><strong>theboise.it team</strong></p>
+@endsection

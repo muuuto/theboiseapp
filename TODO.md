@@ -183,10 +183,63 @@ Steps (one release each):
    **To deploy** (quick release, one migration):
    - [ ] Push, cPanel Git deploy, then `/admin/maintenance` → **Backup + run migrations**
      (until then album pages just show the general link and description)
-6. **Nicer emails** (wanted): all the emails (new album, comments, reminders, anniversaries,
-   birthday, welcome, invites...) in one clean template with the site's look: logo, colors,
-   album preview, a clear button, readable on phones and in dark mode.
-7. After the redesign: **Splitwise**.
+6. **Nicer emails**: ✅ Done locally, 147 tests passing. All 12 emails (password reset included)
+   share one design: teal header with the logo, white card, album cards with preview, dates,
+   place and a clear button, readable on phones and in dark mode. Same texts and humor. Album
+   previews are sent as JPEG (Outlook can't show WebP) without the old transparent bars, through
+   a signed link. Links use the site's address instead of a hard-coded `https://theboise.it`.
+   `/admin/maintenance` → **Test emails**: pick an email and it's sent only to you, with your
+   name and your albums (also `php artisan mails:preview you@example.com` sends all of them).
+   The empty `slogan` table is dropped by a migration (only if still empty).
+   **To deploy** (quick release, one migration):
+   - [ ] Check that the server `.env` has `APP_URL=https://theboise.it` (the scheduled emails
+         build their links and images from it)
+   - [ ] Push, cPanel Git deploy, then `/admin/maintenance` → **Backup + run migrations**
+   - [ ] `/admin/maintenance` → **Test emails**: send yourself a few (New album, On this day,
+         Happy birthday) and look at them in Gmail on the phone and on the computer
+   ⚠️ Today the emails only link to the album page on the site (which shows each person their own
+   version). If an email ever includes the photos link or the description directly, it must use
+   the recipient's personal version when there is one (`listing_user.custom_album_link` /
+   `custom_description`).
+7. **Splitwise** (decided):
+   - **groups** (e.g. "Sicilia 2026", "Casa") with their members, optionally linked to an album
+   - expenses split **equally**, by **exact amounts** or by **shares** (2 nights vs 3 nights)
+   - **euro only**
+   - **simplified debts**: the fewest payments to settle everyone ("Zecca pays Anna €12")
+   - **settle up payments**: record "I paid Anna €20" anytime (also with a "Paid ✓" button on each
+     simplified debt), so balances go back to zero
+   - **email notifications**: when someone adds an expense that includes you (who paid, total,
+     your share) and when someone records a payment to you. In the new email design
+   - no receipt photos (not wanted for now)
+8. **Other people can post albums** (wanted, to design together before building). Until now only
+   admins post albums (all 194 albums locally have `user_id` = 1, so "who posted it" is already
+   known for every album, nothing to fill in).
+   - **Permission per person, toggled by admins**: a "Can post albums" switch for each user (new
+     page or section in `/admin/maintenance`, e.g. *People*). Off for everyone by default; admins
+     always can; the demo account never can.
+   - **Traced**: every album keeps who posted it (`listings.user_id`), plus a history of what
+     happens to albums: created, edited (which fields), people added/removed, deleted, permission
+     given/removed, with who and when. Admins see it (per album and as a list). Deleting an album
+     by a non-admin should be recoverable (soft delete, admins can restore).
+   - **What a poster can do**: create albums, tag anyone (admin included), edit and delete only the
+     albums they posted; admins can still edit/delete every album. The poster is always in their
+     own album. The tagged people get the "New album" email as today ("Zecca posted a new album").
+   - **Album list toggle** "Only albums I posted": on → the list hides the albums posted by
+     others where you're tagged; off → every album you're in, whoever posted it (like today).
+     The choice is remembered (saved on the account, like the theme), shown only to people who
+     have posted at least one album.
+   - Questions to decide:
+     - [ ] Can posters also set the per-person versions (different link/description for someone),
+           or only admins? (they'd then know about that feature)
+     - [ ] When the permission is removed: can they still edit/delete the albums they already
+           posted, or only admins from then on?
+     - [ ] Does the toggle also apply to the map, the "On this day" memories in the bell and the
+           anniversary/reminder emails, or only the album list?
+     - [ ] Can someone tagged in an album remove themselves from it ("not my album")? Should the
+           poster/admin be told?
+     - [ ] Should albums by non-admins need an admin's approval before the tagged people see them,
+           or are they visible right away (with the history to check afterwards)?
+     - [ ] Show "Posted by Zecca" on the album page to everyone, or only to admins?
 
 ## Found later (to plan)
 
@@ -198,6 +251,5 @@ Steps (one release each):
 
 ## Still open
 
-- [ ] Database table `slogan` is empty and duplicates `slogans`: drop it?
-- [ ] The `/zeccaGay` page is public (no login needed): put it behind login and hide it from the
-      demo account? Relevant now that recruiters may visit the site.
+- [x] Database table `slogan` is empty and duplicates `slogans`: dropped (migration, only if empty)
+- [x] The `/zeccaGay` page stays public (decided)

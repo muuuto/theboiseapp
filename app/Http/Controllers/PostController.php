@@ -86,7 +86,8 @@ class PostController extends Controller
         $post->hidedUser()->sync($request->input('hideFrom', []));
 
         $email_data = array(
-            'name' => $formFields['title']
+            'name' => $formFields['title'],
+            'postLink' => url('/forum/' . $category->id . '/' . $post->id),
         );
         Mail::send('/mails/new_post', $email_data, function ($message) {
             $message->to('matteo.gavoni@gmail.com', 'Admin')
@@ -176,7 +177,7 @@ class PostController extends Controller
                 'commentOfUser' => auth()->user()->name,
                 'comment' => $formFields['comment'],
                 'postTitle' => $post->title,
-                'postLink' => 'https://theboise.it/forum/' . $category->id . '/' . $post->id
+                'postLink' => url('/forum/' . $category->id . '/' . $post->id),
             );
 
             Mail::send('/mails/new_comment_post', $email_data, function ($message) use ($email_data, $post) {
@@ -217,7 +218,7 @@ class PostController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'postTitle' => $post->title,
-                'postLink' => 'https://theboise.it/forum/' . $category->id . '/' . $post->id
+                'postLink' => url('/forum/' . $category->id . '/' . $post->id),
             );
 
             Mail::send('/mails/notify_post', $email_data, function ($message) use ($email_data, $post) {

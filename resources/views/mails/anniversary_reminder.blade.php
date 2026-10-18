@@ -1,16 +1,19 @@
-<p>Hello {{ $user->name }},</p>
+@extends('mails.layouts.base')
 
-@foreach ($listings as $listing)
-    <p>On this day, <strong>{{$listing->diffInYears}}</strong> years ago, you were here: <strong>{{ $listing->title }}</strong> ({{$listing->dateFrom}} - {{$listing->dateTo}})</p>
-    
-    <img src="{{asset('storage/app/public/' . $listing->logo)}}" width="600" alt="" style="width: 100%; max-width: 600px; height: auto; border-radius: 8px;">
-    <p>
-        <a href="https://theboise.it/listings/{{ $listing->id }}"
-           style="display: inline-block; padding: 10px 20px; background-color: #3490dc; color: white; text-decoration: none; border-radius: 5px;">
-            View Album
-        </a>
-    </p>
-    <br>
-@endforeach
+@section('preheader', 'A memory from ' . $listings->first()->title . ', ' . $listings->first()->diffInYears . ' ' . Str::plural('year', $listings->first()->diffInYears) . ' ago')
 
-<p>Thanks,<br> theboise.it team</p>
+@section('content')
+    <p style="font-size: 22px; font-weight: bold; margin: 0 0 12px;">Hello {{ $user->name }} 👋</p>
+
+    <p>On this day, a while ago, you were here:</p>
+
+    @foreach ($listings as $listing)
+        @include('mails.partials.album', [
+            'listing' => $listing,
+            'note' => $listing->diffInYears . ' ' . Str::plural('year', $listing->diffInYears) . ' ago',
+            'label' => 'Relive it',
+        ])
+    @endforeach
+
+    <p style="margin-bottom: 0;">Thanks,<br><strong>theboise.it team</strong></p>
+@endsection

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Invite;
+use App\Support\MailSamples;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
@@ -49,6 +51,7 @@ class MaintenanceController extends Controller
                 'name' => basename($file),
                 'size' => round(filesize($file) / 1024),
             ], $backups),
+            'mailTemplates' => MailSamples::TEMPLATES,
             'phpVersion' => PHP_VERSION,
             'phpBinary' => PHP_BINARY,
             'laravelVersion' => app()->version(),
@@ -90,6 +93,23 @@ class MaintenanceController extends Controller
         Log::info('Maintenance action "' . $action . '" run by ' . auth()->user()->name, ['output' => $output]);
 
         return redirect('/admin/maintenance')->with('output', $output);
+    }
+
+    // Sends one email with sample data to the admin, to see how it looks
+    public function testEmail(Request $request)
+    {
+        $data = $request->validate(['template' => 'required|in:' . implode(',', array_keys(MailSamples::TEMPLATES))]);
+        $admin = $request->user();
+
+        try {
+            MailSamples::send($data['template'], $admin->email, $admin);
+        } catch (\Throwable $e) {
+            Log::error('Test email failed', ['template' => $data['template'], 'error' => $e->getMessage()]);
+
+            return back()->withErrors(['template' => 'The email could not be sent: ' . $e->getMessage()]);
+        }
+
+        return back()->with('message', 'Test email "' . MailSamples::TEMPLATES[$data['template']] . '" sent to ' . $admin->email);
     }
 
     public function download(string $file)

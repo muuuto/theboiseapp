@@ -37,7 +37,7 @@ class AlbumCover
     }
 
     // The image without its padding, or null if it has none
-    private static function crop(GdImage $image): ?GdImage
+    public static function crop(GdImage $image): ?GdImage
     {
         [$left, $right, $top, $bottom] = self::detectBars($image);
 

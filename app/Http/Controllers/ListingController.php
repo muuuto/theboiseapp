@@ -146,8 +146,7 @@ class ListingController extends Controller
                 'name' => $user['name'],
                 'email' => $user['email'],
                 'albumTitle' => $listing->title,
-                'albumLink' => 'https://theboise.it/listings/' . $listing->id,
-                'albumLogo' => $listing->logo
+                'listing' => $listing,
             );
             Mail::send('/mails/new_album', $email_data, function ($message) use ($email_data) {
                 $message->to($email_data['email'], $email_data['name'])
@@ -240,7 +239,7 @@ class ListingController extends Controller
                 'commentOfUser' => $author->name,
                 'comment' => $html,
                 'albumTitle' => $listing->title,
-                'albumLink' => 'https://theboise.it/listings/' . $listing->id
+                'albumLink' => url('/listings/' . $listing->id),
             );
             Mail::send('/mails/new_comment', $email_data, function ($message) use ($email_data) {
                 $message->to($email_data['email'], $email_data['name'])

@@ -1,17 +1,15 @@
-<p>Hello {{ $user->name }},</p>
+@extends('mails.layouts.base')
 
-<p>You have the following albums to view:</p>
-@foreach ($listings as $listing)
-    <strong>{{ $listing->title }}</strong>
-    
-    <img src="{{asset('storage/app/public/' . $listing->logo)}}" width="600" alt="" style="width: 100%; max-width: 600px; height: auto; border-radius: 8px;">
-    <p>
-        <a href="https://theboise.it/listings/{{ $listing->id }}"
-           style="display: inline-block; padding: 10px 20px; background-color: #3490dc; color: white; text-decoration: none; border-radius: 5px;">
-            View Album
-        </a>
-    </p>
-    <br>
-@endforeach
+@section('preheader', $listings->count() == 1 ? $listings->first()->title . ' is waiting for you' : $listings->count() . ' albums are waiting for you')
 
-<p>Thanks,<br> theboise.it team</p>
+@section('content')
+    <p style="font-size: 22px; font-weight: bold; margin: 0 0 12px;">Hello {{ $user->name }} 👋</p>
+
+    <p>You still haven't opened {{ $listings->count() == 1 ? 'this album' : 'these albums' }}:</p>
+
+    @foreach ($listings as $listing)
+        @include('mails.partials.album', ['listing' => $listing, 'label' => 'View album'])
+    @endforeach
+
+    <p style="margin-bottom: 0;">Thanks,<br><strong>theboise.it team</strong></p>
+@endsection

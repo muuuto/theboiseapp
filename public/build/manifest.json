@@ -16,8 +16,8 @@
       "_createLucideIcon-CRoJyS9p.js"
     ]
   },
-  "_GuestLayout-SXVYHuGM.js": {
-    "file": "assets/GuestLayout-SXVYHuGM.js",
+  "_GuestLayout-QbD2Cemw.js": {
+    "file": "assets/GuestLayout-QbD2Cemw.js",
     "name": "GuestLayout",
     "imports": [
       "_createLucideIcon-CRoJyS9p.js",
@@ -43,8 +43,8 @@
     "file": "assets/LeafletMap-DsSs_iP8.css",
     "src": "_LeafletMap-DsSs_iP8.css"
   },
-  "_LikeButton-BZDcByFl.js": {
-    "file": "assets/LikeButton-BZDcByFl.js",
+  "_LikeButton-CpAsbxLY.js": {
+    "file": "assets/LikeButton-CpAsbxLY.js",
     "name": "LikeButton",
     "imports": [
       "_createLucideIcon-CRoJyS9p.js",
@@ -52,8 +52,8 @@
       "resources/js/app.js"
     ]
   },
-  "_PeoplePicker-ChtLrlZW.js": {
-    "file": "assets/PeoplePicker-ChtLrlZW.js",
+  "_PeoplePicker-CDeLDmGO.js": {
+    "file": "assets/PeoplePicker-CDeLDmGO.js",
     "name": "PeoplePicker",
     "imports": [
       "_createLucideIcon-CRoJyS9p.js",
@@ -138,6 +138,13 @@
       "_createLucideIcon-CRoJyS9p.js"
     ]
   },
+  "_mail-RCUkrS3m.js": {
+    "file": "assets/mail-RCUkrS3m.js",
+    "name": "mail",
+    "imports": [
+      "_createLucideIcon-CRoJyS9p.js"
+    ]
+  },
   "_map-pin-D_DkfKtE.js": {
     "file": "assets/map-pin-D_DkfKtE.js",
     "name": "map-pin",
@@ -208,7 +215,7 @@
     "src": "node_modules/leaflet/dist/images/marker-icon.png"
   },
   "resources/css/app.css": {
-    "file": "assets/app-CFFs8w4J.css",
+    "file": "assets/app-5AKJpI-H.css",
     "name": "app",
     "names": [
       "app.css"
@@ -217,7 +224,7 @@
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-CnpJXlRD.js",
+    "file": "assets/app-hbwaz2yb.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
@@ -248,11 +255,11 @@
       "resources/js/pages/Zecca.vue"
     ],
     "css": [
-      "assets/app-CFFs8w4J.css"
+      "assets/app-5AKJpI-H.css"
     ]
   },
   "resources/js/pages/Account/Index.vue": {
-    "file": "assets/Index-Cqt8yXhO.js",
+    "file": "assets/Index-BrOQ9BJY.js",
     "name": "Index",
     "src": "resources/js/pages/Account/Index.vue",
     "isDynamicEntry": true,
@@ -277,7 +284,7 @@
     ]
   },
   "resources/js/pages/Admin/Maintenance.vue": {
-    "file": "assets/Maintenance-Cu2wmZy6.js",
+    "file": "assets/Maintenance-DnzW1xQs.js",
     "name": "Maintenance",
     "src": "resources/js/pages/Admin/Maintenance.vue",
     "isDynamicEntry": true,
@@ -286,12 +293,13 @@
       "_check-CyqFwckt.js",
       "_circle-check-BinasHxm.js",
       "_copy-CzkeUTw9.js",
+      "_mail-RCUkrS3m.js",
       "_map-pin-D_DkfKtE.js",
       "_time-CsO2HH21.js"
     ]
   },
   "resources/js/pages/Admin/Monitor.vue": {
-    "file": "assets/Monitor-WSbWu0ZE.js",
+    "file": "assets/Monitor-DgQyvf0n.js",
     "name": "Monitor",
     "src": "resources/js/pages/Admin/Monitor.vue",
     "isDynamicEntry": true,
@@ -302,7 +310,7 @@
     ]
   },
   "resources/js/pages/Albums/Form.vue": {
-    "file": "assets/Form-DJXupM9K.js",
+    "file": "assets/Form-BEu20Axk.js",
     "name": "Form",
     "src": "resources/js/pages/Albums/Form.vue",
     "isDynamicEntry": true,
@@ -317,11 +325,11 @@
       "_trash-2-4tY51Ify.js",
       "_user-cog-CI4nlT1t.js",
       "resources/js/app.js",
-      "_PeoplePicker-ChtLrlZW.js"
+      "_PeoplePicker-CDeLDmGO.js"
     ]
   },
   "resources/js/pages/Albums/Index.vue": {
-    "file": "assets/Index-DfZigeAz.js",
+    "file": "assets/Index-BkyU-o6Z.js",
     "name": "Index",
     "src": "resources/js/pages/Albums/Index.vue",
     "isDynamicEntry": true,
@@ -346,7 +354,7 @@
     ]
   },
   "resources/js/pages/Albums/Show.vue": {
-    "file": "assets/Show-DXEHkJW6.js",
+    "file": "assets/Show-BhdZLTrl.js",
     "name": "Show",
     "src": "resources/js/pages/Albums/Show.vue",
     "isDynamicEntry": true,
@@ -359,14 +367,14 @@
       "_copy-CzkeUTw9.js",
       "_map-pin-D_DkfKtE.js",
       "_pencil-CzM8J4_p.js",
-      "_LikeButton-BZDcByFl.js",
+      "_LikeButton-CpAsbxLY.js",
       "_trash-2-4tY51Ify.js",
       "_user-cog-CI4nlT1t.js",
       "_time-CsO2HH21.js"
     ]
   },
   "resources/js/pages/Auth/ForgotPassword.vue": {
-    "file": "assets/ForgotPassword-Ceo9gTn9.js",
+    "file": "assets/ForgotPassword-I63i_nFN.js",
     "name": "ForgotPassword",
     "src": "resources/js/pages/Auth/ForgotPassword.vue",
     "isDynamicEntry": true,
@@ -375,21 +383,21 @@
       "_arrow-left-CPzr_pIt.js",
       "_loader-circle-JOIl9-hw.js",
       "_FormField-Dm5BwE6F.js",
-      "_GuestLayout-SXVYHuGM.js"
+      "_GuestLayout-QbD2Cemw.js"
     ]
   },
   "resources/js/pages/Auth/InviteOnly.vue": {
-    "file": "assets/InviteOnly-BAV3hsdC.js",
+    "file": "assets/InviteOnly-CVorzj9D.js",
     "name": "InviteOnly",
     "src": "resources/js/pages/Auth/InviteOnly.vue",
     "isDynamicEntry": true,
     "imports": [
       "_createLucideIcon-CRoJyS9p.js",
-      "_GuestLayout-SXVYHuGM.js"
+      "_GuestLayout-QbD2Cemw.js"
     ]
   },
   "resources/js/pages/Auth/Login.vue": {
-    "file": "assets/Login-_pol7Wya.js",
+    "file": "assets/Login-CO1dHOcN.js",
     "name": "Login",
     "src": "resources/js/pages/Auth/Login.vue",
     "isDynamicEntry": true,
@@ -397,11 +405,11 @@
       "_createLucideIcon-CRoJyS9p.js",
       "_loader-circle-JOIl9-hw.js",
       "_FormField-Dm5BwE6F.js",
-      "_GuestLayout-SXVYHuGM.js"
+      "_GuestLayout-QbD2Cemw.js"
     ]
   },
   "resources/js/pages/Auth/Register.vue": {
-    "file": "assets/Register-CfhjhBzK.js",
+    "file": "assets/Register-Cu_AlXF1.js",
     "name": "Register",
     "src": "resources/js/pages/Auth/Register.vue",
     "isDynamicEntry": true,
@@ -409,11 +417,11 @@
       "_createLucideIcon-CRoJyS9p.js",
       "_loader-circle-JOIl9-hw.js",
       "_FormField-Dm5BwE6F.js",
-      "_GuestLayout-SXVYHuGM.js"
+      "_GuestLayout-QbD2Cemw.js"
     ]
   },
   "resources/js/pages/Auth/ResetPassword.vue": {
-    "file": "assets/ResetPassword-BImCwb33.js",
+    "file": "assets/ResetPassword-FFuT9Goj.js",
     "name": "ResetPassword",
     "src": "resources/js/pages/Auth/ResetPassword.vue",
     "isDynamicEntry": true,
@@ -421,7 +429,7 @@
       "_createLucideIcon-CRoJyS9p.js",
       "_loader-circle-JOIl9-hw.js",
       "_FormField-Dm5BwE6F.js",
-      "_GuestLayout-SXVYHuGM.js"
+      "_GuestLayout-QbD2Cemw.js"
     ]
   },
   "resources/js/pages/Forum/Category.vue": {
@@ -440,7 +448,7 @@
     ]
   },
   "resources/js/pages/Forum/CategoryForm.vue": {
-    "file": "assets/CategoryForm-BIy-U0SJ.js",
+    "file": "assets/CategoryForm-k1m4XoQK.js",
     "name": "CategoryForm",
     "src": "resources/js/pages/Forum/CategoryForm.vue",
     "isDynamicEntry": true,
@@ -449,7 +457,7 @@
       "_arrow-left-CPzr_pIt.js",
       "_loader-circle-JOIl9-hw.js",
       "resources/js/app.js",
-      "_PeoplePicker-ChtLrlZW.js"
+      "_PeoplePicker-CDeLDmGO.js"
     ]
   },
   "resources/js/pages/Forum/Index.vue": {
@@ -466,7 +474,7 @@
     ]
   },
   "resources/js/pages/Forum/Post.vue": {
-    "file": "assets/Post-DQeeKqW-.js",
+    "file": "assets/Post-CZcOhODJ.js",
     "name": "Post",
     "src": "resources/js/pages/Forum/Post.vue",
     "isDynamicEntry": true,
@@ -477,14 +485,15 @@
       "_lock-lJDhe92S.js",
       "_file-text-BqHDwxQQ.js",
       "_link-2-DPt0eTlv.js",
+      "_mail-RCUkrS3m.js",
       "_pencil-CzM8J4_p.js",
-      "_LikeButton-BZDcByFl.js",
+      "_LikeButton-CpAsbxLY.js",
       "_trash-2-4tY51Ify.js",
       "_time-CsO2HH21.js"
     ]
   },
   "resources/js/pages/Forum/PostForm.vue": {
-    "file": "assets/PostForm-B74A8bFx.js",
+    "file": "assets/PostForm-CkcLAwcn.js",
     "name": "PostForm",
     "src": "resources/js/pages/Forum/PostForm.vue",
     "isDynamicEntry": true,
@@ -495,7 +504,7 @@
       "_file-text-BqHDwxQQ.js",
       "_loader-circle-JOIl9-hw.js",
       "resources/js/app.js",
-      "_PeoplePicker-ChtLrlZW.js"
+      "_PeoplePicker-CDeLDmGO.js"
     ]
   },
   "resources/js/pages/Slogans/Create.vue": {
@@ -511,7 +520,7 @@
     ]
   },
   "resources/js/pages/Zecca.vue": {
-    "file": "assets/Zecca-CPUV-oy8.js",
+    "file": "assets/Zecca-hHSIjocn.js",
     "name": "Zecca",
     "src": "resources/js/pages/Zecca.vue",
     "isDynamicEntry": true,
@@ -519,7 +528,7 @@
       "_createLucideIcon-CRoJyS9p.js",
       "_arrow-left-CPzr_pIt.js",
       "resources/js/app.js",
-      "_GuestLayout-SXVYHuGM.js"
+      "_GuestLayout-QbD2Cemw.js"
     ]
   }
 }

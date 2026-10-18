@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import {
-    Brush, Check, CheckCircle2, Copy, Crop, Database, Download, MapPin, MapPinned, Play, UserPlus, XCircle,
+    Brush, Check, CheckCircle2, Copy, Crop, Database, Download, Mail, MapPin, MapPinned, Play, UserPlus, XCircle,
 } from 'lucide-vue-next';
 import { fullDate } from '../../time.js';
 
@@ -14,6 +14,7 @@ const props = defineProps({
     phpBinary: String,
     laravelVersion: String,
     checks: Object,
+    mailTemplates: Object,
 });
 
 const page = usePage();
@@ -40,6 +41,12 @@ async function copyInvite() {
     await navigator.clipboard.writeText(inviteLink.value);
     copied.value = true;
     setTimeout(() => (copied.value = false), 1500);
+}
+
+// Test emails: one sample email sent to the admin
+const testEmail = useForm({ template: 'new_album' });
+function sendTestEmail() {
+    testEmail.post('/admin/maintenance/test-email', { preserveScroll: true });
 }
 
 const cardClass = 'rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800';
@@ -148,6 +155,27 @@ const buttonClass = 'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-
                     <li v-if="!invites.length" class="text-slate-500">No invites yet.</li>
                 </ul>
             </template>
+        </section>
+
+        <!-- Test emails -->
+        <section :class="cardClass" class="space-y-3">
+            <h2 class="text-lg font-bold">Test emails</h2>
+            <p class="text-sm text-slate-500">
+                Sends one email with sample data (your name, your albums) only to you, to see how it looks.
+                Nothing is saved and nobody else receives it.
+            </p>
+            <form class="flex flex-wrap items-end gap-2" @submit.prevent="sendTestEmail">
+                <label class="min-w-48 flex-1">
+                    <span class="mb-1 block text-xs font-semibold">Email</span>
+                    <select v-model="testEmail.template" class="h-10 w-full rounded-xl border-0 bg-white px-3 text-sm ring-1 ring-slate-200 dark:bg-slate-950 dark:ring-slate-700">
+                        <option v-for="(label, key) in mailTemplates" :key="key" :value="key">{{ label }}</option>
+                    </select>
+                </label>
+                <button type="submit" :class="buttonClass" class="h-10 bg-brand py-0 text-white hover:bg-brand-dark" :disabled="testEmail.processing">
+                    <Mail class="size-4" /> {{ testEmail.processing ? 'Sending…' : 'Send it to me' }}
+                </button>
+            </form>
+            <p v-if="testEmail.errors.template" class="text-sm text-red-600">{{ testEmail.errors.template }}</p>
         </section>
 
         <!-- One-time album jobs -->

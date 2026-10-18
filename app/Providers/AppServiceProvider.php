@@ -11,6 +11,8 @@ use App\Models\PostComment;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Mail\Events\MessageSending;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Notifications\Messages\MailMessage;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -41,6 +43,18 @@ class AppServiceProvider extends ServiceProvider
             if ($recipients->isNotEmpty() && $recipients->diff($demoEmails)->isEmpty()) {
                 return false;
             }
+        });
+
+        // Password reset email in the same design as the others
+        ResetPassword::toMailUsing(function ($user, string $token) {
+            return (new MailMessage)
+                ->subject('Reset your theboise.it password')
+                ->from('info@theboise.it', 'TheBoise')
+                ->view('mails.reset_password', [
+                    'name' => $user->name,
+                    'link' => url(route('password.reset', ['token' => $token, 'email' => $user->getEmailForPasswordReset()], false)),
+                    'minutes' => config('auth.passwords.' . config('auth.defaults.passwords') . '.expire'),
+                ]);
         });
 
         Model::unguard();

@@ -1,9 +1,13 @@
-<html>
-    Hello there {{$name}}, <br><br>
-    
-    a new album - <strong>{{$albumTitle}}</strong> - is available inside THEBOISE. Please <a href="{{$albumLink}}">click here</a> to visit the album and leave a comment. <br><br>
-    <img src="{{asset('storage/app/public/' . $albumLogo)}}" width="600" alt="" style="width: 100%; max-width: 600px; height: auto; border-radius: 8px;">
+@extends('mails.layouts.base')
 
-    <br>
-    theboise team
-</html>
+@section('preheader', 'New album: ' . $listing->title)
+
+@section('content')
+    <p style="font-size: 22px; font-weight: bold; margin: 0 0 12px;">Hello there {{ $name }} 👋</p>
+
+    <p>A new album is available inside THEBOISE. Have a look and leave a comment!</p>
+
+    @include('mails.partials.album', ['listing' => $listing, 'note' => 'New album', 'label' => 'Visit the album'])
+
+    <p style="margin-bottom: 0;"><strong>theboise.it team</strong></p>
+@endsection

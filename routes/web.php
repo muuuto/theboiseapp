@@ -102,6 +102,14 @@ Route::get('/monitor', [UserController::class, 'monitor'])->middleware('auth');
 // Show Create Form
 Route::post('/listings/comments', [ListingController::class, 'comments'])->middleware(['auth', 'not-demo']);
 
+// Album preview in emails (JPEG): no login, the signed link is the key
+Route::get('/mail/cover/{listing}', function (App\Models\Listing $listing) {
+    $file = App\Support\MailCover::jpeg($listing);
+    abort_unless($file, 404);
+
+    return response()->file($file, ['Content-Type' => 'image/jpeg', 'Cache-Control' => 'public, max-age=31536000']);
+})->middleware('signed')->name('mail.cover');
+
 // Like / unlike a comment
 Route::post('/likes', [LikeController::class, 'toggle'])->middleware(['auth', 'not-demo']);
 
@@ -203,6 +211,7 @@ Route::post('/forum/{category}/{post}/notify', [PostController::class, 'notify']
 // Maintenance (admin only): clear caches, backups and migrations without SSH
 Route::middleware(['auth', 'can:admin'])->prefix('admin/maintenance')->group(function () {
     Route::get('/', [MaintenanceController::class, 'index']);
+    Route::post('/test-email', [MaintenanceController::class, 'testEmail']);
     Route::post('/{action}', [MaintenanceController::class, 'run']);
     Route::get('/backups/{file}', [MaintenanceController::class, 'download']);
 });
