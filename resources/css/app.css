@@ -64,6 +64,11 @@
     .rich-text mark {
         @apply rounded px-0.5 text-slate-900;
     }
+    /* Highlighted text (light backgrounds from the old editor) stays dark, also in dark mode */
+    .dark .rich-text [style*='background-color'],
+    .dark .rich-text mark {
+        color: var(--color-slate-900);
+    }
     /* Old TinyMCE content sometimes forces black text: keep it readable in dark mode */
     .dark .rich-text [style*='color: #000000'],
     .dark .rich-text [style*='color: rgb(0, 0, 0)'] {

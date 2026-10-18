@@ -17,7 +17,8 @@ function toggle(id) {
 </script>
 
 <template>
-    <div class="space-y-2">
+    <!-- @container: 3 columns only when the picker itself is wide enough (it also sits in narrow side columns) -->
+    <div class="@container space-y-2">
         <div class="flex items-center gap-2">
             <div class="relative flex-1">
                 <Search class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
@@ -31,7 +32,7 @@ function toggle(id) {
             <span class="text-sm whitespace-nowrap text-slate-500">{{ selected.length }} selected</span>
         </div>
 
-        <div class="grid max-h-72 grid-cols-2 gap-1.5 overflow-y-auto rounded-2xl bg-white p-2 ring-1 ring-slate-200 sm:grid-cols-3 dark:bg-slate-900 dark:ring-slate-700">
+        <div class="grid max-h-72 grid-cols-2 gap-1.5 overflow-y-auto rounded-2xl bg-white p-2 ring-1 ring-slate-200 @lg:grid-cols-3 dark:bg-slate-900 dark:ring-slate-700">
             <button
                 v-for="user in visible"
                 :key="user.id"

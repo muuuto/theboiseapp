@@ -29,11 +29,11 @@
             } catch (e) {}
         </script>
         <style>
-            .app-sidebar, .app-content, .forum-actions { transition: width .2s, padding .2s; }
+            .app-sidebar, .app-content { transition: width .2s, padding .2s; }
             .nav-tip { display: none; }
             @media (min-width: 1024px) {
                 .sidebar-collapsed .app-sidebar { width: 5rem; }
-                .sidebar-collapsed .app-content, .sidebar-collapsed .forum-actions { padding-left: 5rem; }
+                .sidebar-collapsed .app-content { padding-left: 5rem; }
                 .sidebar-collapsed .app-sidebar .nav-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
                 .sidebar-collapsed .app-sidebar .nav-item { justify-content: center; }
                 .sidebar-collapsed .app-sidebar .nav-head { justify-content: center; padding: 0; }
@@ -70,7 +70,7 @@
             <meta name="description" content="TheBoise: more than 100 albumses, find out if zecca is truly gay and visit the forumses.">
         @endif
     </head>
-    <body class="bg-slate-100 text-slate-800 {{ auth()->check() ? 'pb-24' : '' }}" x-data="{ drawer: false }" @keydown.escape.window="drawer = false">
+    <body class="bg-slate-100 text-slate-800" x-data="{ drawer: false }" @keydown.escape.window="drawer = false">
         @auth
         {{-- Drawer backdrop (phones) --}}
         <div x-show="drawer" x-transition.opacity class="fixed inset-0 z-40 bg-slate-900/50 lg:hidden" @click="drawer = false" style="display: none"></div>
@@ -148,16 +148,32 @@
                 <div class="ml-auto flex items-center gap-1">
                     @auth
                     {{-- Notifications: memories of the day and albums not seen yet --}}
-                    <div class="relative" x-data="{ open: false }" @click.outside="open = false">
-                        <button class="relative rounded-lg p-2 text-slate-600 hover:bg-slate-100" @click="open = !open">
+                    @php($unreadLikes = collect($likeNotifications)->contains('read', false))
+                    {{-- Opening the bell marks the likes as read --}}
+                    <div class="relative" x-data="{ open: false, unread: @js($unreadLikes) }" @click.outside="open = false">
+                        <button class="relative rounded-lg p-2 text-slate-600 hover:bg-slate-100"
+                            @click="open = !open; if (open && unread) { unread = false; fetch('/notifications/read', { method: 'POST', headers: { 'X-CSRF-TOKEN': @js(csrf_token()) } }) }">
                             <i class="fa-solid fa-bell text-lg"></i>
-                            @if (($unseenListings->count()) || (!empty($anniversaryNotification)))
+                            @if (($unseenListings->count()) || (!empty($anniversaryNotification)) || $unreadLikes)
                                 <span class="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-laravel ring-2 ring-white"></span>
                             @endif
                             <span class="sr-only">Notifications</span>
                         </button>
                         <div x-show="open" x-transition style="display: none"
-                            class="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+                            class="absolute right-0 mt-2 max-h-[75vh] w-80 max-w-[calc(100vw-2rem)] overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-xl">
+                            @if (count($likeNotifications))
+                            <div class="border-b border-slate-100 p-2">
+                                <h3 class="px-3 pt-2 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-400">Likes</h3>
+                                @foreach ($likeNotifications as $like)
+                                    <a href="{{ $like['url'] }}" class="flex items-start gap-3 rounded-xl px-3 py-2 text-sm hover:bg-slate-100 {{ $like['read'] ? '' : 'bg-red-50' }}">
+                                        <i class="fa-solid fa-heart mt-0.5 text-laravel"></i>
+                                        <span class="min-w-0"><strong>{{ $like['liker'] }}</strong> liked your comment
+                                            <span class="block truncate text-xs text-slate-500">"{{ $like['excerpt'] }}" · {{ $like['title'] }}</span>
+                                        </span>
+                                    </a>
+                                @endforeach
+                            </div>
+                            @endif
                             <div class="p-2">
                                 <h3 class="px-3 pt-2 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-400">On this day</h3>
                                 @forelse ($anniversaryNotification as $item)
@@ -206,20 +222,6 @@
             </main>
         </div>
 
-        {{-- Forum actions, until the forum is converted to Vue --}}
-        @auth
-            @if(Route::is('forum.categories.*') || Route::is('forum.posts.*'))
-            <footer class="forum-actions fixed z-10 bottom-0 left-0 w-full lg:pl-64 flex flex-row font-bold bg-teal-600 text-white h-16 justify-between">
-                @if(Route::is('forum.categories.*'))
-                    <a href="/forum/category/manage" class="bg-black rounded-xl text-white py-2 px-5 self-center ml-9">Manage Categories</a>
-                    <a href="/forum/category/create" class="bg-black rounded-xl text-white py-2 px-5 self-center mr-9">Create Category</a>
-                @else
-                    <a href="/forum/{{$category->id}}/manage" class="bg-black rounded-xl text-white py-2 px-5 self-center ml-9">Manage Posts</a>
-                    <a href="/forum/{{$category->id}}/create" class="bg-black rounded-xl text-white py-2 px-5 self-center mr-9">New Post</a>
-                @endif
-            </footer>
-            @endif
-        @endauth
         <x-flash-message />
     </body>
 </html>

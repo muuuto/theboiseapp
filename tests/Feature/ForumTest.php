@@ -98,9 +98,9 @@ class ForumTest extends TestCase
         $this->actingAs($user)->post("/forum/{$category->id}/store", [
             'title' => 'New recipe',
             'description' => 'Tiramisù',
-            'tags' => 'dessert',
+            'tags' => ['dessert'],
             'content' => 'Mascarpone, eggs, coffee',
-        ])->assertRedirect("/forum/{$category->id}");
+        ])->assertRedirect();
 
         $this->assertDatabaseHas('posts', [
             'title' => 'New recipe',
@@ -156,7 +156,7 @@ class ForumTest extends TestCase
 
         $this->actingAs($this->admin())
             ->delete("/forum/{$category->id}")
-            ->assertRedirect('/forum/category/manage');
+            ->assertRedirect('/forum');
 
         $this->assertModelMissing($category);
     }
@@ -179,8 +179,11 @@ class ForumTest extends TestCase
 
         $this->actingAs(User::find($post->author))
             ->get("/forum/{$post->category_id}/{$post->id}/edit")
-            ->assertSee('name="is_private" value="1" checked', false)
-            ->assertDontSee('name="canEdit" value="1" checked', false);
+            ->assertInertia(fn ($page) => $page
+                ->component('Forum/PostForm')
+                ->where('post.isPrivate', true)
+                ->where('post.canEdit', false)
+                ->where('canManage', true));
     }
 
     public function test_others_allowed_to_edit_can_only_change_the_content(): void
@@ -191,8 +194,7 @@ class ForumTest extends TestCase
         $friend = User::factory()->create();
 
         $this->actingAs($friend)->get("/forum/{$post->category_id}/{$post->id}/edit")
-            ->assertOk()
-            ->assertDontSee('name="is_private"', false);
+            ->assertInertia(fn ($page) => $page->where('canManage', false));
 
         $this->actingAs($friend)->put($this->updateUrl($post), $this->postFields(['title' => 'Edited by a friend', 'is_private' => '1']));
 
@@ -229,12 +231,12 @@ class ForumTest extends TestCase
 
         $this->actingAs(User::find($category->created_by))
             ->put("/forum/{$category->id}", $this->categoryFields(['title' => 'By creator']))
-            ->assertRedirect('/forum/category/manage');
+            ->assertRedirect("/forum/{$category->id}");
         $this->assertEquals('By creator', $category->fresh()->title);
 
         $this->actingAs($this->admin())
             ->put("/forum/{$category->id}", $this->categoryFields(['title' => 'By admin']))
-            ->assertRedirect('/forum/category/manage');
+            ->assertRedirect("/forum/{$category->id}");
         $this->assertEquals('By admin', $category->fresh()->title);
 
         $this->actingAs(User::factory()->create())
@@ -259,8 +261,7 @@ class ForumTest extends TestCase
         $post = Post::factory()->create(['content' => '<p>Ciao <strong>tutti</strong></p><script>alert("x")</script>']);
 
         $this->actingAs(User::find($post->author))->get("/forum/{$post->category_id}/{$post->id}")
-            ->assertSee('<p>Ciao <strong>tutti</strong></p>', false)
-            ->assertDontSee('alert("x")', false);
+            ->assertInertia(fn ($page) => $page->where('post.content', '<p>Ciao <strong>tutti</strong></p>'));
     }
 
     public function test_splitwise_is_gone(): void
@@ -286,7 +287,7 @@ class ForumTest extends TestCase
         return array_merge([
             'title' => 'Title',
             'description' => 'Description',
-            'tags' => 'general',
+            'tags' => ['general'],
             'content' => 'Content',
         ], $overrides);
     }
@@ -295,7 +296,7 @@ class ForumTest extends TestCase
     {
         return array_merge([
             'title' => 'Category',
-            'tags' => 'general',
+            'tags' => ['general'],
             'description' => 'Description',
         ], $overrides);
     }

@@ -4,15 +4,13 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import { Check, CheckCheck, MapPinOff, Pencil, Trash2 } from 'lucide-vue-next';
 import LeafletMap from '../../components/LeafletMap.vue';
 
-const props = defineProps({ albums: Array });
+// places: the guessed pins to review; missing: albums without any place
+const props = defineProps({ places: Array, missing: Array });
 
 // Farthest from Bolzano first: the wrong guesses (a "Funes" in Spain...) are usually far away
 const home = [46.4983, 11.3548];
 const distance = (album) => Math.hypot(album.latitude - home[0], (album.longitude - home[1]) * Math.cos((home[0] * Math.PI) / 180));
-const suggested = computed(() =>
-    props.albums.filter((album) => !album.missing).sort((a, b) => distance(b) - distance(a)),
-);
-const missing = computed(() => props.albums.filter((album) => album.missing));
+const suggested = computed(() => [...props.places].sort((a, b) => distance(b) - distance(a)));
 const map = ref(null);
 const selected = ref(null);
 
@@ -22,8 +20,8 @@ function show(album) {
 }
 
 const options = { preserveScroll: true, preserveState: true };
-const confirm = (album) => router.post(`/admin/locations/${album.id}/confirm`, {}, options);
-const clear = (album) => router.delete(`/admin/locations/${album.id}`, options);
+const confirm = (place) => router.post(`/admin/locations/${place.id}/confirm`, {}, options);
+const clear = (place) => router.delete(`/admin/locations/${place.id}`, options);
 function confirmAll() {
     if (window.confirm(`Confirm all the ${suggested.value.length} locations still in the list?`)) {
         router.post('/admin/locations/confirm-all', {}, options);
@@ -73,7 +71,7 @@ function confirmAll() {
                             <button class="rounded-lg p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/40" title="Confirm" @click="confirm(album)">
                                 <Check class="size-4" /><span class="sr-only">Confirm</span>
                             </button>
-                            <Link :href="`/listings/${album.id}/edit`" class="rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800" title="Fix in the album form">
+                            <Link :href="`/listings/${album.albumId}/edit`" class="rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800" title="Fix in the album form">
                                 <Pencil class="size-4" /><span class="sr-only">Fix</span>
                             </Link>
                             <button class="rounded-lg p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40" title="Remove (wrong place)" @click="clear(album)">

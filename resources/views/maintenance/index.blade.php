@@ -41,7 +41,11 @@
 
         <div>
             <h2 class="text-xl font-bold mb-2">One-time album jobs</h2>
-            <p class="text-sm mb-3">Safe to run more than once: they skip what's already done.</p>
+            <p class="text-sm mb-3">
+                Safe to run more than once: they skip what's already done. The import never undoes the review:
+                it only adds the missing extra places (e.g. Dublin next to London) to albums that still have
+                one of the suggested places, and never brings back a place you removed.
+            </p>
             <div class="flex flex-wrap gap-4 items-center">
                 <form method="POST" action="/admin/maintenance/trim-album-covers">
                     @csrf

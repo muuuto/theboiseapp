@@ -54,6 +54,12 @@ class Listing extends Model
         /**
      * Get the listing user for the album post.
     */
+    // Where the album is on the map (none, one or more pins)
+    public function places(): HasMany
+    {
+        return $this->hasMany(ListingPlace::class)->orderBy('position');
+    }
+
     public function listingUser(): HasMany
     {
         return $this->hasMany(ListingUser::class);

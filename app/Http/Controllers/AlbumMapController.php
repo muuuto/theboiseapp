@@ -3,42 +3,38 @@
 namespace App\Http\Controllers;
 
 use App\Models\Listing;
+use App\Models\ListingPlace;
 use App\Support\Media;
 use Inertia\Inertia;
 
 class AlbumMapController extends Controller
 {
-    // The user's albums that have coordinates, on one map
+    // The places of the user's albums on one map (an album in two places has two pins)
     public function index()
     {
-        $albums = auth()->user()->listing()
-            ->whereNotNull('latitude')
-            ->orderBy('dateFrom', 'desc')
-            ->get()
-            ->map(fn (Listing $listing) => $this->marker($listing));
+        $albums = auth()->user()->listing()->with('places')->get();
 
         return Inertia::render('Albums/Map', [
-            'albums' => $albums,
-            'withoutCoordinates' => auth()->user()->listing()->whereNull('latitude')->count(),
+            'places' => $albums->flatMap(fn (Listing $listing) => $listing->places->map(fn ($place) => $this->marker($listing, $place)))->values(),
+            'withoutPlaces' => $albums->filter(fn (Listing $listing) => $listing->places->isEmpty())->count(),
         ]);
     }
 
-    // Admin: albums whose coordinates were only guessed from the location text, or are missing
+    // Admin: the places only guessed from the location text, and the albums without any place
     public function review()
     {
-        $albums = Listing::where(fn ($query) => $query->where('coordinates_source', 'suggested')->orWhereNull('latitude'))
-            ->orderBy('dateFrom', 'desc')
-            ->get()
-            ->map(fn (Listing $listing) => $this->marker($listing) + ['missing' => is_null($listing->latitude)]);
+        $suggested = ListingPlace::with('listing')->where('source', 'suggested')->get()
+            ->map(fn ($place) => $this->marker($place->listing, $place) + ['location' => $place->listing->location]);
 
-        return Inertia::render('Admin/Locations', ['albums' => $albums]);
+        $missing = Listing::doesntHave('places')->orderBy('dateFrom', 'desc')->get()
+            ->map(fn (Listing $listing) => ['id' => $listing->id, 'title' => $listing->title, 'location' => $listing->location]);
+
+        return Inertia::render('Admin/Locations', ['places' => $suggested->values(), 'missing' => $missing]);
     }
 
-    public function confirm(Listing $listing)
+    public function confirm(ListingPlace $place)
     {
-        abort_if(is_null($listing->latitude), 422, 'This album has no coordinates to confirm');
-
-        $listing->update(['coordinates_source' => 'manual']);
+        $place->update(['source' => 'manual']);
 
         return back()->with('message', 'Location confirmed');
     }
@@ -46,31 +42,32 @@ class AlbumMapController extends Controller
     // After removing or fixing the wrong ones: accept every remaining guess at once
     public function confirmAll()
     {
-        $count = Listing::where('coordinates_source', 'suggested')->update(['coordinates_source' => 'manual']);
+        $count = ListingPlace::where('source', 'suggested')->update(['source' => 'manual']);
 
         return back()->with('message', "{$count} locations confirmed");
     }
 
-    // Wrong guess: remove it (the album just won't be on the map until set in the album form)
-    public function clear(Listing $listing)
+    // Wrong guess: remove that pin (the album keeps its other places, if any)
+    public function clear(ListingPlace $place)
     {
-        $listing->update(['latitude' => null, 'longitude' => null, 'coordinates_source' => null, 'place_name' => null]);
+        $place->delete();
 
         return back()->with('message', 'Location removed');
     }
 
-    private function marker(Listing $listing): array
+    private function marker(Listing $listing, ListingPlace $place): array
     {
         return [
-            'id' => $listing->id,
+            // Unique per pin; albumId is where the pin links to
+            'id' => $place->id,
+            'albumId' => $listing->id,
             'title' => $listing->title,
             'cover' => Media::url($listing->logo) ?? asset('images/no-image.png'),
             'dateFrom' => $listing->dateFrom,
-            'location' => $listing->location,
-            'placeName' => $listing->place_name,
-            'latitude' => $listing->latitude ? (float) $listing->latitude : null,
-            'longitude' => $listing->longitude ? (float) $listing->longitude : null,
-            'suggested' => $listing->coordinates_source === 'suggested',
+            'placeName' => $place->place_name,
+            'latitude' => $place->latitude,
+            'longitude' => $place->longitude,
+            'suggested' => $place->source === 'suggested',
         ];
     }
 }

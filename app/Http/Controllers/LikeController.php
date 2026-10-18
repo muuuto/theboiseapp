@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Comment;
 use App\Models\PostComment;
+use App\Notifications\CommentLiked;
 use Illuminate\Http\Request;
 
 // Like / unlike a comment (album comments now, forum comments when the forum moves to Vue)
@@ -28,11 +29,25 @@ class LikeController extends Controller
             : $comment->post?->isVisibleTo($user);
         abort_unless($visible, 403, 'Unauthorized Action');
 
+        $author = $comment->user;
         $existing = $comment->likes()->where('user_id', $user->id)->first();
+
         if ($existing) {
             $existing->delete();
+            // Unliked before the author saw it: the notification goes away too
+            $author?->unreadNotifications()
+                ->where('type', CommentLiked::class)
+                ->get()
+                ->filter(fn ($notification) => $notification->data['liker_id'] == $user->id
+                    && $notification->data['comment_type'] === $data['type']
+                    && $notification->data['comment_id'] == $comment->id)
+                ->each->delete();
         } else {
             $comment->likes()->create(['user_id' => $user->id]);
+            // Tell the author (in the bell), not for your own comments or the demo account
+            if ($author && $author->id !== $user->id && ! $author->is_demo) {
+                $author->notify(new CommentLiked($user, $comment));
+            }
         }
 
         return back();

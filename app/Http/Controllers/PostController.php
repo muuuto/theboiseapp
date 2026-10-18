@@ -4,115 +4,86 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Post;
-use App\Models\User;
 use App\Models\PostComment;
-use App\Models\Slogan;
-use App\Http\Controllers\AccountController;
+use App\Models\User;
+use App\Support\AlbumCover;
+use App\Support\Media;
+use App\Support\SafeHtml;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 
 class PostController extends Controller
 {
-    public $accountController;
-
-    public function __construct(AccountController $accountController) {
-        $this->accountController = $accountController;
-    }
-
-    // Show all categories
-    public function index(Category $category) {
+    // The posts of a category the user can see
+    public function index(Category $category)
+    {
         $user = auth()->user();
-        if ($category->hidedUser) {
-            $category->hidedUser->each(function ($hidedUser) use ($user) {
-                if($hidedUser->id == $user->id) {
-                    abort(403, 'Unauthorized Action');
-                };
-            });
-        }
+        abort_if($category->hidedUser->contains('id', $user->id), 403, 'Unauthorized Action');
 
-        $posts = $category->posts->filter(fn ($post) => $post->isVisibleTo($user));
+        $category->load(['posts.hidedUser', 'posts.author', 'posts.comments']);
+        $category->posts->each->setRelation('category', $category);
 
-        $slogan = Slogan::all();
+        $posts = $category->posts
+            ->filter(fn (Post $post) => $post->isVisibleTo($user))
+            ->map(fn (Post $post) => [
+                'id' => $post->id,
+                'title' => $post->title,
+                'description' => $post->description,
+                'cover' => Media::url($post->cover),
+                'tags' => $this->tags($post->tags),
+                'author' => $post->getRelation('author')?->name ?? 'Deleted user',
+                'createdAt' => $post->created_at?->toIso8601String(),
+                'views' => $post->counter,
+                'comments' => $post->comments->count(),
+                'isPrivate' => (bool) $post->is_private,
+                'canEdit' => $this->canEdit($post, $user),
+                'canDelete' => $post->author == $user->id,
+            ])
+            ->values();
 
-        if(count($slogan) > 0) {
-            $randomSlogan = $slogan->random();
-        } else {
-            $randomSlogan["sloganPhrase"] = "Find your albums";
-            $randomSlogan["author"] = "TheBoise";
-        }
-        
-        date_default_timezone_set('Europe/Rome');
-
-        return view('forum.posts.index', [
-            'user' => $user,
-            'slogan' => $randomSlogan,
-            'category' => $category,
-            'posts' => $posts
+        return Inertia::render('Forum/Category', [
+            'category' => [
+                'id' => $category->id,
+                'title' => $category->title,
+                'description' => $category->description,
+                'logo' => Media::url($category->logo) ?? asset('images/no-image.png'),
+                'canEdit' => $user->id == $category->created_by || $user->isAdmin == 1,
+            ],
+            'posts' => $posts,
         ]);
     }
 
-     // Show Create Form
-    public function create(Category $category) {
-        $user = auth()->user();
-        $users = User::all();
+    // Show Create Form
+    public function create(Category $category)
+    {
+        abort_if($category->hidedUser->contains('id', auth()->id()), 403, 'Unauthorized Action');
 
-        if (auth()->user()) {
-            return view('forum.posts.create', [
-                'user' => $user,
-                'users' => $users,
-                'category' => $category
-            ]);
-        } else {
-            abort(403, 'Unauthorized Action');
-        }
+        return Inertia::render('Forum/PostForm', $this->formProps($category, null));
     }
 
     // Store Post Data
-    public function store(Request $request, Category $category) {
-        $formFields = $request->validate([
-            'title' => 'required',
-            'description' => 'required',
-            'tags' => 'required',
-            'content' => 'required'
-        ]);
+    public function store(Request $request, Category $category)
+    {
+        abort_if($category->hidedUser->contains('id', auth()->id()), 403, 'Unauthorized Action');
 
-        $request->has('canEdit') ? $formFields['canEdit'] = 1 : $formFields['canEdit'] = 0;
-        $request->has('is_private') ? $formFields['is_private'] = 1 : $formFields['is_private'] = 0;
+        $formFields = $this->validatePost($request);
+        $formFields['is_private'] = $request->boolean('is_private') ? 1 : 0;
+        $formFields['canEdit'] = $request->boolean('canEdit') ? 1 : 0;
 
-        if($request->hasFile('cover')) {
-            $resizedImage = $this->accountController->resizeImage($request->file('cover')->path(), 0, 0);
-            $image = $this->accountController->imageConvert($resizedImage, 100);
-
-            $formFields['cover'] = $image->store('cover', 'public');
+        if ($request->hasFile('cover')) {
+            $formFields['cover'] = AlbumCover::store($request->file('cover'), 'cover');
         }
-
-        if($request->file('attachments')) {
-            $jsonPaths = [];
-            foreach($request->file('attachments') as $key => $file)
-            {
-                if ($file->getMimeType() == "application/pdf") {
-                    array_push($jsonPaths, $file->store('attachments', 'public'));
-                } else {
-                    $resizedImage = $this->accountController->resizeImage($file->path(), 512, 512);
-                    $image = $this->accountController->imageConvert($resizedImage, 100);
-                    array_push($jsonPaths, $image->store('attachments', 'public'));
-                }
-            }
-            $formFields['attachments'] = json_encode(array_values($jsonPaths));            
-        }
+        $attachments = $this->storeAttachments($request->file('attachments', []));
+        $formFields['attachments'] = $attachments ? json_encode($attachments) : null;
 
         $formFields['author'] = auth()->id();
         $formFields['counter'] = 0;
         $formFields['category_id'] = $category->id;
 
         $post = Post::create($formFields);
-        
-        if($request->hideFrom) {
-            foreach($request->hideFrom as $person) {
-                $post->hidedUser()->attach($person);
-            }
-        }
+        $post->hidedUser()->sync($request->input('hideFrom', []));
 
         $email_data = array(
             'name' => $formFields['title']
@@ -123,43 +94,56 @@ class PostController extends Controller
                 ->from('info@theboise.it', 'TheBoise');
         });
 
-        return redirect('/forum/' . $category->id)->with('message', 'Post created successfully!');
+        return redirect("/forum/{$category->id}/{$post->id}")->with('message', 'Post published!');
     }
 
     // Show single Post
-    public function show(Category $category, Post $post) {
+    public function show(Category $category, Post $post)
+    {
         $user = auth()->user();
         if (! $post->isVisibleTo($user)) {
             abort(403, 'Unauthorized Action');
         }
 
-        $comments = $post->comments;
-        $author = $post->author()->getResults()->name; 
+        $post->increment('counter');
+        $post->load(['comments.user', 'comments.likes.user']);
+        // author() is the relationship ($post->author is the id column)
+        $author = $post->author()->first();
 
-        $imageAttachments = [];
-        $pdfAttachments = [];
-        $attachments = json_decode($post->attachments, true);
-        if ($attachments) {
-            foreach ($attachments as $key => $attachment) {
-                if (pathinfo($attachment)["extension"] == "pdf") {
-                    array_push($pdfAttachments, $attachment);
-                } else {
-                    array_push($imageAttachments, $attachment);
-                }
-            }
-        }
+        $attachments = collect(json_decode($post->attachments ?? '', true) ?? []);
+        [$pdfs, $images] = $attachments->partition(fn ($path) => strtolower(pathinfo($path, PATHINFO_EXTENSION)) === 'pdf');
 
-        $formFields['counter'] = $post->counter + 1;
-        $post->update($formFields);
-
-        return view('forum.posts.show', [
-            'category' => $category,
-            'post' => $post,
-            'comments' => $comments,
-            'user' => $user,
-            'author' => $author,
-            'imageAttachments' => $imageAttachments,
-            'pdfAttachments' => $pdfAttachments
+        return Inertia::render('Forum/Post', [
+            'category' => ['id' => $category->id, 'title' => $category->title],
+            'post' => [
+                'id' => $post->id,
+                'title' => $post->title,
+                'description' => $post->description,
+                'content' => SafeHtml::clean($post->content),
+                'cover' => Media::url($post->cover),
+                'tags' => $this->tags($post->tags),
+                'author' => $author?->name ?? 'Deleted user',
+                'authorAvatar' => Media::url($author?->profilePicture),
+                'createdAt' => $post->created_at?->toIso8601String(),
+                'views' => $post->counter,
+                'isPrivate' => (bool) $post->is_private,
+                'lastChanges' => array_reverse(json_decode($post->last_changes ?? '', true) ?? []),
+                'images' => $images->map(fn ($path) => Media::url($path))->values(),
+                'pdfs' => $pdfs->values()->map(fn ($path, $index) => ['url' => Media::url($path), 'name' => 'Attachment ' . ($index + 1)]),
+            ],
+            'comments' => $post->comments->sortByDesc('created_at')->map(fn (PostComment $comment) => [
+                'id' => $comment->id,
+                'author' => $comment->user?->name ?? 'Deleted user',
+                'avatar' => Media::url($comment->user?->profilePicture),
+                'text' => $comment->comment,
+                'createdAt' => $comment->created_at?->toIso8601String(),
+                'likes' => $comment->likeSummary($user),
+            ])->values(),
+            'can' => [
+                'edit' => $this->canEdit($post, $user),
+                'delete' => $post->author == $user->id,
+                'notify' => $post->isManagedBy($user),
+            ],
         ]);
     }
 
@@ -167,7 +151,7 @@ class PostController extends Controller
     public function comment(Request $request, Category $category, Post $post) {
         $user = auth()->id();
         $formFields = $request->validate([
-            'comment' => 'required'
+            'comment' => 'required|string|max:5000'
         ]);
         $formFields['user_id'] = $user;
         $formFields['post_id'] = $post->id;
@@ -202,40 +186,21 @@ class PostController extends Controller
             });
         }
 
-        return back()->with('message', 'Comment created successfully!');
+        return back()->with('message', 'Comment added!');
     }
 
-
-    // Manage Posts
-    public function manage(Category $category, Post $post) {
-        $user = auth()->user();
-
-        $posts = $category->posts;
-
-        return view('forum.posts.manage', [
-            'user' => $user,
-            'category' => $category,
-            'posts' => $posts
-        ]);
+    // The old "manage" page: edit and delete are on the category page now
+    public function manage(Category $category)
+    {
+        return redirect("/forum/{$category->id}");
     }
 
     // Show Edit Form
-    public function edit(Category $category, Post $post) {
-        $author = $post->author()->getResults();
-        $users = User::all();
+    public function edit(Category $category, Post $post)
+    {
+        abort_unless($this->canEdit($post, auth()->user()), 403, 'Unauthorized Action');
 
-        if (($post->canEdit && $post->isVisibleTo(auth()->user())) || $post->isManagedBy(auth()->user())) {
-            return view('forum.posts.edit', [
-                'category' => $category,
-                'post' => $post,
-                'author' => $author,
-                'user' => auth()->user(),
-                'users' => $users,
-                'canManage' => $post->isManagedBy(auth()->user())
-            ]);
-        } else {
-            abort(403, 'Unauthorized Action');
-        }
+        return Inertia::render('Forum/PostForm', $this->formProps($category, $post));
     }
 
     // Send post
@@ -262,80 +227,48 @@ class PostController extends Controller
             });
         }
 
-        return redirect('/forum/' . $category->id . '/' . $post->id)->with('message', 'Notification created successfully!');
+        return redirect('/forum/' . $category->id . '/' . $post->id)->with('message', 'Everyone was notified!');
     }
 
     // Update Post Data
-    public function update(Request $request, Category $category, Post $post) {
+    public function update(Request $request, Category $category, Post $post)
+    {
         $currentUser = auth()->user();
-        $canManage = $post->isManagedBy($currentUser);
+        abort_unless($this->canEdit($post, $currentUser), 403, 'Unauthorized Action');
 
-        // Author and admins, or anyone who can see the post if "others can edit" is on
-        if(($post->canEdit && $post->isVisibleTo($currentUser)) || $canManage) {
-            $formFields = $request->validate([
-                'title' => 'required',
-                'description' => 'required',
-                'tags' => 'required',
-                'content' => 'required'
-            ]);
+        $formFields = $this->validatePost($request);
 
-            // Only the author and admins can change who sees and edits the post
-            if ($canManage) {
-                $formFields['is_private'] = $request->has('is_private') ? 1 : 0;
-                $formFields['canEdit'] = $request->has('canEdit') ? 1 : 0;
-                $post->hidedUser()->sync($request->input('hideFrom', []));
-            }
-
-            if($request->hasFile('cover')) {
-                if($post->cover && Storage::disk('public')->exists($post->cover)) {
-                    Storage::disk('public')->delete($post->cover);
-                }
-
-                $resizedImage = $this->accountController->resizeImage($request->file('cover')->path(), 0, 0);
-                $image = $this->accountController->imageConvert($resizedImage, 100);
-
-                $formFields['cover'] = $image->store('cover', 'public');
-            }
-
-            if($request->file('attachments')) {
-                $attachments = json_decode($post->attachments, true);
-                if ($attachments) {
-                    foreach($attachments as $attachment)
-                    {
-                        if($attachment && Storage::disk('public')->exists($attachment)) {
-                            Storage::disk('public')->delete($attachment);
-                        }
-                    }
-                }
-
-                $jsonPaths = [];
-                foreach($request->file('attachments') as $key => $file) {
-                    if ($file->getMimeType() == "application/pdf") {
-                        array_push($jsonPaths, $file->store('attachments', 'public'));
-                    } else {
-                        $resizedImage = $this->accountController->resizeImage($file->path(), 512, 512);
-                        $image = $this->accountController->imageConvert($resizedImage, 100);
-                        array_push($jsonPaths, $image->store('attachments', 'public'));
-                    }
-                }
-
-                $formFields['attachments'] = json_encode(array_values($jsonPaths));
-            }
-            
-            date_default_timezone_set('Europe/Rome');
-            $arrayLastChanges = [];
-            if($post->last_changes) {
-                $arrayLastChanges = json_decode($post->last_changes, true);
-            }
-            array_push($arrayLastChanges, date('Y-m-d H:i:s', time()) . ': ' . $currentUser->name);
-            $formFields['last_changes'] = json_encode(array_values($arrayLastChanges));
-
-            $post->update($formFields);
-
-            return redirect('/forum/' . $category->id . '/' . $post->id)->with('message', 'Post updated successfully!');
-        } else {
-            abort(403, 'Unauthorized Action');
+        // Only the author and admins can change who sees and edits the post
+        if ($post->isManagedBy($currentUser)) {
+            $formFields['is_private'] = $request->boolean('is_private') ? 1 : 0;
+            $formFields['canEdit'] = $request->boolean('canEdit') ? 1 : 0;
+            $post->hidedUser()->sync($request->input('hideFrom', []));
         }
+
+        if ($request->hasFile('cover')) {
+            if ($post->cover && Storage::disk('public')->exists($post->cover)) {
+                Storage::disk('public')->delete($post->cover);
+            }
+            $formFields['cover'] = AlbumCover::store($request->file('cover'), 'cover');
+        }
+
+        // Attachments: keep the ones still in the form, delete the removed ones, add the new uploads
+        $current = json_decode($post->attachments ?? '', true) ?? [];
+        $keep = array_values(array_intersect($current, $request->input('keepAttachments', [])));
+        foreach (array_diff($current, $keep) as $removed) {
+            Storage::disk('public')->delete($removed);
+        }
+        $attachments = array_merge($keep, $this->storeAttachments($request->file('attachments', [])));
+        $formFields['attachments'] = $attachments ? json_encode($attachments) : null;
+
+        date_default_timezone_set('Europe/Rome');
+        $lastChanges = json_decode($post->last_changes ?? '', true) ?? [];
+        $lastChanges[] = date('Y-m-d H:i:s') . ': ' . $currentUser->name;
+        $formFields['last_changes'] = json_encode($lastChanges);
+
+        $post->update($formFields);
+
+        return redirect("/forum/{$category->id}/{$post->id}")->with('message', 'Post updated!');
     }
 
     // Delete Post
@@ -350,7 +283,7 @@ class PostController extends Controller
         if($post->cover && Storage::disk('public')->exists($post->cover)) {
             Storage::disk('public')->delete($post->cover);
         }
-        
+
         // Posts without attachments have null here
         $attachments = json_decode($post->attachments ?? '', true) ?? [];
 
@@ -362,6 +295,78 @@ class PostController extends Controller
 
         $post->delete();
 
-        return redirect('/forum/' . $category->id)->with('message', 'Post deleted successfully');
+        return redirect('/forum/' . $category->id)->with('message', 'Post deleted');
+    }
+
+    // Author and admins, or anyone who can see the post if "others can edit" is on
+    private function canEdit(Post $post, User $user): bool
+    {
+        return ($post->canEdit && $post->isVisibleTo($user)) || $post->isManagedBy($user);
+    }
+
+    private function validatePost(Request $request): array
+    {
+        $data = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string|max:2000',
+            'tags' => 'required|array|min:1',
+            'tags.*' => 'string|max:50',
+            'content' => 'required|string',
+            'cover' => 'nullable|image|max:20480',
+            'attachments' => 'nullable|array',
+            'attachments.*' => 'file|mimes:jpg,jpeg,png,webp,gif,pdf|max:20480',
+            'keepAttachments' => 'nullable|array',
+            'hideFrom' => 'nullable|array',
+            'hideFrom.*' => 'integer|exists:users,id',
+        ]);
+
+        return [
+            'title' => $data['title'],
+            'description' => $data['description'],
+            'tags' => collect($data['tags'])->map(fn ($tag) => trim(str_replace(',', ' ', $tag)))->filter()->unique()->implode(', '),
+            'content' => SafeHtml::clean($data['content']),
+        ];
+    }
+
+    // Images are resized like album covers, PDFs are stored as they are
+    private function storeAttachments(array $files): array
+    {
+        return collect($files)->map(fn ($file) => $file->getMimeType() === 'application/pdf'
+            ? $file->store('attachments', 'public')
+            : AlbumCover::store($file, 'attachments'))->all();
+    }
+
+    private function formProps(Category $category, ?Post $post): array
+    {
+        $attachments = json_decode($post?->attachments ?? '', true) ?? [];
+
+        return [
+            'category' => ['id' => $category->id, 'title' => $category->title],
+            'post' => $post ? [
+                'id' => $post->id,
+                'title' => $post->title,
+                'description' => $post->description,
+                'tags' => $this->tags($post->tags),
+                'content' => SafeHtml::clean($post->content),
+                'cover' => Media::url($post->cover),
+                'isPrivate' => (bool) $post->is_private,
+                'canEdit' => (bool) $post->canEdit,
+                'hideFrom' => $post->hidedUser()->pluck('users.id'),
+                'attachments' => collect($attachments)->map(fn ($path) => [
+                    'path' => $path,
+                    'url' => Media::url($path),
+                    'isPdf' => strtolower(pathinfo($path, PATHINFO_EXTENSION)) === 'pdf',
+                ]),
+            ] : null,
+            // Only the author and admins change privacy (anyone can when creating: they're the author)
+            'canManage' => $post ? $post->isManagedBy(auth()->user()) : true,
+            'users' => User::where('is_demo', false)->where('id', '!=', auth()->id())->orderBy('name')->get()
+                ->map(fn (User $user) => ['id' => $user->id, 'name' => $user->name, 'avatar' => Media::url($user->profilePicture)]),
+        ];
+    }
+
+    private function tags(?string $tags): array
+    {
+        return array_values(array_filter(array_map('trim', explode(',', (string) $tags))));
     }
 }

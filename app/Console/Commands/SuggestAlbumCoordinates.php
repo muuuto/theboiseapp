@@ -14,37 +14,59 @@ use Throwable;
 class SuggestAlbumCoordinates extends Command
 {
     protected $signature = 'albums:suggest-coordinates {--export= : Also write the suggestions to this JSON file}';
-    protected $description = 'Suggest coordinates for albums without them, from their location text';
+    protected $description = 'Suggest map places for albums without any, from their location text';
 
     public function handle()
     {
         $found = [];
 
-        foreach (Listing::whereNull('latitude')->orderBy('id')->get() as $listing) {
-            $result = $this->lookup($listing->location);
+        foreach (Listing::doesntHave('places')->orderBy('id')->get() as $listing) {
+            // "Londra e Dublino", "Lago di Carezza & Passo Gardena & Funes": one place per part
+            $parts = array_filter(array_map('trim', preg_split('/\s*&\s*|\s+e\s+/u', $listing->location)));
+            // "Napoli e dintorni": words like "dintorni" are not places
+            $parts = array_filter($parts, fn ($part) => ! in_array(mb_strtolower($part), ['dintorni', 'altro', 'altri', 'varie', 'vari', 'amici'], true));
 
-            if ($result) {
-                $suggestion = [
+            $places = collect($parts)
+                ->map(fn ($part) => $this->lookup($part))
+                ->filter()
+                ->unique('place_id')
+                ->values()
+                ->map(fn ($result, $position) => [
                     'latitude' => round((float) $result['lat'], 7),
                     'longitude' => round((float) $result['lon'], 7),
-                    'coordinates_source' => 'suggested',
                     'place_name' => mb_substr($result['display_name'], 0, 255),
-                ];
-                $listing->update($suggestion);
-                // The repository is public: a fingerprint of the location text, never the text itself
-                $found[$listing->id] = ['location_hash' => sha1($listing->location)] + $suggestion;
-                $this->line("#{$listing->id} {$listing->location} → {$suggestion['place_name']}");
-            } else {
+                    'position' => $position,
+                ]);
+
+            if ($places->isEmpty()) {
                 $this->line("#{$listing->id} {$listing->location} → not found");
+                continue;
             }
+
+            foreach ($places as $place) {
+                $listing->places()->create($place + ['source' => 'suggested']);
+            }
+            $found[] = $listing->id;
+            $this->line("#{$listing->id} {$listing->location} → " . $places->pluck('place_name')->implode(' | '));
         }
 
+        // Every suggested place in the database (also from earlier runs), for the server to import
         if ($path = $this->option('export')) {
-            File::put($path, json_encode($found, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n");
-            $this->info("Exported to {$path}");
+            $export = Listing::whereHas('places', fn ($query) => $query->where('source', 'suggested'))->with('places')->orderBy('id')->get()
+                ->mapWithKeys(fn (Listing $listing) => [$listing->id => [
+                    // The repository is public: a fingerprint of the location text, never the text itself
+                    'location_hash' => sha1($listing->location),
+                    'places' => $listing->places->map(fn ($place) => [
+                        'latitude' => $place->latitude,
+                        'longitude' => $place->longitude,
+                        'place_name' => $place->place_name,
+                    ])->all(),
+                ]]);
+            File::put($path, json_encode($export, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n");
+            $this->info("Exported {$export->count()} albums to {$path}");
         }
 
-        $this->info(count($found) . ' albums got suggested coordinates.');
+        $this->info(count($found) . ' albums got suggested places.');
 
         return self::SUCCESS;
     }

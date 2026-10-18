@@ -16,15 +16,16 @@ class AlbumCover
     private const MAX_SIZE = 1600;
     private const QUALITY = 82;
 
-    // Stores an uploaded photo in the public disk (logos/...) and returns its path.
-    // Padding is removed here too, in case someone uploads an old padded preview
-    public static function store(UploadedFile $file): string
+    // Stores an uploaded photo in the public disk and returns its path (album previews in logos/,
+    // also used for forum covers, attachments and category logos). Any format, phone rotation fixed,
+    // padding removed (in case someone uploads an old padded preview), saved as WebP
+    public static function store(UploadedFile $file, string $folder = 'logos', int $maxSize = self::MAX_SIZE): string
     {
         $image = self::load($file->getRealPath());
         $image = self::crop($image) ?? $image;
-        $image = self::fitWithin($image, self::MAX_SIZE);
+        $image = self::fitWithin($image, $maxSize);
 
-        return self::save($image);
+        return self::save($image, $folder);
     }
 
     // Removes black bars baked into an existing preview. Returns the new path, or null if it had none
@@ -170,13 +171,13 @@ class AlbumCover
         return imagescale($image, (int) round($width * $ratio), (int) round($height * $ratio), IMG_BICUBIC);
     }
 
-    private static function save(GdImage $image): string
+    private static function save(GdImage $image, string $folder = 'logos'): string
     {
         ob_start();
         imagewebp($image, null, self::QUALITY);
         $data = ob_get_clean();
 
-        $path = 'logos/' . Str::random(40) . '.webp';
+        $path = $folder . '/' . Str::random(40) . '.webp';
         Storage::disk('public')->put($path, $data);
 
         return $path;

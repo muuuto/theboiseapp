@@ -27,15 +27,15 @@ function toggleCollapsed() {
     } catch {}
 }
 
-// While the site is half Blade and half Vue: "inertia" links are Vue pages (instant navigation),
-// the others are old Blade pages and need a normal page load
+// "inertia" links are Vue pages (instant navigation), the others are the remaining Blade pages
+// (account, monitor, maintenance) and need a normal page load
 const navigation = computed(() => {
     const items = [
         { label: 'Albums', href: '/', icon: Images, inertia: true },
         { label: 'Map', href: '/map', icon: Map, inertia: true },
     ];
     if (!user.value?.isDemo) {
-        items.push({ label: 'Forum', href: '/forum', icon: MessagesSquare });
+        items.push({ label: 'Forum', href: '/forum', icon: MessagesSquare, inertia: true });
     }
     items.push({ label: 'Account', href: '/account', icon: User });
     return items;

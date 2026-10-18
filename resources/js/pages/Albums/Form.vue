@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, ImagePlus, Loader2, MapPin, Plus, Search, Trash2, X } from 'lucide-vue-next';
+import { ArrowLeft, ImagePlus, Loader2, Plus, Search, Trash2, X } from 'lucide-vue-next';
 import LeafletMap from '../../components/LeafletMap.vue';
 import RichTextEditor from '../../components/RichTextEditor.vue';
 import TagsInput from '../../components/TagsInput.vue';
@@ -20,9 +20,8 @@ const form = useForm({
     dateFrom: props.album?.dateFrom ?? '',
     dateTo: props.album?.dateTo ?? '',
     location: props.album?.location ?? '',
-    latitude: props.album?.latitude ?? null,
-    longitude: props.album?.longitude ?? null,
-    placeName: props.album?.placeName ?? '',
+    // Pins on the map: none, one or more (e.g. "Londra e Dublino")
+    places: props.album?.places.map((place) => ({ ...place })) ?? [],
     albumLink: props.album?.albumLink ?? '',
     tags: props.album?.tags.filter((tag) => tag !== 'Youtube') ?? [],
     description: props.album?.description ?? '',
@@ -31,22 +30,9 @@ const form = useForm({
     cover: null,
 });
 
-// The map point, separate from the free-text label
-const point = computed({
-    get: () => (form.latitude !== null && form.longitude !== null ? { latitude: form.latitude, longitude: form.longitude } : null),
-    set: (value) => {
-        form.latitude = value?.latitude ?? null;
-        form.longitude = value?.longitude ?? null;
-        if (value && !placeChosen.value) form.placeName = '';
-        placeChosen.value = false;
-    },
-});
-const placeChosen = ref(false);
-const suggested = ref(props.album?.coordinatesSuggested ?? false);
-
 // Place search on OpenStreetMap (on button press: their rules forbid search-as-you-type)
 const placeQuery = ref('');
-const places = ref([]);
+const results = ref([]);
 const searching = ref(false);
 const searchError = ref('');
 async function searchPlace() {
@@ -57,25 +43,25 @@ async function searchPlace() {
     try {
         const params = new URLSearchParams({ q: query, format: 'jsonv2', limit: '5', 'accept-language': 'it,en' });
         const response = await fetch(`https://nominatim.openstreetmap.org/search?${params}`);
-        places.value = await response.json();
-        if (!places.value.length) searchError.value = 'Nothing found: try a nearby town, or click on the map.';
+        results.value = await response.json();
+        if (!results.value.length) searchError.value = 'Nothing found: try a nearby town, or click on the map.';
     } catch {
         searchError.value = 'Search not available right now: click on the map instead.';
     } finally {
         searching.value = false;
     }
 }
-function choosePlace(place) {
-    placeChosen.value = true;
-    form.placeName = place.display_name.slice(0, 255);
-    point.value = { latitude: +(+place.lat).toFixed(7), longitude: +(+place.lon).toFixed(7) };
-    places.value = [];
-    suggested.value = false;
+function addPlace(result) {
+    form.places = [...form.places, {
+        latitude: +(+result.lat).toFixed(7),
+        longitude: +(+result.lon).toFixed(7),
+        placeName: result.display_name.slice(0, 255),
+    }];
+    results.value = [];
+    placeQuery.value = '';
 }
-function clearPoint() {
-    point.value = null;
-    form.placeName = '';
-    suggested.value = false;
+function removePlace(index) {
+    form.places = form.places.filter((_, position) => position !== index);
 }
 
 // Cover preview before uploading
@@ -192,7 +178,7 @@ const labelClass = 'mb-1.5 block text-sm font-semibold';
                 </div>
 
                 <div>
-                    <span :class="labelClass">Place on the map <span class="font-normal text-slate-500">(optional)</span></span>
+                    <span :class="labelClass">Places on the map <span class="font-normal text-slate-500">(optional, one or more)</span></span>
                     <div class="flex gap-2">
                         <input
                             v-model="placeQuery"
@@ -208,32 +194,34 @@ const labelClass = 'mb-1.5 block text-sm font-semibold';
                         </button>
                     </div>
                     <p v-if="searchError" class="mt-1 text-sm text-slate-500">{{ searchError }}</p>
-                    <ul v-if="places.length" class="mt-2 overflow-hidden rounded-xl ring-1 ring-slate-200 dark:ring-slate-700">
-                        <li v-for="place in places" :key="place.place_id">
-                            <button type="button" class="block w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-800" @click="choosePlace(place)">
-                                {{ place.display_name }}
+                    <ul v-if="results.length" class="mt-2 overflow-hidden rounded-xl ring-1 ring-slate-200 dark:ring-slate-700">
+                        <li v-for="result in results" :key="result.place_id">
+                            <button type="button" class="flex w-full items-start gap-2 px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-800" @click="addPlace(result)">
+                                <Plus class="mt-0.5 size-4 shrink-0 text-accent" /> {{ result.display_name }}
                             </button>
                         </li>
                     </ul>
                 </div>
 
-                <LeafletMap v-model="point" picker class="h-64" />
-                <p class="text-xs text-slate-500">Click on the map to put the pin, drag it to adjust.</p>
+                <LeafletMap v-model="form.places" picker class="h-64" />
+                <p class="text-xs text-slate-500">Click on the map to add a pin, drag a pin to move it.</p>
 
-                <div v-if="point" class="flex items-start gap-2 rounded-xl bg-slate-50 p-3 text-sm dark:bg-slate-800">
-                    <MapPin class="mt-0.5 size-4 shrink-0 text-brand" />
-                    <div class="min-w-0 flex-1">
-                        <p v-if="form.placeName" class="truncate">{{ form.placeName }}</p>
-                        <p class="text-xs text-slate-500">{{ point.latitude }}, {{ point.longitude }}</p>
-                        <p v-if="suggested" class="mt-1 text-xs font-medium text-amber-600">
-                            Guessed from the location text: saving the album confirms it.
-                        </p>
-                    </div>
-                    <button type="button" class="rounded-lg p-1 text-slate-400 hover:text-red-600" @click="clearPoint">
-                        <X class="size-4" /><span class="sr-only">Remove the place</span>
-                    </button>
-                </div>
-                <p v-if="form.errors.latitude || form.errors.longitude" class="text-sm text-red-600">{{ form.errors.latitude || form.errors.longitude }}</p>
+                <ol v-if="form.places.length" class="space-y-2">
+                    <li v-for="(place, index) in form.places" :key="index" class="flex items-start gap-2 rounded-xl bg-slate-50 p-3 text-sm dark:bg-slate-800">
+                        <span class="flex size-5 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">{{ index + 1 }}</span>
+                        <div class="min-w-0 flex-1">
+                            <p v-if="place.placeName" class="truncate">{{ place.placeName }}</p>
+                            <p class="text-xs text-slate-500">{{ place.latitude }}, {{ place.longitude }}</p>
+                            <p v-if="place.suggested" class="mt-1 text-xs font-medium text-amber-600">
+                                Guessed from the location text: saving the album confirms it.
+                            </p>
+                        </div>
+                        <button type="button" class="rounded-lg p-1 text-slate-400 hover:text-red-600" @click="removePlace(index)">
+                            <X class="size-4" /><span class="sr-only">Remove this place</span>
+                        </button>
+                    </li>
+                </ol>
+                <p v-for="(message, key) in form.errors" v-show="key.startsWith('places')" :key="key" class="text-sm text-red-600">{{ message }}</p>
             </section>
 
             <button

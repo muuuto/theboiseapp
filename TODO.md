@@ -133,14 +133,33 @@ Steps (one release each):
    search, covers resized by the site keeping their shape, a **Map** page for every user (clusters),
    admin review page for the guessed locations (farthest first, confirm all).
    The "strips" in emails were transparent padding from BulkResize (not black bars): 125 previews.
-   To deploy (quick release, no new PHP packages):
-   - [ ] Push, then cPanel Git deploy
-   - [ ] `/admin/maintenance` → **Backup + run migrations** (album coordinates, likes)
-   - [ ] `/admin/maintenance` → **Remove bars from old album previews** (originals are kept)
-   - [ ] `/admin/maintenance` → **Import suggested album locations**, then **Review album locations**:
-         fix the far-away wrong ones first, then "Confirm all remaining"
-   - [ ] Check an email with an album preview (new album / reminder) in your mail app
+   Committed as `99a001c`. Added after that commit (deploy together with step 3):
+   - **Likes in the notification bell** ("Zecca liked your comment", never emailed)
+   - **Several places per album** (e.g. "Londra e Dublino": two pins). The coordinates moved
+     to their own table `listing_places`; suggestions: 186 albums, 195 places
+   - padding trimmed on new uploads too, emoji button in the editor
 3. **Forum**: categories, posts, post page, Tiptap editor, likes and emojis on comments.
+   ✅ Done locally, 119 tests passing. Forum pages in Vue (cards with edit/delete instead of the
+   "manage" pages), post form with privacy options and attachments removable one by one, comments
+   with emojis and likes, photo viewer. Fixed: WebP uploads crashed (logos, covers, attachments).
+   Removed: the " XD" added to every forum comment.
+
+   Step 2 was already deployed (bars removed, locations imported, review started): the new
+   version keeps the review (migration moves each album's location to `listing_places`).
+
+   **To deploy the rest** (quick release, no new PHP packages):
+   - [ ] Push, then cPanel Git deploy
+   - [ ] `/admin/maintenance` → **Backup + run migrations** (notifications, places)
+   - [ ] `/admin/maintenance` → **Import suggested album locations** again: it only adds the extra
+         places (Dublin next to London, Passo Gardena next to Carezza...: 7 albums), never brings
+         back removed guesses. Rehearsed on a copy of the production state.
+   - [ ] **Review album locations**: remove the new wrong guess "Cologna" → Köln (top of the list),
+         add by hand the places of "Passo Pennes & Lago di Braies & Seit" (it had none)
+   - [ ] Check an email with an album preview (new album / reminder) in your mail app
+   - [ ] On the server you can delete the old Blade views removed from the repo (deploys never
+         delete files): `resources/views/forum/`, `resources/views/partials/`,
+         `resources/views/listings/show|create|edit.blade.php`, `components/posts-card`,
+         `categories-card`, `forum-tags`, `listing-tags`, `googleAutocomplete`. Harmless if left.
 4. **The rest**: account, login/password pages, invite page, admin pages.
 5. After the redesign: **Splitwise**.
 

@@ -1,1297 +1,1907 @@
 {
     "1": {
         "location_hash": "27b9f905e01eae21a87673607024953aaa605b77",
-        "latitude": 46.7366475,
-        "longitude": 10.8495838,
-        "coordinates_source": "suggested",
-        "place_name": "Vernago, Senales, Val Venosta, Bolzano, Trentino-Alto Adige, 39020, Italia"
+        "places": [
+            {
+                "latitude": 46.7366475,
+                "longitude": 10.8495838,
+                "place_name": "Vernago, Senales, Val Venosta, Bolzano, Trentino-Alto Adige, 39020, Italia"
+            }
+        ]
     },
     "9": {
         "location_hash": "6de0a90c2fff63262b04651aad962f0ff89ad5d3",
-        "latitude": 46.6713536,
-        "longitude": 11.1646348,
-        "coordinates_source": "suggested",
-        "place_name": "Merano, Burgraviato, Bolzano, Trentino-Alto Adige, 39012, Italia"
+        "places": [
+            {
+                "latitude": 46.6713536,
+                "longitude": 11.1646348,
+                "place_name": "Merano, Burgraviato, Bolzano, Trentino-Alto Adige, 39012, Italia"
+            }
+        ]
     },
     "15": {
         "location_hash": "6de0a90c2fff63262b04651aad962f0ff89ad5d3",
-        "latitude": 46.6713536,
-        "longitude": 11.1646348,
-        "coordinates_source": "suggested",
-        "place_name": "Merano, Burgraviato, Bolzano, Trentino-Alto Adige, 39012, Italia"
+        "places": [
+            {
+                "latitude": 46.6713536,
+                "longitude": 11.1646348,
+                "place_name": "Merano, Burgraviato, Bolzano, Trentino-Alto Adige, 39012, Italia"
+            }
+        ]
     },
     "16": {
         "location_hash": "c9706f821c6ebb4e87baec1f7a028035dfdc98af",
-        "latitude": 46.498298,
-        "longitude": 11.3501018,
-        "coordinates_source": "suggested",
-        "place_name": "Libera Università di Bolzano, 1, Piazza Università, Centro Storico, Centro-Piani-Rencio, Rencio, Bolzano, Trentino-Alto Adige, 39100, Italia"
+        "places": [
+            {
+                "latitude": 46.498298,
+                "longitude": 11.3501018,
+                "place_name": "Libera Università di Bolzano, 1, Piazza Università, Centro Storico, Centro-Piani-Rencio, Rencio, Bolzano, Trentino-Alto Adige, 39100, Italia"
+            }
+        ]
     },
     "17": {
         "location_hash": "72aede2d2d143e20c5c83f3ceaed461fa912bf51",
-        "latitude": 46.5359124,
-        "longitude": 11.2495742,
-        "coordinates_source": "suggested",
-        "place_name": "Terlano, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39018, Italia"
+        "places": [
+            {
+                "latitude": 46.5359124,
+                "longitude": 11.2495742,
+                "place_name": "Terlano, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39018, Italia"
+            }
+        ]
     },
     "18": {
         "location_hash": "59aca7c975a8dc4dabf7bc8b13697ef2c9d01344",
-        "latitude": 46.3473164,
-        "longitude": 11.4515353,
-        "coordinates_source": "suggested",
-        "place_name": "Passo Oclini, Aldino, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39040, Italia"
+        "places": [
+            {
+                "latitude": 46.3473164,
+                "longitude": 11.4515353,
+                "place_name": "Passo Oclini, Aldino, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39040, Italia"
+            }
+        ]
     },
     "19": {
         "location_hash": "febafbf2c785afba9e5b820f7746a29cec7c07e9",
-        "latitude": 46.4336534,
-        "longitude": 11.3125829,
-        "coordinates_source": "suggested",
-        "place_name": "Safety Park, Via Vadena, Cervo, Vadena, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39051, Italia"
+        "places": [
+            {
+                "latitude": 46.4336534,
+                "longitude": 11.3125829,
+                "place_name": "Safety Park, Via Vadena, Cervo, Vadena, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39051, Italia"
+            }
+        ]
     },
     "20": {
         "location_hash": "d57234492de1c63b9015594f97a31ccca5b0bdee",
-        "latitude": 45.6624314,
-        "longitude": 10.6861569,
-        "coordinates_source": "suggested",
-        "place_name": "Lago di Garda, Brescia, Lombardia, Italia"
+        "places": [
+            {
+                "latitude": 45.6624314,
+                "longitude": 10.6861569,
+                "place_name": "Lago di Garda, Brescia, Lombardia, Italia"
+            }
+        ]
     },
     "21": {
         "location_hash": "2457fa826f8da46792f89578bdc1789dcfbcf60b",
-        "latitude": 46.3787251,
-        "longitude": 11.2641297,
-        "coordinates_source": "suggested",
-        "place_name": "Lago di Caldaro, Caldaro sulla Strada del Vino, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.3787251,
+                "longitude": 11.2641297,
+                "place_name": "Lago di Caldaro, Caldaro sulla Strada del Vino, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "22": {
         "location_hash": "bcea2f4e4d83568bd4aedf736424cf70d0e338e7",
-        "latitude": 46.2745604,
-        "longitude": 11.1850351,
-        "coordinates_source": "suggested",
-        "place_name": "Lago di Favogna, Colle, Magrè sulla Strada del Vino, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.2745604,
+                "longitude": 11.1850351,
+                "place_name": "Lago di Favogna, Colle, Magrè sulla Strada del Vino, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "23": {
         "location_hash": "b6e0a32701149545c335f3311ace3848135a9c45",
-        "latitude": 46.2944352,
-        "longitude": 11.2726831,
-        "coordinates_source": "suggested",
-        "place_name": "Egna, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39044, Italia"
+        "places": [
+            {
+                "latitude": 46.2944352,
+                "longitude": 11.2726831,
+                "place_name": "Egna, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39044, Italia"
+            }
+        ]
     },
     "24": {
         "location_hash": "54b50342d06dc078f0f0d481cfbd32565779edc4",
-        "latitude": 46.4592905,
-        "longitude": 11.351806,
-        "coordinates_source": "suggested",
-        "place_name": "La Costa, Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+        "places": [
+            {
+                "latitude": 46.4592905,
+                "longitude": 11.351806,
+                "place_name": "La Costa, Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+            }
+        ]
     },
     "25": {
         "location_hash": "d72496d191324d40806d02de3cd22f36c022fb9a",
-        "latitude": 46.1029536,
-        "longitude": 11.1297425,
-        "coordinates_source": "suggested",
-        "place_name": "Trento, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.1029536,
+                "longitude": 11.1297425,
+                "place_name": "Trento, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "26": {
         "location_hash": "3240375cad539cdabff1aac6f475e2b6c0691ccb",
-        "latitude": 46.6451,
-        "longitude": 11.6968408,
-        "coordinates_source": "suggested",
-        "place_name": "Funes, Valle Isarco, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.6451,
+                "longitude": 11.6968408,
+                "place_name": "Funes, Valle Isarco, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "27": {
         "location_hash": "303b6a4559e289d08d25365cf6badbc300c26353",
-        "latitude": 46.5359124,
-        "longitude": 11.2495742,
-        "coordinates_source": "suggested",
-        "place_name": "Terlano, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39018, Italia"
+        "places": [
+            {
+                "latitude": 46.5359124,
+                "longitude": 11.2495742,
+                "place_name": "Terlano, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39018, Italia"
+            }
+        ]
     },
     "28": {
         "location_hash": "f076213b963871de5768d1a61865d94666c6687d",
-        "latitude": 37.7919283,
-        "longitude": -122.3976865,
-        "coordinates_source": "suggested",
-        "place_name": "My Heart, 333, Market Street, Financial District, San Francisco, California, 94105, Stati Uniti d'America"
+        "places": [
+            {
+                "latitude": 37.7919283,
+                "longitude": -122.3976865,
+                "place_name": "My Heart, 333, Market Street, Financial District, San Francisco, California, 94105, Stati Uniti d'America"
+            }
+        ]
     },
     "29": {
         "location_hash": "dd62072341ffabd3fce560be4536705975897ba0",
-        "latitude": 46.5350348,
-        "longitude": 11.3313839,
-        "coordinates_source": "suggested",
-        "place_name": "San Genesio Atesino, Salto-Sciliar, Bolzano, Trentino-Alto Adige, 39050, Italia"
+        "places": [
+            {
+                "latitude": 46.5350348,
+                "longitude": 11.3313839,
+                "place_name": "San Genesio Atesino, Salto-Sciliar, Bolzano, Trentino-Alto Adige, 39050, Italia"
+            }
+        ]
     },
     "30": {
         "location_hash": "dd62072341ffabd3fce560be4536705975897ba0",
-        "latitude": 46.5350348,
-        "longitude": 11.3313839,
-        "coordinates_source": "suggested",
-        "place_name": "San Genesio Atesino, Salto-Sciliar, Bolzano, Trentino-Alto Adige, 39050, Italia"
+        "places": [
+            {
+                "latitude": 46.5350348,
+                "longitude": 11.3313839,
+                "place_name": "San Genesio Atesino, Salto-Sciliar, Bolzano, Trentino-Alto Adige, 39050, Italia"
+            }
+        ]
     },
     "31": {
         "location_hash": "fad5ac345662388c158be53e7de69d95e2626bcb",
-        "latitude": 46.716413,
-        "longitude": 11.657792,
-        "coordinates_source": "suggested",
-        "place_name": "Bressanone, Valle Isarco, Bolzano, Trentino-Alto Adige, 39042, Italia"
+        "places": [
+            {
+                "latitude": 46.716413,
+                "longitude": 11.657792,
+                "place_name": "Bressanone, Valle Isarco, Bolzano, Trentino-Alto Adige, 39042, Italia"
+            }
+        ]
     },
     "32": {
         "location_hash": "d98ed64b6afaf06b53b8dd90823a3a644335a1b0",
-        "latitude": 46.6685881,
-        "longitude": 11.3639981,
-        "coordinates_source": "suggested",
-        "place_name": "Talvera, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.6685881,
+                "longitude": 11.3639981,
+                "place_name": "Talvera, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "33": {
         "location_hash": "840ebc394d39d2d30515550f008f5dd2088e140e",
-        "latitude": 46.1252418,
-        "longitude": 10.9600004,
-        "coordinates_source": "suggested",
-        "place_name": "Lago di Molveno, Molveno, Comunità della Paganella, Trento, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.1252418,
+                "longitude": 10.9600004,
+                "place_name": "Lago di Molveno, Molveno, Comunità della Paganella, Trento, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "34": {
         "location_hash": "7962e196276fc6bf948b0f515d2538b425f5321f",
-        "latitude": 46.4093109,
-        "longitude": 11.5758682,
-        "coordinates_source": "suggested",
-        "place_name": "Lago di Carezza, Carezza, Nova Levante, Salto-Sciliar, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.4093109,
+                "longitude": 11.5758682,
+                "place_name": "Lago di Carezza, Carezza, Nova Levante, Salto-Sciliar, Bolzano, Trentino-Alto Adige, Italia"
+            },
+            {
+                "latitude": 46.549819,
+                "longitude": 11.8083893,
+                "place_name": "Passo Gardena, Corvara in Badia, Val Pusteria, Bolzano, Trentino-Alto Adige, 39048, Italia"
+            },
+            {
+                "latitude": 46.6451,
+                "longitude": 11.6968408,
+                "place_name": "Funes, Valle Isarco, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "35": {
         "location_hash": "3f9f18292430c4223f34f3bebe3160eb3914ac98",
-        "latitude": 46.6451,
-        "longitude": 11.6968408,
-        "coordinates_source": "suggested",
-        "place_name": "Funes, Valle Isarco, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.6451,
+                "longitude": 11.6968408,
+                "place_name": "Funes, Valle Isarco, Bolzano, Trentino-Alto Adige, Italia"
+            },
+            {
+                "latitude": 46.6751109,
+                "longitude": 11.8143123,
+                "place_name": "Passo delle Erbe, San Martino in Badia, Val Pusteria, Bolzano, Trentino-Alto Adige, 39030, Italia"
+            }
+        ]
     },
     "36": {
         "location_hash": "2068e692ed4225d77048c198224e7e64b41a2988",
-        "latitude": 45.5304098,
-        "longitude": 11.4264388,
-        "coordinates_source": "suggested",
-        "place_name": "Colle, Castegnini, Sovizzo, Vicenza, Veneto, 36049, Italia"
+        "places": [
+            {
+                "latitude": 45.5304098,
+                "longitude": 11.4264388,
+                "place_name": "Colle, Castegnini, Sovizzo, Vicenza, Veneto, 36049, Italia"
+            }
+        ]
     },
     "37": {
         "location_hash": "3240375cad539cdabff1aac6f475e2b6c0691ccb",
-        "latitude": 46.6451,
-        "longitude": 11.6968408,
-        "coordinates_source": "suggested",
-        "place_name": "Funes, Valle Isarco, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.6451,
+                "longitude": 11.6968408,
+                "place_name": "Funes, Valle Isarco, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "38": {
         "location_hash": "c9706f821c6ebb4e87baec1f7a028035dfdc98af",
-        "latitude": 46.498298,
-        "longitude": 11.3501018,
-        "coordinates_source": "suggested",
-        "place_name": "Libera Università di Bolzano, 1, Piazza Università, Centro Storico, Centro-Piani-Rencio, Rencio, Bolzano, Trentino-Alto Adige, 39100, Italia"
+        "places": [
+            {
+                "latitude": 46.498298,
+                "longitude": 11.3501018,
+                "place_name": "Libera Università di Bolzano, 1, Piazza Università, Centro Storico, Centro-Piani-Rencio, Rencio, Bolzano, Trentino-Alto Adige, 39100, Italia"
+            }
+        ]
     },
     "39": {
         "location_hash": "16502f1e24ba112504fab8df56739df9037e873c",
-        "latitude": 43.3458388,
-        "longitude": 13.1415872,
-        "coordinates_source": "suggested",
-        "place_name": "Marche, Italia"
+        "places": [
+            {
+                "latitude": 43.3458388,
+                "longitude": 13.1415872,
+                "place_name": "Marche, Italia"
+            }
+        ]
     },
     "40": {
         "location_hash": "1a2b0cdef8851213833c1719c47e0abc7194912e",
-        "latitude": 46.6559296,
-        "longitude": 11.2301833,
-        "coordinates_source": "suggested",
-        "place_name": "Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.6559296,
+                "longitude": 11.2301833,
+                "place_name": "Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "41": {
         "location_hash": "64b830a599e87aec63eb0eb11a162c45b6001497",
-        "latitude": 43.9465433,
-        "longitude": 12.630749,
-        "coordinates_source": "suggested",
-        "place_name": "Rimini, Emilia-Romagna, Italia"
+        "places": [
+            {
+                "latitude": 43.9465433,
+                "longitude": 12.630749,
+                "place_name": "Rimini, Emilia-Romagna, Italia"
+            }
+        ]
     },
     "42": {
         "location_hash": "1bf24fa43a86b9ad1e3cb4854436f159bad844e3",
-        "latitude": 46.5424917,
-        "longitude": 10.5579955,
-        "coordinates_source": "suggested",
-        "place_name": "Stelvio, Val Venosta, Bolzano, Trentino-Alto Adige, 39029, Italia"
+        "places": [
+            {
+                "latitude": 46.5424917,
+                "longitude": 10.5579955,
+                "place_name": "Stelvio, Val Venosta, Bolzano, Trentino-Alto Adige, 39029, Italia"
+            }
+        ]
     },
     "43": {
         "location_hash": "2e2c9aabd2cd640530fd24f27250444aff982159",
-        "latitude": 46.4175376,
-        "longitude": 11.2061378,
-        "coordinates_source": "suggested",
-        "place_name": "Mendola, Ruffré-Mendola, Comunità della Val di Non, Trento, Trentino-Alto Adige, 38028, Italia"
+        "places": [
+            {
+                "latitude": 46.4175376,
+                "longitude": 11.2061378,
+                "place_name": "Mendola, Ruffré-Mendola, Comunità della Val di Non, Trento, Trentino-Alto Adige, 38028, Italia"
+            }
+        ]
     },
     "44": {
         "location_hash": "63d379d22fa4ac96d550aad3d6d8d086b41b1708",
-        "latitude": 46.6559296,
-        "longitude": 11.2301833,
-        "coordinates_source": "suggested",
-        "place_name": "Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.6559296,
+                "longitude": 11.2301833,
+                "place_name": "Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "45": {
         "location_hash": "2dfc054b1af32535d1093845d43c1c058b74591f",
-        "latitude": 34.0159398,
-        "longitude": -118.111975,
-        "coordinates_source": "suggested",
-        "place_name": "Montebello, Los Angeles County, California, Stati Uniti d'America"
+        "places": [
+            {
+                "latitude": 34.0159398,
+                "longitude": -118.111975,
+                "place_name": "Montebello, Los Angeles County, California, Stati Uniti d'America"
+            }
+        ]
     },
     "46": {
         "location_hash": "5873a0f66b9bb14182726a3d9c738d000409a14b",
-        "latitude": 45.4641943,
-        "longitude": 9.1896346,
-        "coordinates_source": "suggested",
-        "place_name": "Milano, Rodano, Milano, Lombardia, Italia"
+        "places": [
+            {
+                "latitude": 45.4641943,
+                "longitude": 9.1896346,
+                "place_name": "Milano, Rodano, Milano, Lombardia, Italia"
+            }
+        ]
     },
     "47": {
         "location_hash": "3240375cad539cdabff1aac6f475e2b6c0691ccb",
-        "latitude": 46.6451,
-        "longitude": 11.6968408,
-        "coordinates_source": "suggested",
-        "place_name": "Funes, Valle Isarco, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.6451,
+                "longitude": 11.6968408,
+                "place_name": "Funes, Valle Isarco, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "48": {
         "location_hash": "e636b7cb38b7a44e437f9d33c1cf615f3acecdb9",
-        "latitude": 46.4093109,
-        "longitude": 11.5758682,
-        "coordinates_source": "suggested",
-        "place_name": "Lago di Carezza, Carezza, Nova Levante, Salto-Sciliar, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.4093109,
+                "longitude": 11.5758682,
+                "place_name": "Lago di Carezza, Carezza, Nova Levante, Salto-Sciliar, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "49": {
         "location_hash": "6de0a90c2fff63262b04651aad962f0ff89ad5d3",
-        "latitude": 46.6713536,
-        "longitude": 11.1646348,
-        "coordinates_source": "suggested",
-        "place_name": "Merano, Burgraviato, Bolzano, Trentino-Alto Adige, 39012, Italia"
+        "places": [
+            {
+                "latitude": 46.6713536,
+                "longitude": 11.1646348,
+                "place_name": "Merano, Burgraviato, Bolzano, Trentino-Alto Adige, 39012, Italia"
+            }
+        ]
     },
     "50": {
         "location_hash": "95d5353d0fcc3b7461ace7116dce5780b9b0761d",
-        "latitude": 46.6559296,
-        "longitude": 11.2301833,
-        "coordinates_source": "suggested",
-        "place_name": "Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.6559296,
+                "longitude": 11.2301833,
+                "place_name": "Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "52": {
         "location_hash": "51afa9c694591bd7a3dfa7334062bfb36e29ff0e",
-        "latitude": 46.422819,
-        "longitude": 11.3347713,
-        "coordinates_source": "suggested",
-        "place_name": "Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+        "places": [
+            {
+                "latitude": 46.422819,
+                "longitude": 11.3347713,
+                "place_name": "Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+            }
+        ]
     },
     "53": {
         "location_hash": "21241d857f0ddd1a3c04083be9284a8d5b285e44",
-        "latitude": 46.5629355,
-        "longitude": 11.441435,
-        "coordinates_source": "suggested",
-        "place_name": "Renon, Salto-Sciliar, Bolzano, Trentino-Alto Adige, 39054, Italia"
+        "places": [
+            {
+                "latitude": 46.5629355,
+                "longitude": 11.441435,
+                "place_name": "Renon, Salto-Sciliar, Bolzano, Trentino-Alto Adige, 39054, Italia"
+            }
+        ]
     },
     "54": {
         "location_hash": "febafbf2c785afba9e5b820f7746a29cec7c07e9",
-        "latitude": 46.4336534,
-        "longitude": 11.3125829,
-        "coordinates_source": "suggested",
-        "place_name": "Safety Park, Via Vadena, Cervo, Vadena, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39051, Italia"
+        "places": [
+            {
+                "latitude": 46.4336534,
+                "longitude": 11.3125829,
+                "place_name": "Safety Park, Via Vadena, Cervo, Vadena, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39051, Italia"
+            }
+        ]
     },
     "55": {
         "location_hash": "54b50342d06dc078f0f0d481cfbd32565779edc4",
-        "latitude": 46.4592905,
-        "longitude": 11.351806,
-        "coordinates_source": "suggested",
-        "place_name": "La Costa, Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+        "places": [
+            {
+                "latitude": 46.4592905,
+                "longitude": 11.351806,
+                "place_name": "La Costa, Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+            }
+        ]
     },
     "56": {
         "location_hash": "3082f546edeca74ed3fe091ce89850c927642b62",
-        "latitude": 46.2120936,
-        "longitude": 11.0935086,
-        "coordinates_source": "suggested",
-        "place_name": "Mezzolombardo, Comunità Rotaliana-Königsberg, Trento, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.2120936,
+                "longitude": 11.0935086,
+                "place_name": "Mezzolombardo, Comunità Rotaliana-Königsberg, Trento, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "57": {
         "location_hash": "ee69717db32d6506d6164b966406a1bb65f66941",
-        "latitude": 46.422819,
-        "longitude": 11.3347713,
-        "coordinates_source": "suggested",
-        "place_name": "Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+        "places": [
+            {
+                "latitude": 46.422819,
+                "longitude": 11.3347713,
+                "place_name": "Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+            }
+        ]
     },
     "58": {
         "location_hash": "ee69717db32d6506d6164b966406a1bb65f66941",
-        "latitude": 46.422819,
-        "longitude": 11.3347713,
-        "coordinates_source": "suggested",
-        "place_name": "Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+        "places": [
+            {
+                "latitude": 46.422819,
+                "longitude": 11.3347713,
+                "place_name": "Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+            }
+        ]
     },
     "59": {
         "location_hash": "b327b294f6f1d994bdcf1b41885cc6e4833495b0",
-        "latitude": 46.8017309,
-        "longitude": 10.5304798,
-        "coordinates_source": "suggested",
-        "place_name": "Lago di Resia, Froia, Curon Venosta, Val Venosta, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.8017309,
+                "longitude": 10.5304798,
+                "place_name": "Lago di Resia, Froia, Curon Venosta, Val Venosta, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "60": {
         "location_hash": "964ee6a6f1341cb58aa55dcd861ebb3c950f2874",
-        "latitude": 46.417726,
-        "longitude": 11.2771256,
-        "coordinates_source": "suggested",
-        "place_name": "Monticolo, Appiano sulla Strada del Vino, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.417726,
+                "longitude": 11.2771256,
+                "place_name": "Monticolo, Appiano sulla Strada del Vino, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
+    },
+    "62": {
+        "location_hash": "deed693de6f66a60896ff159f75ca51468c034e7",
+        "places": [
+            {
+                "latitude": 46.6947208,
+                "longitude": 12.0858434,
+                "place_name": "Lago di Braies, Braies, Val Pusteria, Bolzano, Trentino-Alto Adige, Italia"
+            },
+            {
+                "latitude": 46.4592905,
+                "longitude": 11.351806,
+                "place_name": "La Costa, Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+            }
+        ]
     },
     "63": {
         "location_hash": "2c1214083a775f7cf6cb44b98ab41c29cdf7d419",
-        "latitude": 46.32311,
-        "longitude": 11.096874,
-        "coordinates_source": "suggested",
-        "place_name": "Tres, Predaia, Comunità della Val di Non, Trento, Trentino-Alto Adige, 38028, Italia"
+        "places": [
+            {
+                "latitude": 46.32311,
+                "longitude": 11.096874,
+                "place_name": "Tres, Predaia, Comunità della Val di Non, Trento, Trentino-Alto Adige, 38028, Italia"
+            }
+        ]
     },
     "64": {
         "location_hash": "3a78f5a0ab67cad733331160743df8b9f128f845",
-        "latitude": 46.5340463,
-        "longitude": 10.9739594,
-        "coordinates_source": "suggested",
-        "place_name": "Lago artificiale di Zoccolo, Pracupola, Ultimo, Burgraviato, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.5340463,
+                "longitude": 10.9739594,
+                "place_name": "Lago artificiale di Zoccolo, Pracupola, Ultimo, Burgraviato, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "65": {
         "location_hash": "303b6a4559e289d08d25365cf6badbc300c26353",
-        "latitude": 46.5359124,
-        "longitude": 11.2495742,
-        "coordinates_source": "suggested",
-        "place_name": "Terlano, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39018, Italia"
+        "places": [
+            {
+                "latitude": 46.5359124,
+                "longitude": 11.2495742,
+                "place_name": "Terlano, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39018, Italia"
+            }
+        ]
     },
     "66": {
         "location_hash": "0a26b50d8885b6ae16a391c46897e1b1ae1926e5",
-        "latitude": 46.2602055,
-        "longitude": 10.9504432,
-        "coordinates_source": "suggested",
-        "place_name": "Lago di Tovel, Ville d'Anaunia, Comunità della Val di Non, Trento, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.2602055,
+                "longitude": 10.9504432,
+                "place_name": "Lago di Tovel, Ville d'Anaunia, Comunità della Val di Non, Trento, Trentino-Alto Adige, Italia"
+            },
+            {
+                "latitude": 46.1572963,
+                "longitude": 11.0055111,
+                "place_name": "Area sciistica Andalo Fai della Paganella, Andalo, Comunità della Paganella, Trento, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "67": {
         "location_hash": "e2b3029bdb270d36ce25f0192862bb839bdda5bb",
-        "latitude": 46.4590133,
-        "longitude": 11.869805,
-        "coordinates_source": "suggested",
-        "place_name": "Lago di Fedaia, Canazei, Comunità della Val di Fassa, Trento, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.4590133,
+                "longitude": 11.869805,
+                "place_name": "Lago di Fedaia, Canazei, Comunità della Val di Fassa, Trento, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "68": {
         "location_hash": "01f65ee3a4e8047de108ab54f4223c46048115f8",
-        "latitude": 46.549819,
-        "longitude": 11.8083893,
-        "coordinates_source": "suggested",
-        "place_name": "Passo Gardena, Corvara in Badia, Val Pusteria, Bolzano, Trentino-Alto Adige, 39048, Italia"
+        "places": [
+            {
+                "latitude": 46.549819,
+                "longitude": 11.8083893,
+                "place_name": "Passo Gardena, Corvara in Badia, Val Pusteria, Bolzano, Trentino-Alto Adige, 39048, Italia"
+            }
+        ]
     },
     "69": {
         "location_hash": "febafbf2c785afba9e5b820f7746a29cec7c07e9",
-        "latitude": 46.4336534,
-        "longitude": 11.3125829,
-        "coordinates_source": "suggested",
-        "place_name": "Safety Park, Via Vadena, Cervo, Vadena, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39051, Italia"
+        "places": [
+            {
+                "latitude": 46.4336534,
+                "longitude": 11.3125829,
+                "place_name": "Safety Park, Via Vadena, Cervo, Vadena, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39051, Italia"
+            }
+        ]
     },
     "70": {
         "location_hash": "b327b294f6f1d994bdcf1b41885cc6e4833495b0",
-        "latitude": 46.8017309,
-        "longitude": 10.5304798,
-        "coordinates_source": "suggested",
-        "place_name": "Lago di Resia, Froia, Curon Venosta, Val Venosta, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.8017309,
+                "longitude": 10.5304798,
+                "place_name": "Lago di Resia, Froia, Curon Venosta, Val Venosta, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "72": {
         "location_hash": "27be5aacd839bc7dc7d4e5bf8e6b52f9b3b9e36b",
-        "latitude": 46.6751109,
-        "longitude": 11.8143123,
-        "coordinates_source": "suggested",
-        "place_name": "Passo delle Erbe, San Martino in Badia, Val Pusteria, Bolzano, Trentino-Alto Adige, 39030, Italia"
+        "places": [
+            {
+                "latitude": 46.6751109,
+                "longitude": 11.8143123,
+                "place_name": "Passo delle Erbe, San Martino in Badia, Val Pusteria, Bolzano, Trentino-Alto Adige, 39030, Italia"
+            }
+        ]
     },
     "73": {
         "location_hash": "3f16871e13f41d62aeb0d8f908c3dc2708377d5a",
-        "latitude": 43.4586541,
-        "longitude": 11.1389204,
-        "coordinates_source": "suggested",
-        "place_name": "Toscana, Italia"
+        "places": [
+            {
+                "latitude": 43.4586541,
+                "longitude": 11.1389204,
+                "place_name": "Toscana, Italia"
+            }
+        ]
     },
     "74": {
         "location_hash": "3240375cad539cdabff1aac6f475e2b6c0691ccb",
-        "latitude": 46.6451,
-        "longitude": 11.6968408,
-        "coordinates_source": "suggested",
-        "place_name": "Funes, Valle Isarco, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.6451,
+                "longitude": 11.6968408,
+                "place_name": "Funes, Valle Isarco, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "75": {
         "location_hash": "54b50342d06dc078f0f0d481cfbd32565779edc4",
-        "latitude": 46.4592905,
-        "longitude": 11.351806,
-        "coordinates_source": "suggested",
-        "place_name": "La Costa, Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+        "places": [
+            {
+                "latitude": 46.4592905,
+                "longitude": 11.351806,
+                "place_name": "La Costa, Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+            }
+        ]
     },
     "76": {
         "location_hash": "3240375cad539cdabff1aac6f475e2b6c0691ccb",
-        "latitude": 46.6451,
-        "longitude": 11.6968408,
-        "coordinates_source": "suggested",
-        "place_name": "Funes, Valle Isarco, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.6451,
+                "longitude": 11.6968408,
+                "place_name": "Funes, Valle Isarco, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "77": {
         "location_hash": "6de0a90c2fff63262b04651aad962f0ff89ad5d3",
-        "latitude": 46.6713536,
-        "longitude": 11.1646348,
-        "coordinates_source": "suggested",
-        "place_name": "Merano, Burgraviato, Bolzano, Trentino-Alto Adige, 39012, Italia"
+        "places": [
+            {
+                "latitude": 46.6713536,
+                "longitude": 11.1646348,
+                "place_name": "Merano, Burgraviato, Bolzano, Trentino-Alto Adige, 39012, Italia"
+            }
+        ]
     },
     "78": {
         "location_hash": "54b50342d06dc078f0f0d481cfbd32565779edc4",
-        "latitude": 46.4592905,
-        "longitude": 11.351806,
-        "coordinates_source": "suggested",
-        "place_name": "La Costa, Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+        "places": [
+            {
+                "latitude": 46.4592905,
+                "longitude": 11.351806,
+                "place_name": "La Costa, Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+            }
+        ]
     },
     "79": {
         "location_hash": "cb0c8443009c0e6e2ef9d825f4bc9ac12dd0f741",
-        "latitude": 46.422819,
-        "longitude": 11.3347713,
-        "coordinates_source": "suggested",
-        "place_name": "Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+        "places": [
+            {
+                "latitude": 46.422819,
+                "longitude": 11.3347713,
+                "place_name": "Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+            }
+        ]
     },
     "80": {
         "location_hash": "964ee6a6f1341cb58aa55dcd861ebb3c950f2874",
-        "latitude": 46.417726,
-        "longitude": 11.2771256,
-        "coordinates_source": "suggested",
-        "place_name": "Monticolo, Appiano sulla Strada del Vino, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.417726,
+                "longitude": 11.2771256,
+                "place_name": "Monticolo, Appiano sulla Strada del Vino, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "81": {
         "location_hash": "8d348335469044ef019962d9b77b986fadcb8747",
-        "latitude": 46.5170681,
-        "longitude": 11.2330939,
-        "coordinates_source": "suggested",
-        "place_name": "Andriano, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.5170681,
+                "longitude": 11.2330939,
+                "place_name": "Andriano, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "83": {
         "location_hash": "29d8fe4d42b3d2172ec5b712b73e64935414ecfb",
-        "latitude": 46.5120035,
-        "longitude": 11.2918091,
-        "coordinates_source": "suggested",
-        "place_name": "Castel Greifenstein, Via Merano, San Maurizio, Gries-San Quirino, Bolzano, Trentino-Alto Adige, 39100, Italia"
+        "places": [
+            {
+                "latitude": 46.5120035,
+                "longitude": 11.2918091,
+                "place_name": "Castel Greifenstein, Via Merano, San Maurizio, Gries-San Quirino, Bolzano, Trentino-Alto Adige, 39100, Italia"
+            }
+        ]
     },
     "84": {
         "location_hash": "cb0c8443009c0e6e2ef9d825f4bc9ac12dd0f741",
-        "latitude": 46.422819,
-        "longitude": 11.3347713,
-        "coordinates_source": "suggested",
-        "place_name": "Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+        "places": [
+            {
+                "latitude": 46.422819,
+                "longitude": 11.3347713,
+                "place_name": "Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+            }
+        ]
     },
     "85": {
         "location_hash": "54b50342d06dc078f0f0d481cfbd32565779edc4",
-        "latitude": 46.4592905,
-        "longitude": 11.351806,
-        "coordinates_source": "suggested",
-        "place_name": "La Costa, Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+        "places": [
+            {
+                "latitude": 46.4592905,
+                "longitude": 11.351806,
+                "place_name": "La Costa, Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+            }
+        ]
     },
     "87": {
         "location_hash": "63d379d22fa4ac96d550aad3d6d8d086b41b1708",
-        "latitude": 46.6559296,
-        "longitude": 11.2301833,
-        "coordinates_source": "suggested",
-        "place_name": "Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.6559296,
+                "longitude": 11.2301833,
+                "place_name": "Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "88": {
         "location_hash": "b327b294f6f1d994bdcf1b41885cc6e4833495b0",
-        "latitude": 46.8017309,
-        "longitude": 10.5304798,
-        "coordinates_source": "suggested",
-        "place_name": "Lago di Resia, Froia, Curon Venosta, Val Venosta, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.8017309,
+                "longitude": 10.5304798,
+                "place_name": "Lago di Resia, Froia, Curon Venosta, Val Venosta, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "89": {
         "location_hash": "54b50342d06dc078f0f0d481cfbd32565779edc4",
-        "latitude": 46.4592905,
-        "longitude": 11.351806,
-        "coordinates_source": "suggested",
-        "place_name": "La Costa, Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+        "places": [
+            {
+                "latitude": 46.4592905,
+                "longitude": 11.351806,
+                "place_name": "La Costa, Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+            }
+        ]
     },
     "91": {
         "location_hash": "ff91b693ec20698bf6286453343f43e324ff421d",
-        "latitude": 45.4641943,
-        "longitude": 9.1896346,
-        "coordinates_source": "suggested",
-        "place_name": "Milano, Rodano, Milano, Lombardia, Italia"
+        "places": [
+            {
+                "latitude": 45.4641943,
+                "longitude": 9.1896346,
+                "place_name": "Milano, Rodano, Milano, Lombardia, Italia"
+            }
+        ]
     },
     "92": {
         "location_hash": "3240375cad539cdabff1aac6f475e2b6c0691ccb",
-        "latitude": 46.6451,
-        "longitude": 11.6968408,
-        "coordinates_source": "suggested",
-        "place_name": "Funes, Valle Isarco, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.6451,
+                "longitude": 11.6968408,
+                "place_name": "Funes, Valle Isarco, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "93": {
         "location_hash": "42355e823b3a5df6eac61273576baa20d43950bd",
-        "latitude": 45.7978814,
-        "longitude": 11.0256445,
-        "coordinates_source": "suggested",
-        "place_name": "Santa Margherita, Ala, Comunità della Vallagarina, Trento, Trentino-Alto Adige, 38061, Italia"
+        "places": [
+            {
+                "latitude": 45.7978814,
+                "longitude": 11.0256445,
+                "place_name": "Santa Margherita, Ala, Comunità della Vallagarina, Trento, Trentino-Alto Adige, 38061, Italia"
+            }
+        ]
     },
     "94": {
         "location_hash": "30a6cf55c3580fbfe1eb76598685ded24cf4460a",
-        "latitude": 46.4828178,
-        "longitude": 12.053492,
-        "coordinates_source": "suggested",
-        "place_name": "Passo Giau, Colle Santa Lucia, Belluno, Veneto, 32020, Italia"
+        "places": [
+            {
+                "latitude": 46.4828178,
+                "longitude": 12.053492,
+                "place_name": "Passo Giau, Colle Santa Lucia, Belluno, Veneto, 32020, Italia"
+            }
+        ]
     },
     "95": {
         "location_hash": "01f65ee3a4e8047de108ab54f4223c46048115f8",
-        "latitude": 46.549819,
-        "longitude": 11.8083893,
-        "coordinates_source": "suggested",
-        "place_name": "Passo Gardena, Corvara in Badia, Val Pusteria, Bolzano, Trentino-Alto Adige, 39048, Italia"
+        "places": [
+            {
+                "latitude": 46.549819,
+                "longitude": 11.8083893,
+                "place_name": "Passo Gardena, Corvara in Badia, Val Pusteria, Bolzano, Trentino-Alto Adige, 39048, Italia"
+            }
+        ]
     },
     "96": {
         "location_hash": "3240375cad539cdabff1aac6f475e2b6c0691ccb",
-        "latitude": 46.6451,
-        "longitude": 11.6968408,
-        "coordinates_source": "suggested",
-        "place_name": "Funes, Valle Isarco, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.6451,
+                "longitude": 11.6968408,
+                "place_name": "Funes, Valle Isarco, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "97": {
         "location_hash": "7aea1b3802e21551ab13287008a8e7c25290ccbc",
-        "latitude": 46.6005922,
-        "longitude": 11.7257836,
-        "coordinates_source": "suggested",
-        "place_name": "Monte Seceda, Santa Cristina Valgardena, Salto-Sciliar, Bolzano, Trentino-Alto Adige, 39047, Italia"
+        "places": [
+            {
+                "latitude": 46.6005922,
+                "longitude": 11.7257836,
+                "place_name": "Monte Seceda, Santa Cristina Valgardena, Salto-Sciliar, Bolzano, Trentino-Alto Adige, 39047, Italia"
+            }
+        ]
     },
     "98": {
         "location_hash": "50ca31c1155293480b1763fee0c88237db5b4095",
-        "latitude": 46.5206957,
-        "longitude": 11.4275364,
-        "coordinates_source": "suggested",
-        "place_name": "Lago di Costalovara, Costalovara, Auna di Sotto, Renon, Salto-Sciliar, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.5206957,
+                "longitude": 11.4275364,
+                "place_name": "Lago di Costalovara, Costalovara, Auna di Sotto, Renon, Salto-Sciliar, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "99": {
         "location_hash": "2e2c9aabd2cd640530fd24f27250444aff982159",
-        "latitude": 46.4175376,
-        "longitude": 11.2061378,
-        "coordinates_source": "suggested",
-        "place_name": "Mendola, Ruffré-Mendola, Comunità della Val di Non, Trento, Trentino-Alto Adige, 38028, Italia"
+        "places": [
+            {
+                "latitude": 46.4175376,
+                "longitude": 11.2061378,
+                "place_name": "Mendola, Ruffré-Mendola, Comunità della Val di Non, Trento, Trentino-Alto Adige, 38028, Italia"
+            }
+        ]
     },
     "100": {
         "location_hash": "f820d3c89766faa9aa4db062f1fa427e54321941",
-        "latitude": 46.3760181,
-        "longitude": 11.3366616,
-        "coordinates_source": "suggested",
-        "place_name": "Lago del Colle, Aldino, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.3760181,
+                "longitude": 11.3366616,
+                "place_name": "Lago del Colle, Aldino, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "101": {
         "location_hash": "f820d3c89766faa9aa4db062f1fa427e54321941",
-        "latitude": 46.3760181,
-        "longitude": 11.3366616,
-        "coordinates_source": "suggested",
-        "place_name": "Lago del Colle, Aldino, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.3760181,
+                "longitude": 11.3366616,
+                "place_name": "Lago del Colle, Aldino, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "102": {
         "location_hash": "d14872dcda65ce0192a65d64fb0dba4773bed32a",
-        "latitude": 45.0677551,
-        "longitude": 7.6824892,
-        "coordinates_source": "suggested",
-        "place_name": "Torino, Piemonte, Italia"
+        "places": [
+            {
+                "latitude": 45.0677551,
+                "longitude": 7.6824892,
+                "place_name": "Torino, Piemonte, Italia"
+            }
+        ]
     },
     "103": {
         "location_hash": "d9cb6092a9950e2f2d2cb28a6de4da48b92ae6f2",
-        "latitude": 46.4205275,
-        "longitude": 11.2870098,
-        "coordinates_source": "suggested",
-        "place_name": "Castello al Lago Sparer, Sentiero circolare del Lago di Monticolo, Monticolo, Appiano sulla Strada del Vino, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39057, Italia"
+        "places": [
+            {
+                "latitude": 46.4205275,
+                "longitude": 11.2870098,
+                "place_name": "Castello al Lago Sparer, Sentiero circolare del Lago di Monticolo, Monticolo, Appiano sulla Strada del Vino, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39057, Italia"
+            }
+        ]
     },
     "104": {
         "location_hash": "dd62072341ffabd3fce560be4536705975897ba0",
-        "latitude": 46.5350348,
-        "longitude": 11.3313839,
-        "coordinates_source": "suggested",
-        "place_name": "San Genesio Atesino, Salto-Sciliar, Bolzano, Trentino-Alto Adige, 39050, Italia"
+        "places": [
+            {
+                "latitude": 46.5350348,
+                "longitude": 11.3313839,
+                "place_name": "San Genesio Atesino, Salto-Sciliar, Bolzano, Trentino-Alto Adige, 39050, Italia"
+            }
+        ]
     },
     "105": {
         "location_hash": "eaf79ec4dc2f19555d692fd0eb27c96ada83ae22",
-        "latitude": 45.4371908,
-        "longitude": 12.3345898,
-        "coordinates_source": "suggested",
-        "place_name": "Venezia, Veneto, 30121-30176, Italia"
+        "places": [
+            {
+                "latitude": 45.4371908,
+                "longitude": 12.3345898,
+                "place_name": "Venezia, Veneto, 30121-30176, Italia"
+            }
+        ]
     },
     "106": {
         "location_hash": "cb0c8443009c0e6e2ef9d825f4bc9ac12dd0f741",
-        "latitude": 46.422819,
-        "longitude": 11.3347713,
-        "coordinates_source": "suggested",
-        "place_name": "Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+        "places": [
+            {
+                "latitude": 46.422819,
+                "longitude": 11.3347713,
+                "place_name": "Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+            }
+        ]
     },
     "107": {
         "location_hash": "54b50342d06dc078f0f0d481cfbd32565779edc4",
-        "latitude": 46.4592905,
-        "longitude": 11.351806,
-        "coordinates_source": "suggested",
-        "place_name": "La Costa, Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+        "places": [
+            {
+                "latitude": 46.4592905,
+                "longitude": 11.351806,
+                "place_name": "La Costa, Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+            }
+        ]
     },
     "108": {
         "location_hash": "79b9d273ac6d2488109d1ea43e2bdb7977bd2b28",
-        "latitude": 41.1793482,
-        "longitude": 19.8824191,
-        "coordinates_source": "suggested",
-        "place_name": "Albania"
+        "places": [
+            {
+                "latitude": 41.1793482,
+                "longitude": 19.8824191,
+                "place_name": "Albania"
+            }
+        ]
     },
     "109": {
         "location_hash": "6e9b931fa3add11a5083c66abe73444735c1c1ff",
-        "latitude": 41.3281482,
-        "longitude": 19.8184435,
-        "coordinates_source": "suggested",
-        "place_name": "Tirana, Prefettura di Tirana, 1001-1028, Albania"
+        "places": [
+            {
+                "latitude": 41.3281482,
+                "longitude": 19.8184435,
+                "place_name": "Tirana, Prefettura di Tirana, 1001-1028, Albania"
+            }
+        ]
     },
     "110": {
         "location_hash": "9c8057f866115de26b5b2834092586c4da005f89",
-        "latitude": 46.9986727,
-        "longitude": 11.9037559,
-        "coordinates_source": "suggested",
-        "place_name": "Sasso della Croce, Valle Aurina, Val Pusteria, Bolzano, Trentino-Alto Adige, 39030, Italia"
+        "places": [
+            {
+                "latitude": 46.9986727,
+                "longitude": 11.9037559,
+                "place_name": "Sasso della Croce, Valle Aurina, Val Pusteria, Bolzano, Trentino-Alto Adige, 39030, Italia"
+            }
+        ]
     },
     "111": {
         "location_hash": "7a9b0c8bd4bd7fbdc9333bc7bbefe0971ae41e5b",
-        "latitude": 46.4388589,
-        "longitude": 11.3468279,
-        "coordinates_source": "suggested",
-        "place_name": "Pineta, Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+        "places": [
+            {
+                "latitude": 46.4388589,
+                "longitude": 11.3468279,
+                "place_name": "Pineta, Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+            }
+        ]
     },
     "112": {
         "location_hash": "9370228a161babb72094d310136c3e81bfa59c07",
-        "latitude": 43.0109544,
-        "longitude": 11.5685932,
-        "coordinates_source": "suggested",
-        "place_name": "Val d'Orcia, Siena, Toscana, Italia"
+        "places": [
+            {
+                "latitude": 43.0109544,
+                "longitude": 11.5685932,
+                "place_name": "Val d'Orcia, Siena, Toscana, Italia"
+            }
+        ]
     },
     "113": {
         "location_hash": "3240375cad539cdabff1aac6f475e2b6c0691ccb",
-        "latitude": 46.6451,
-        "longitude": 11.6968408,
-        "coordinates_source": "suggested",
-        "place_name": "Funes, Valle Isarco, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.6451,
+                "longitude": 11.6968408,
+                "place_name": "Funes, Valle Isarco, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "114": {
         "location_hash": "e2b3029bdb270d36ce25f0192862bb839bdda5bb",
-        "latitude": 46.4590133,
-        "longitude": 11.869805,
-        "coordinates_source": "suggested",
-        "place_name": "Lago di Fedaia, Canazei, Comunità della Val di Fassa, Trento, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.4590133,
+                "longitude": 11.869805,
+                "place_name": "Lago di Fedaia, Canazei, Comunità della Val di Fassa, Trento, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "115": {
         "location_hash": "cac692d6dc15a4c5ecd6c7658a43c4e0286a3904",
-        "latitude": 46.3850003,
-        "longitude": 11.5259685,
-        "coordinates_source": "suggested",
-        "place_name": "San Floriano d'Ega, Nova Ponente, Salto-Sciliar, Bolzano, Trentino-Alto Adige, 39050, Italia"
+        "places": [
+            {
+                "latitude": 46.3850003,
+                "longitude": 11.5259685,
+                "place_name": "San Floriano d'Ega, Nova Ponente, Salto-Sciliar, Bolzano, Trentino-Alto Adige, 39050, Italia"
+            }
+        ]
     },
     "116": {
         "location_hash": "2dbf189bdcd53b48bdc7129aac00dbc9ffb422a3",
-        "latitude": 46.6608077,
-        "longitude": 11.185446,
-        "coordinates_source": "suggested",
-        "place_name": "Castel Trauttmansdorff / Castel di Nova, 51a, Via San Valentino, S. Valentino, San Valentino, Sinigo, Merano, Burgraviato, Bolzano, Trentino-Alto Adige, 39012, Italia"
+        "places": [
+            {
+                "latitude": 46.6608077,
+                "longitude": 11.185446,
+                "place_name": "Castel Trauttmansdorff / Castel di Nova, 51a, Via San Valentino, S. Valentino, San Valentino, Sinigo, Merano, Burgraviato, Bolzano, Trentino-Alto Adige, 39012, Italia"
+            }
+        ]
     },
     "118": {
         "location_hash": "17c051be88af700926439f7be736662928084124",
-        "latitude": 45.3658443,
-        "longitude": 15.6575209,
-        "coordinates_source": "suggested",
-        "place_name": "Croazia"
+        "places": [
+            {
+                "latitude": 45.3658443,
+                "longitude": 15.6575209,
+                "place_name": "Croazia"
+            }
+        ]
     },
     "119": {
         "location_hash": "22390ad11c32faec43fc61555b53607660b3c185",
-        "latitude": 48.8534951,
-        "longitude": 2.3483915,
-        "coordinates_source": "suggested",
-        "place_name": "Parigi, Isola di Francia, Francia metropolitana, Francia"
+        "places": [
+            {
+                "latitude": 48.8534951,
+                "longitude": 2.3483915,
+                "place_name": "Parigi, Isola di Francia, Francia metropolitana, Francia"
+            }
+        ]
     },
     "120": {
         "location_hash": "ebeb116aafc05aca24dfd5dcf285c9ab8294e1ff",
-        "latitude": 44.0177639,
-        "longitude": 10.45443,
-        "coordinates_source": "suggested",
-        "place_name": "Lucca, Toscana, Italia"
+        "places": [
+            {
+                "latitude": 44.0177639,
+                "longitude": 10.45443,
+                "place_name": "Lucca, Toscana, Italia"
+            }
+        ]
     },
     "121": {
         "location_hash": "38b3603592e8ff6d50a45392cffc4f7acc7dbd1e",
-        "latitude": 46.6559296,
-        "longitude": 11.2301833,
-        "coordinates_source": "suggested",
-        "place_name": "Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 50.938361,
+                "longitude": 6.959974,
+                "place_name": "Colonia, Renania Settentrionale-Vestfalia, Germania"
+            },
+            {
+                "latitude": 46.6559296,
+                "longitude": 11.2301833,
+                "place_name": "Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "122": {
         "location_hash": "7a9b0c8bd4bd7fbdc9333bc7bbefe0971ae41e5b",
-        "latitude": 46.4388589,
-        "longitude": 11.3468279,
-        "coordinates_source": "suggested",
-        "place_name": "Pineta, Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+        "places": [
+            {
+                "latitude": 46.4388589,
+                "longitude": 11.3468279,
+                "place_name": "Pineta, Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+            }
+        ]
     },
     "123": {
         "location_hash": "cb0c8443009c0e6e2ef9d825f4bc9ac12dd0f741",
-        "latitude": 46.422819,
-        "longitude": 11.3347713,
-        "coordinates_source": "suggested",
-        "place_name": "Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+        "places": [
+            {
+                "latitude": 46.422819,
+                "longitude": 11.3347713,
+                "place_name": "Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+            }
+        ]
     },
     "125": {
         "location_hash": "0e934f4df6cd3690ff43c01d1f06d684347705f6",
-        "latitude": 46.6559296,
-        "longitude": 11.2301833,
-        "coordinates_source": "suggested",
-        "place_name": "Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.6559296,
+                "longitude": 11.2301833,
+                "place_name": "Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "126": {
         "location_hash": "51afa9c694591bd7a3dfa7334062bfb36e29ff0e",
-        "latitude": 46.422819,
-        "longitude": 11.3347713,
-        "coordinates_source": "suggested",
-        "place_name": "Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+        "places": [
+            {
+                "latitude": 46.422819,
+                "longitude": 11.3347713,
+                "place_name": "Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+            }
+        ]
     },
     "127": {
         "location_hash": "cac692d6dc15a4c5ecd6c7658a43c4e0286a3904",
-        "latitude": 46.3850003,
-        "longitude": 11.5259685,
-        "coordinates_source": "suggested",
-        "place_name": "San Floriano d'Ega, Nova Ponente, Salto-Sciliar, Bolzano, Trentino-Alto Adige, 39050, Italia"
+        "places": [
+            {
+                "latitude": 46.3850003,
+                "longitude": 11.5259685,
+                "place_name": "San Floriano d'Ega, Nova Ponente, Salto-Sciliar, Bolzano, Trentino-Alto Adige, 39050, Italia"
+            }
+        ]
     },
     "128": {
         "location_hash": "1111586d5f7b2d9a6a2993a41b933e00c6959ca4",
-        "latitude": 40.7638643,
-        "longitude": 14.421357,
-        "coordinates_source": "suggested",
-        "place_name": "Faneli Biciclette e Dintorni, 876, Via Nazionale, Leopardi, Torre del Greco, Napoli, Campania, 80059, Italia"
+        "places": [
+            {
+                "latitude": 40.8358846,
+                "longitude": 14.2487679,
+                "place_name": "Napoli, Campania, Italia"
+            }
+        ]
     },
     "129": {
         "location_hash": "dca213e750002c15053a3e7a84eddc603f6fb381",
-        "latitude": 46.4618917,
-        "longitude": 11.2837499,
-        "coordinates_source": "suggested",
-        "place_name": "23b, Via Casa di Gesù, Colterenzio, Cornaiano, Appiano sulla Strada del Vino, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39057, Italia"
+        "places": [
+            {
+                "latitude": 46.4618917,
+                "longitude": 11.2837499,
+                "place_name": "23b, Via Casa di Gesù, Colterenzio, Cornaiano, Appiano sulla Strada del Vino, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39057, Italia"
+            }
+        ]
     },
     "130": {
         "location_hash": "2eaa8009c86f3f7761fdd31fe311a41ab7651a96",
-        "latitude": 45.4424977,
-        "longitude": 10.9857377,
-        "coordinates_source": "suggested",
-        "place_name": "Verona, Veneto, Italia"
+        "places": [
+            {
+                "latitude": 45.4424977,
+                "longitude": 10.9857377,
+                "place_name": "Verona, Veneto, Italia"
+            }
+        ]
     },
     "131": {
         "location_hash": "840ebc394d39d2d30515550f008f5dd2088e140e",
-        "latitude": 46.1252418,
-        "longitude": 10.9600004,
-        "coordinates_source": "suggested",
-        "place_name": "Lago di Molveno, Molveno, Comunità della Paganella, Trento, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.1252418,
+                "longitude": 10.9600004,
+                "place_name": "Lago di Molveno, Molveno, Comunità della Paganella, Trento, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "132": {
         "location_hash": "902d6f79d63936a7421bfd7bdd22c70df6f807c6",
-        "latitude": 46.3359151,
-        "longitude": 10.9466814,
-        "coordinates_source": "suggested",
-        "place_name": "Cles, Comunità della Val di Non, Trento, Trentino-Alto Adige, 38028, Italia"
+        "places": [
+            {
+                "latitude": 46.3359151,
+                "longitude": 10.9466814,
+                "place_name": "Cles, Comunità della Val di Non, Trento, Trentino-Alto Adige, 38028, Italia"
+            }
+        ]
     },
     "133": {
         "location_hash": "b6e0a32701149545c335f3311ace3848135a9c45",
-        "latitude": 46.2944352,
-        "longitude": 11.2726831,
-        "coordinates_source": "suggested",
-        "place_name": "Egna, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39044, Italia"
+        "places": [
+            {
+                "latitude": 46.2944352,
+                "longitude": 11.2726831,
+                "place_name": "Egna, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39044, Italia"
+            }
+        ]
     },
     "134": {
         "location_hash": "d57234492de1c63b9015594f97a31ccca5b0bdee",
-        "latitude": 45.6624314,
-        "longitude": 10.6861569,
-        "coordinates_source": "suggested",
-        "place_name": "Lago di Garda, Brescia, Lombardia, Italia"
+        "places": [
+            {
+                "latitude": 45.6624314,
+                "longitude": 10.6861569,
+                "place_name": "Lago di Garda, Brescia, Lombardia, Italia"
+            }
+        ]
     },
     "135": {
         "location_hash": "b2a104503268b8e137a12d14e94d35ed0bffbf6d",
-        "latitude": 46.6713536,
-        "longitude": 11.1646348,
-        "coordinates_source": "suggested",
-        "place_name": "Merano, Burgraviato, Bolzano, Trentino-Alto Adige, 39012, Italia"
+        "places": [
+            {
+                "latitude": 46.6713536,
+                "longitude": 11.1646348,
+                "place_name": "Merano, Burgraviato, Bolzano, Trentino-Alto Adige, 39012, Italia"
+            }
+        ]
     },
     "136": {
         "location_hash": "63d379d22fa4ac96d550aad3d6d8d086b41b1708",
-        "latitude": 46.6559296,
-        "longitude": 11.2301833,
-        "coordinates_source": "suggested",
-        "place_name": "Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.6559296,
+                "longitude": 11.2301833,
+                "place_name": "Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "137": {
         "location_hash": "5e04157232d3eb141d3c4f820db84b678a9b5148",
-        "latitude": 46.5437283,
-        "longitude": 11.5630324,
-        "coordinates_source": "suggested",
-        "place_name": "Siusi allo Sciliar, Castelrotto, Salto-Sciliar, Bolzano, Trentino-Alto Adige, 39040, Italia"
+        "places": [
+            {
+                "latitude": 46.5437283,
+                "longitude": 11.5630324,
+                "place_name": "Siusi allo Sciliar, Castelrotto, Salto-Sciliar, Bolzano, Trentino-Alto Adige, 39040, Italia"
+            }
+        ]
     },
     "138": {
         "location_hash": "ff91b693ec20698bf6286453343f43e324ff421d",
-        "latitude": 45.4641943,
-        "longitude": 9.1896346,
-        "coordinates_source": "suggested",
-        "place_name": "Milano, Rodano, Milano, Lombardia, Italia"
+        "places": [
+            {
+                "latitude": 45.4641943,
+                "longitude": 9.1896346,
+                "place_name": "Milano, Rodano, Milano, Lombardia, Italia"
+            }
+        ]
     },
     "139": {
         "location_hash": "1db24dca8740b0eeff244c07b435aee6aab9dac7",
-        "latitude": 46.5080689,
-        "longitude": 11.7673265,
-        "coordinates_source": "suggested",
-        "place_name": "Passo Sella, Canazei, Comunità della Val di Fassa, Trento, Trentino-Alto Adige, 38036, Italia"
+        "places": [
+            {
+                "latitude": 46.5080689,
+                "longitude": 11.7673265,
+                "place_name": "Passo Sella, Canazei, Comunità della Val di Fassa, Trento, Trentino-Alto Adige, 38036, Italia"
+            }
+        ]
     },
     "140": {
         "location_hash": "3f16871e13f41d62aeb0d8f908c3dc2708377d5a",
-        "latitude": 43.4586541,
-        "longitude": 11.1389204,
-        "coordinates_source": "suggested",
-        "place_name": "Toscana, Italia"
+        "places": [
+            {
+                "latitude": 43.4586541,
+                "longitude": 11.1389204,
+                "place_name": "Toscana, Italia"
+            }
+        ]
     },
     "142": {
         "location_hash": "533d4479b4798b83a6ed2cfae365ee2b5a49e00c",
-        "latitude": 46.3009636,
-        "longitude": 11.4474653,
-        "coordinates_source": "suggested",
-        "place_name": "Daiano, Ville di Fiemme, Comunità territoriale della Val di Fiemme, Trento, Trentino-Alto Adige, 38099, Italia"
+        "places": [
+            {
+                "latitude": 46.3009636,
+                "longitude": 11.4474653,
+                "place_name": "Daiano, Ville di Fiemme, Comunità territoriale della Val di Fiemme, Trento, Trentino-Alto Adige, 38099, Italia"
+            }
+        ]
     },
     "143": {
         "location_hash": "3f16871e13f41d62aeb0d8f908c3dc2708377d5a",
-        "latitude": 43.4586541,
-        "longitude": 11.1389204,
-        "coordinates_source": "suggested",
-        "place_name": "Toscana, Italia"
+        "places": [
+            {
+                "latitude": 43.4586541,
+                "longitude": 11.1389204,
+                "place_name": "Toscana, Italia"
+            }
+        ]
     },
     "144": {
         "location_hash": "dadf6695a950e89df7ec2104c4909f69fc465943",
-        "latitude": 46.0587504,
-        "longitude": 11.2373901,
-        "coordinates_source": "suggested",
-        "place_name": "Alla Rotonda, Viale Venezia, Fontanabotte, Susà, Pergine Valsugana, Comunità Alta Valsugana e Bersntol, Trento, Trentino-Alto Adige, 38057, Italia"
+        "places": [
+            {
+                "latitude": 46.0587504,
+                "longitude": 11.2373901,
+                "place_name": "Alla Rotonda, Viale Venezia, Fontanabotte, Susà, Pergine Valsugana, Comunità Alta Valsugana e Bersntol, Trento, Trentino-Alto Adige, 38057, Italia"
+            }
+        ]
     },
     "145": {
         "location_hash": "cac692d6dc15a4c5ecd6c7658a43c4e0286a3904",
-        "latitude": 46.3850003,
-        "longitude": 11.5259685,
-        "coordinates_source": "suggested",
-        "place_name": "San Floriano d'Ega, Nova Ponente, Salto-Sciliar, Bolzano, Trentino-Alto Adige, 39050, Italia"
+        "places": [
+            {
+                "latitude": 46.3850003,
+                "longitude": 11.5259685,
+                "place_name": "San Floriano d'Ega, Nova Ponente, Salto-Sciliar, Bolzano, Trentino-Alto Adige, 39050, Italia"
+            }
+        ]
     },
     "146": {
         "location_hash": "09c3661733f8f9fd7dc84ae0669c868af2593fb8",
-        "latitude": 46.4592905,
-        "longitude": 11.351806,
-        "coordinates_source": "suggested",
-        "place_name": "La Costa, Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+        "places": [
+            {
+                "latitude": 46.4592905,
+                "longitude": 11.351806,
+                "place_name": "La Costa, Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+            }
+        ]
     },
     "147": {
         "location_hash": "c17828255fdfb0b4b0909da8c1f7973d85cc8eff",
-        "latitude": 46.523185,
-        "longitude": 11.5233447,
-        "coordinates_source": "suggested",
-        "place_name": "Laghetto di Fiè, Fiè allo Sciliar, Salto-Sciliar, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.523185,
+                "longitude": 11.5233447,
+                "place_name": "Laghetto di Fiè, Fiè allo Sciliar, Salto-Sciliar, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "148": {
         "location_hash": "358a5c9c189fd266f59109e9b0a9e7c5a69da193",
-        "latitude": 46.2602055,
-        "longitude": 10.9504432,
-        "coordinates_source": "suggested",
-        "place_name": "Lago di Tovel, Ville d'Anaunia, Comunità della Val di Non, Trento, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.2602055,
+                "longitude": 10.9504432,
+                "place_name": "Lago di Tovel, Ville d'Anaunia, Comunità della Val di Non, Trento, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "149": {
         "location_hash": "24bc0de7800d7bd243204d5daaacaeffb30fba0b",
-        "latitude": 44.2827846,
-        "longitude": 8.3714516,
-        "coordinates_source": "suggested",
-        "place_name": "Montagna, Quiliano, Savona, Liguria, 17040, Italia"
+        "places": [
+            {
+                "latitude": 44.2827846,
+                "longitude": 8.3714516,
+                "place_name": "Montagna, Quiliano, Savona, Liguria, 17040, Italia"
+            }
+        ]
     },
     "150": {
         "location_hash": "a638fe6321163f59e066bc7cfdcdb3227b8f6194",
-        "latitude": 46.4388589,
-        "longitude": 11.3468279,
-        "coordinates_source": "suggested",
-        "place_name": "Pineta, Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+        "places": [
+            {
+                "latitude": 46.4388589,
+                "longitude": 11.3468279,
+                "place_name": "Pineta, Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+            }
+        ]
     },
     "151": {
         "location_hash": "dca213e750002c15053a3e7a84eddc603f6fb381",
-        "latitude": 46.4618917,
-        "longitude": 11.2837499,
-        "coordinates_source": "suggested",
-        "place_name": "23b, Via Casa di Gesù, Colterenzio, Cornaiano, Appiano sulla Strada del Vino, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39057, Italia"
+        "places": [
+            {
+                "latitude": 46.4618917,
+                "longitude": 11.2837499,
+                "place_name": "23b, Via Casa di Gesù, Colterenzio, Cornaiano, Appiano sulla Strada del Vino, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39057, Italia"
+            }
+        ]
     },
     "152": {
         "location_hash": "4a9ba9a1a567c2bd79a3875aeadab8537640c5d4",
-        "latitude": 50.0874654,
-        "longitude": 14.4212535,
-        "coordinates_source": "suggested",
-        "place_name": "Praga, Repubblica Ceca"
+        "places": [
+            {
+                "latitude": 50.0874654,
+                "longitude": 14.4212535,
+                "place_name": "Praga, Repubblica Ceca"
+            }
+        ]
     },
     "153": {
         "location_hash": "22390ad11c32faec43fc61555b53607660b3c185",
-        "latitude": 48.8534951,
-        "longitude": 2.3483915,
-        "coordinates_source": "suggested",
-        "place_name": "Parigi, Isola di Francia, Francia metropolitana, Francia"
+        "places": [
+            {
+                "latitude": 48.8588897,
+                "longitude": 2.320041,
+                "place_name": "Parigi, Isola di Francia, Francia metropolitana, Francia"
+            }
+        ]
     },
     "154": {
         "location_hash": "8b6cea61d247482e9e7f1e7efb1db432a69bbcb2",
-        "latitude": 48.2083537,
-        "longitude": 16.3725042,
-        "coordinates_source": "suggested",
-        "place_name": "Vienna, Austria"
+        "places": [
+            {
+                "latitude": 48.2083537,
+                "longitude": 16.3725042,
+                "place_name": "Vienna, Austria"
+            }
+        ]
     },
     "155": {
         "location_hash": "b692e2a54a437d87a0876a115f813fc117bf9a7f",
-        "latitude": 46.2899137,
-        "longitude": 11.8297409,
-        "coordinates_source": "suggested",
-        "place_name": "Cima della Vezzana, Canale d'Agordo, Belluno, Veneto, 32020, Italia"
+        "places": [
+            {
+                "latitude": 46.2899137,
+                "longitude": 11.8297409,
+                "place_name": "Cima della Vezzana, Canale d'Agordo, Belluno, Veneto, 32020, Italia"
+            }
+        ]
     },
     "157": {
         "location_hash": "72aede2d2d143e20c5c83f3ceaed461fa912bf51",
-        "latitude": 46.5359124,
-        "longitude": 11.2495742,
-        "coordinates_source": "suggested",
-        "place_name": "Terlano, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39018, Italia"
+        "places": [
+            {
+                "latitude": 46.5359124,
+                "longitude": 11.2495742,
+                "place_name": "Terlano, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39018, Italia"
+            }
+        ]
     },
     "158": {
         "location_hash": "9e9767758b2f69a027f632a286140c9f1cfe55f6",
-        "latitude": 45.492869,
-        "longitude": 10.6077258,
-        "coordinates_source": "suggested",
-        "place_name": "Sirmione, Brescia, Lombardia, 25019, Italia"
+        "places": [
+            {
+                "latitude": 45.492869,
+                "longitude": 10.6077258,
+                "place_name": "Sirmione, Brescia, Lombardia, 25019, Italia"
+            }
+        ]
     },
     "159": {
         "location_hash": "4979c340dcf2f95bd45b73f843d58e2a61b5b3f2",
-        "latitude": 46.531056,
-        "longitude": 11.6247091,
-        "coordinates_source": "suggested",
-        "place_name": "Alpe di Siusi, Castelrotto, Salto-Sciliar, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.531056,
+                "longitude": 11.6247091,
+                "place_name": "Alpe di Siusi, Castelrotto, Salto-Sciliar, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "160": {
         "location_hash": "4979c340dcf2f95bd45b73f843d58e2a61b5b3f2",
-        "latitude": 46.531056,
-        "longitude": 11.6247091,
-        "coordinates_source": "suggested",
-        "place_name": "Alpe di Siusi, Castelrotto, Salto-Sciliar, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.531056,
+                "longitude": 11.6247091,
+                "place_name": "Alpe di Siusi, Castelrotto, Salto-Sciliar, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "161": {
         "location_hash": "aa2e2b7c027152998bf0fc5e82ecaf2ba53a3306",
-        "latitude": 45.4694851,
-        "longitude": 10.5389467,
-        "coordinates_source": "suggested",
-        "place_name": "Desenzano del Garda, Brescia, Lombardia, 25015, Italia"
+        "places": [
+            {
+                "latitude": 45.4694851,
+                "longitude": 10.5389467,
+                "place_name": "Desenzano del Garda, Brescia, Lombardia, 25015, Italia"
+            }
+        ]
     },
     "162": {
         "location_hash": "791cfa5144f393589829e1fd722456cc58e9b1e2",
-        "latitude": 46.6685881,
-        "longitude": 11.3639981,
-        "coordinates_source": "suggested",
-        "place_name": "Talvera, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.6685881,
+                "longitude": 11.3639981,
+                "place_name": "Talvera, Bolzano, Trentino-Alto Adige, Italia"
+            },
+            {
+                "latitude": 46.4619083,
+                "longitude": 11.2608674,
+                "place_name": "Appiano sulla Strada del Vino, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39057, Italia"
+            }
+        ]
     },
     "163": {
         "location_hash": "2382cb0e0ca4f3749712b7042b0eab0a3737b527",
-        "latitude": 37.587794,
-        "longitude": 14.155048,
-        "coordinates_source": "suggested",
-        "place_name": "Sicilia, Italia"
+        "places": [
+            {
+                "latitude": 37.587794,
+                "longitude": 14.155048,
+                "place_name": "Sicilia, Italia"
+            }
+        ]
     },
     "164": {
         "location_hash": "b88bb8848eb8cfd47c45c5b05d385c2dea60162b",
-        "latitude": 46.2154357,
-        "longitude": 11.1207858,
-        "coordinates_source": "suggested",
-        "place_name": "Mezzocorona, Comunità Rotaliana-Königsberg, Trento, Trentino-Alto Adige, 38016, Italia"
+        "places": [
+            {
+                "latitude": 46.2154357,
+                "longitude": 11.1207858,
+                "place_name": "Mezzocorona, Comunità Rotaliana-Königsberg, Trento, Trentino-Alto Adige, 38016, Italia"
+            }
+        ]
     },
     "165": {
         "location_hash": "b2a104503268b8e137a12d14e94d35ed0bffbf6d",
-        "latitude": 46.6713536,
-        "longitude": 11.1646348,
-        "coordinates_source": "suggested",
-        "place_name": "Merano, Burgraviato, Bolzano, Trentino-Alto Adige, 39012, Italia"
+        "places": [
+            {
+                "latitude": 46.6713536,
+                "longitude": 11.1646348,
+                "place_name": "Merano, Burgraviato, Bolzano, Trentino-Alto Adige, 39012, Italia"
+            }
+        ]
     },
     "166": {
         "location_hash": "2382cb0e0ca4f3749712b7042b0eab0a3737b527",
-        "latitude": 37.587794,
-        "longitude": 14.155048,
-        "coordinates_source": "suggested",
-        "place_name": "Sicilia, Italia"
+        "places": [
+            {
+                "latitude": 37.587794,
+                "longitude": 14.155048,
+                "place_name": "Sicilia, Italia"
+            }
+        ]
     },
     "167": {
         "location_hash": "201124a44b5a1e4bf19e533ad22bff7fa329ecf1",
-        "latitude": 46.2269942,
-        "longitude": 10.8270157,
-        "coordinates_source": "suggested",
-        "place_name": "Madonna di Campiglio, Pinzolo, Comunità delle Giudicarie, Trento, Trentino-Alto Adige, 38086, Italia"
+        "places": [
+            {
+                "latitude": 46.2269942,
+                "longitude": 10.8270157,
+                "place_name": "Madonna di Campiglio, Pinzolo, Comunità delle Giudicarie, Trento, Trentino-Alto Adige, 38086, Italia"
+            }
+        ]
     },
     "168": {
         "location_hash": "ededd5826df1300ff404cc279a6fd393a887a988",
-        "latitude": 46.3690243,
-        "longitude": 11.1064838,
-        "coordinates_source": "suggested",
-        "place_name": "Santuario di San Romedio, Strada Provinciale 4 di San Romedio, Tavon, Predaia, Comunità della Val di Non, Trento, Trentino-Alto Adige, 38028, Italia"
+        "places": [
+            {
+                "latitude": 46.3690243,
+                "longitude": 11.1064838,
+                "place_name": "Santuario di San Romedio, Strada Provinciale 4 di San Romedio, Tavon, Predaia, Comunità della Val di Non, Trento, Trentino-Alto Adige, 38028, Italia"
+            }
+        ]
     },
     "169": {
         "location_hash": "d57234492de1c63b9015594f97a31ccca5b0bdee",
-        "latitude": 45.6624314,
-        "longitude": 10.6861569,
-        "coordinates_source": "suggested",
-        "place_name": "Lago di Garda, Brescia, Lombardia, Italia"
+        "places": [
+            {
+                "latitude": 45.6624314,
+                "longitude": 10.6861569,
+                "place_name": "Lago di Garda, Brescia, Lombardia, Italia"
+            }
+        ]
     },
     "170": {
         "location_hash": "82dcd10b80918011ce616caffa6b7333a70f88e8",
-        "latitude": 45.9204693,
-        "longitude": 10.8863335,
-        "coordinates_source": "suggested",
-        "place_name": "Belvedere della costa, Salita al castello, Mogno, Arco, Comunità Alto Garda e Ledro, Trento, Trentino-Alto Adige, 38062, Italia"
+        "places": [
+            {
+                "latitude": 45.9204693,
+                "longitude": 10.8863335,
+                "place_name": "Belvedere della costa, Salita al castello, Mogno, Arco, Comunità Alto Garda e Ledro, Trento, Trentino-Alto Adige, 38062, Italia"
+            }
+        ]
     },
     "171": {
         "location_hash": "337f178ee0ec4624e28f53297ea8a85af7c21335",
-        "latitude": 46.5350348,
-        "longitude": 11.3313839,
-        "coordinates_source": "suggested",
-        "place_name": "San Genesio Atesino, Salto-Sciliar, Bolzano, Trentino-Alto Adige, 39050, Italia"
+        "places": [
+            {
+                "latitude": 46.6559296,
+                "longitude": 11.2301833,
+                "place_name": "Bolzano, Trentino-Alto Adige, Italia"
+            },
+            {
+                "latitude": 46.5350348,
+                "longitude": 11.3313839,
+                "place_name": "San Genesio Atesino, Salto-Sciliar, Bolzano, Trentino-Alto Adige, 39050, Italia"
+            }
+        ]
     },
     "172": {
         "location_hash": "970158aaeb6dfad3d1a80f41bb2306e1fddb5db1",
-        "latitude": 46.4323435,
-        "longitude": 11.6601737,
-        "coordinates_source": "suggested",
-        "place_name": "Vigo di Fassa - Ciampedie, Vigo di Fassa, San Giovanni di Fassa, Comunità della Val di Fassa, Trento, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.4323435,
+                "longitude": 11.6601737,
+                "place_name": "Vigo di Fassa - Ciampedie, Vigo di Fassa, San Giovanni di Fassa, Comunità della Val di Fassa, Trento, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "173": {
         "location_hash": "3240375cad539cdabff1aac6f475e2b6c0691ccb",
-        "latitude": 46.6451,
-        "longitude": 11.6968408,
-        "coordinates_source": "suggested",
-        "place_name": "Funes, Valle Isarco, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.6451,
+                "longitude": 11.6968408,
+                "place_name": "Funes, Valle Isarco, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "174": {
         "location_hash": "3c3c52d67f00faccd002658d28e74d0991844901",
-        "latitude": 46.6498856,
-        "longitude": 11.0041954,
-        "coordinates_source": "suggested",
-        "place_name": "Naturno, Burgraviato, Bolzano, Trentino-Alto Adige, 39025, Italia"
+        "places": [
+            {
+                "latitude": 46.6498856,
+                "longitude": 11.0041954,
+                "place_name": "Naturno, Burgraviato, Bolzano, Trentino-Alto Adige, 39025, Italia"
+            }
+        ]
     },
     "175": {
         "location_hash": "1dbcda3cdaae8bddc14c8db443f088c5fd116008",
-        "latitude": 46.5773362,
-        "longitude": 11.7179429,
-        "coordinates_source": "suggested",
-        "place_name": "Sëurasas, Santa Cristina Valgardena, Salto-Sciliar, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.5773362,
+                "longitude": 11.7179429,
+                "place_name": "Sëurasas, Santa Cristina Valgardena, Salto-Sciliar, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "176": {
         "location_hash": "3240375cad539cdabff1aac6f475e2b6c0691ccb",
-        "latitude": 46.6451,
-        "longitude": 11.6968408,
-        "coordinates_source": "suggested",
-        "place_name": "Funes, Valle Isarco, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.6451,
+                "longitude": 11.6968408,
+                "place_name": "Funes, Valle Isarco, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "177": {
         "location_hash": "25bfd51873a09d20a4d8b4b4f3fde640685fe0c6",
-        "latitude": 46.4719417,
-        "longitude": 11.3271942,
-        "coordinates_source": "suggested",
-        "place_name": "Fiera Bolzano, Via Antonio Stradivari, Zona Industriale Bolzano Sud, Oltrisarco, Oltrisarco-Aslago, Bolzano, Trentino-Alto Adige, 39100, Italia"
+        "places": [
+            {
+                "latitude": 46.4719417,
+                "longitude": 11.3271942,
+                "place_name": "Fiera Bolzano, Via Marco Polo, Zona Industriale Bolzano Sud, Oltrisarco, Oltrisarco-Aslago, Bolzano, Trentino-Alto Adige, 39100, Italia"
+            }
+        ]
     },
     "178": {
         "location_hash": "591d47c57b51e8018d7dc48438c7ca69f09760bf",
-        "latitude": 51.5074456,
-        "longitude": -0.1277653,
-        "coordinates_source": "suggested",
-        "place_name": "Londra, Inghilterra, Regno Unito"
+        "places": [
+            {
+                "latitude": 51.5074456,
+                "longitude": -0.1277653,
+                "place_name": "Londra, Inghilterra, Regno Unito"
+            },
+            {
+                "latitude": 53.3493795,
+                "longitude": -6.2605593,
+                "place_name": "Dublino, County Dublin, Leinster, Irlanda"
+            }
+        ]
     },
     "179": {
         "location_hash": "3240375cad539cdabff1aac6f475e2b6c0691ccb",
-        "latitude": 46.6451,
-        "longitude": 11.6968408,
-        "coordinates_source": "suggested",
-        "place_name": "Funes, Valle Isarco, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.6451,
+                "longitude": 11.6968408,
+                "place_name": "Funes, Valle Isarco, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "180": {
         "location_hash": "6de0a90c2fff63262b04651aad962f0ff89ad5d3",
-        "latitude": 46.6713536,
-        "longitude": 11.1646348,
-        "coordinates_source": "suggested",
-        "place_name": "Merano, Burgraviato, Bolzano, Trentino-Alto Adige, 39012, Italia"
+        "places": [
+            {
+                "latitude": 46.6713536,
+                "longitude": 11.1646348,
+                "place_name": "Merano, Burgraviato, Bolzano, Trentino-Alto Adige, 39012, Italia"
+            }
+        ]
     },
     "181": {
         "location_hash": "a638fe6321163f59e066bc7cfdcdb3227b8f6194",
-        "latitude": 46.4388589,
-        "longitude": 11.3468279,
-        "coordinates_source": "suggested",
-        "place_name": "Pineta, Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+        "places": [
+            {
+                "latitude": 46.4388589,
+                "longitude": 11.3468279,
+                "place_name": "Pineta, Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+            }
+        ]
     },
     "182": {
         "location_hash": "59aca7c975a8dc4dabf7bc8b13697ef2c9d01344",
-        "latitude": 46.3473164,
-        "longitude": 11.4515353,
-        "coordinates_source": "suggested",
-        "place_name": "Passo Oclini, Aldino, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39040, Italia"
+        "places": [
+            {
+                "latitude": 46.3473164,
+                "longitude": 11.4515353,
+                "place_name": "Passo Oclini, Aldino, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39040, Italia"
+            }
+        ]
     },
     "183": {
         "location_hash": "cac692d6dc15a4c5ecd6c7658a43c4e0286a3904",
-        "latitude": 46.3850003,
-        "longitude": 11.5259685,
-        "coordinates_source": "suggested",
-        "place_name": "San Floriano d'Ega, Nova Ponente, Salto-Sciliar, Bolzano, Trentino-Alto Adige, 39050, Italia"
+        "places": [
+            {
+                "latitude": 46.3850003,
+                "longitude": 11.5259685,
+                "place_name": "San Floriano d'Ega, Nova Ponente, Salto-Sciliar, Bolzano, Trentino-Alto Adige, 39050, Italia"
+            }
+        ]
     },
     "184": {
         "location_hash": "a7e4f462314e8442ef897bccc79804596813bb57",
-        "latitude": 46.4243638,
-        "longitude": 11.8467159,
-        "coordinates_source": "suggested",
-        "place_name": "Marmolada, Belluno, Veneto, Italia"
+        "places": [
+            {
+                "latitude": 46.4243638,
+                "longitude": 11.8467159,
+                "place_name": "Marmolada, Belluno, Veneto, Italia"
+            }
+        ]
     },
     "185": {
         "location_hash": "9633d9f79abd3a24ec3116711a087374fd616b6a",
-        "latitude": 44.4938203,
-        "longitude": 11.3426327,
-        "coordinates_source": "suggested",
-        "place_name": "Bologna, Emilia-Romagna, Italia"
+        "places": [
+            {
+                "latitude": 44.4938203,
+                "longitude": 11.3426327,
+                "place_name": "Bologna, Emilia-Romagna, Italia"
+            }
+        ]
     },
     "186": {
         "location_hash": "a8d04d2a301d1f6f365b84df8de2fef191ba239d",
-        "latitude": 28.2935785,
-        "longitude": -16.6214471,
-        "coordinates_source": "suggested",
-        "place_name": "Tenerife, Canarie, Spagna"
+        "places": [
+            {
+                "latitude": 28.2935785,
+                "longitude": -16.6214471,
+                "place_name": "Tenerife, Canarie, Spagna"
+            }
+        ]
     },
     "187": {
         "location_hash": "840ebc394d39d2d30515550f008f5dd2088e140e",
-        "latitude": 46.1252418,
-        "longitude": 10.9600004,
-        "coordinates_source": "suggested",
-        "place_name": "Lago di Molveno, Molveno, Comunità della Paganella, Trento, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.1252418,
+                "longitude": 10.9600004,
+                "place_name": "Lago di Molveno, Molveno, Comunità della Paganella, Trento, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "188": {
         "location_hash": "6625c5f4927482a105f3c359f4db1808088e30b2",
-        "latitude": 46.7277242,
-        "longitude": 10.8627565,
-        "coordinates_source": "suggested",
-        "place_name": "Senales, Val Venosta, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.7277242,
+                "longitude": 10.8627565,
+                "place_name": "Senales, Val Venosta, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "189": {
         "location_hash": "dabdbe7d06ed9dbbc507878621562d7d95b2cb20",
-        "latitude": 46.4388589,
-        "longitude": 11.3468279,
-        "coordinates_source": "suggested",
-        "place_name": "Pineta, Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+        "places": [
+            {
+                "latitude": 46.4388589,
+                "longitude": 11.3468279,
+                "place_name": "Pineta, Laives, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39055, Italia"
+            }
+        ]
     },
     "190": {
         "location_hash": "d1aa0503612aa4168939b77b59ca74532a11951a",
-        "latitude": 46.1199444,
-        "longitude": 14.8153333,
-        "coordinates_source": "suggested",
-        "place_name": "Slovenia"
+        "places": [
+            {
+                "latitude": 46.1199444,
+                "longitude": 14.8153333,
+                "place_name": "Slovenia"
+            }
+        ]
     },
     "191": {
         "location_hash": "707e909614b10371ea260b34f5197097d349b816",
-        "latitude": 46.4920691,
-        "longitude": 11.3086078,
-        "coordinates_source": "suggested",
-        "place_name": "Alpitronic, Via Castel Firmiano, Don Bosco, Bolzano, Trentino-Alto Adige, 39100, Italia"
+        "places": [
+            {
+                "latitude": 46.4920691,
+                "longitude": 11.3086078,
+                "place_name": "Alpitronic, Via Castel Firmiano, Don Bosco, Bolzano, Trentino-Alto Adige, 39100, Italia"
+            }
+        ]
     },
     "192": {
         "location_hash": "634c39880b76f3ee491874320a25dfe5cd671079",
-        "latitude": 40.0912813,
-        "longitude": 9.0305773,
-        "coordinates_source": "suggested",
-        "place_name": "Sardegna, Italia"
+        "places": [
+            {
+                "latitude": 40.0912813,
+                "longitude": 9.0305773,
+                "place_name": "Sardegna, Italia"
+            }
+        ]
     },
     "193": {
         "location_hash": "65b7dabb2ec1484ba5e9baf36cb8738dc4139409",
-        "latitude": 40.5857134,
-        "longitude": 14.3535263,
-        "coordinates_source": "suggested",
-        "place_name": "Quattro Passi, Via Amerigo Vespucci, Marina del Cantone, Massa Lubrense, Napoli, Campania, 80061, Italia"
+        "places": [
+            {
+                "latitude": 40.5857134,
+                "longitude": 14.3535263,
+                "place_name": "Quattro Passi, Via Amerigo Vespucci, Marina del Cantone, Massa Lubrense, Napoli, Campania, 80061, Italia"
+            }
+        ]
     },
     "194": {
         "location_hash": "3240375cad539cdabff1aac6f475e2b6c0691ccb",
-        "latitude": 46.6451,
-        "longitude": 11.6968408,
-        "coordinates_source": "suggested",
-        "place_name": "Funes, Valle Isarco, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.6451,
+                "longitude": 11.6968408,
+                "place_name": "Funes, Valle Isarco, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "195": {
         "location_hash": "79b9d273ac6d2488109d1ea43e2bdb7977bd2b28",
-        "latitude": 41.1793482,
-        "longitude": 19.8824191,
-        "coordinates_source": "suggested",
-        "place_name": "Albania"
+        "places": [
+            {
+                "latitude": 41.1793482,
+                "longitude": 19.8824191,
+                "place_name": "Albania"
+            }
+        ]
     },
     "196": {
         "location_hash": "dca213e750002c15053a3e7a84eddc603f6fb381",
-        "latitude": 46.4618917,
-        "longitude": 11.2837499,
-        "coordinates_source": "suggested",
-        "place_name": "23b, Via Casa di Gesù, Colterenzio, Cornaiano, Appiano sulla Strada del Vino, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39057, Italia"
+        "places": [
+            {
+                "latitude": 46.4618917,
+                "longitude": 11.2837499,
+                "place_name": "23b, Via Casa di Gesù, Colterenzio, Cornaiano, Appiano sulla Strada del Vino, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39057, Italia"
+            }
+        ]
     },
     "197": {
         "location_hash": "6de0a90c2fff63262b04651aad962f0ff89ad5d3",
-        "latitude": 46.6713536,
-        "longitude": 11.1646348,
-        "coordinates_source": "suggested",
-        "place_name": "Merano, Burgraviato, Bolzano, Trentino-Alto Adige, 39012, Italia"
+        "places": [
+            {
+                "latitude": 46.6713536,
+                "longitude": 11.1646348,
+                "place_name": "Merano, Burgraviato, Bolzano, Trentino-Alto Adige, 39012, Italia"
+            }
+        ]
     },
     "198": {
         "location_hash": "7e03b247492540809523ab5855df69e7cadadcee",
-        "latitude": 46.6881618,
-        "longitude": 11.6993681,
-        "coordinates_source": "suggested",
-        "place_name": "Plose di Bressanone, Plancios, Bressanone, Valle Isarco, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.6881618,
+                "longitude": 11.6993681,
+                "place_name": "Plose di Bressanone, Plancios, Bressanone, Valle Isarco, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "199": {
         "location_hash": "be27bf144106663d2a5894a30e67be85e564bc3f",
-        "latitude": 46.5110373,
-        "longitude": 11.2745028,
-        "coordinates_source": "suggested",
-        "place_name": "Settequerce, Terlano, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39018, Italia"
+        "places": [
+            {
+                "latitude": 46.5110373,
+                "longitude": 11.2745028,
+                "place_name": "Settequerce, Terlano, Oltradige-Bassa Atesina, Bolzano, Trentino-Alto Adige, 39018, Italia"
+            }
+        ]
     },
     "200": {
         "location_hash": "eaf79ec4dc2f19555d692fd0eb27c96ada83ae22",
-        "latitude": 45.4371908,
-        "longitude": 12.3345898,
-        "coordinates_source": "suggested",
-        "place_name": "Venezia, Veneto, 30121-30176, Italia"
+        "places": [
+            {
+                "latitude": 45.4371908,
+                "longitude": 12.3345898,
+                "place_name": "Venezia, Veneto, 30121-30176, Italia"
+            }
+        ]
     },
     "201": {
         "location_hash": "9633d9f79abd3a24ec3116711a087374fd616b6a",
-        "latitude": 44.4938203,
-        "longitude": 11.3426327,
-        "coordinates_source": "suggested",
-        "place_name": "Bologna, Emilia-Romagna, Italia"
+        "places": [
+            {
+                "latitude": 44.4938203,
+                "longitude": 11.3426327,
+                "place_name": "Bologna, Emilia-Romagna, Italia"
+            }
+        ]
     },
     "202": {
         "location_hash": "da7705caa15608fea217326726ec6ed97a9c6c9d",
-        "latitude": 41.8933203,
-        "longitude": 12.4829321,
-        "coordinates_source": "suggested",
-        "place_name": "Roma, Lazio, Italia"
+        "places": [
+            {
+                "latitude": 41.8933203,
+                "longitude": 12.4829321,
+                "place_name": "Roma, Lazio, Italia"
+            }
+        ]
     },
     "203": {
         "location_hash": "9633d9f79abd3a24ec3116711a087374fd616b6a",
-        "latitude": 44.4938203,
-        "longitude": 11.3426327,
-        "coordinates_source": "suggested",
-        "place_name": "Bologna, Emilia-Romagna, Italia"
+        "places": [
+            {
+                "latitude": 44.4938203,
+                "longitude": 11.3426327,
+                "place_name": "Bologna, Emilia-Romagna, Italia"
+            }
+        ]
     },
     "204": {
         "location_hash": "01b182d046f1be46e7a15235be808b1dd9b0fcf6",
-        "latitude": 46.5205615,
-        "longitude": 12.2235009,
-        "coordinates_source": "suggested",
-        "place_name": "Lago del Sorapíss, Cortina d'Ampezzo, Belluno, Veneto, 32043, Italia"
+        "places": [
+            {
+                "latitude": 46.5205615,
+                "longitude": 12.2235009,
+                "place_name": "Lago del Sorapíss, Cortina d'Ampezzo, Belluno, Veneto, 32043, Italia"
+            }
+        ]
     },
     "205": {
         "location_hash": "6de0a90c2fff63262b04651aad962f0ff89ad5d3",
-        "latitude": 46.6713536,
-        "longitude": 11.1646348,
-        "coordinates_source": "suggested",
-        "place_name": "Merano, Burgraviato, Bolzano, Trentino-Alto Adige, 39012, Italia"
+        "places": [
+            {
+                "latitude": 46.6713536,
+                "longitude": 11.1646348,
+                "place_name": "Merano, Burgraviato, Bolzano, Trentino-Alto Adige, 39012, Italia"
+            }
+        ]
     },
     "206": {
         "location_hash": "c56523723699d1ed0b5fc0f70a4fe161ab4e2755",
-        "latitude": 46.6451,
-        "longitude": 11.6968408,
-        "coordinates_source": "suggested",
-        "place_name": "Funes, Valle Isarco, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.6451,
+                "longitude": 11.6968408,
+                "place_name": "Funes, Valle Isarco, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     },
     "207": {
         "location_hash": "2953a8df91ce71221e280ed8513b35cf9f819317",
-        "latitude": 41.3281482,
-        "longitude": 19.8184435,
-        "coordinates_source": "suggested",
-        "place_name": "Tirana, Prefettura di Tirana, 1001-1028, Albania"
+        "places": [
+            {
+                "latitude": 41.3281482,
+                "longitude": 19.8184435,
+                "place_name": "Tirana, Prefettura di Tirana, 1001-1028, Albania"
+            }
+        ]
     },
     "208": {
         "location_hash": "4979c340dcf2f95bd45b73f843d58e2a61b5b3f2",
-        "latitude": 46.531056,
-        "longitude": 11.6247091,
-        "coordinates_source": "suggested",
-        "place_name": "Alpe di Siusi, Castelrotto, Salto-Sciliar, Bolzano, Trentino-Alto Adige, Italia"
+        "places": [
+            {
+                "latitude": 46.531056,
+                "longitude": 11.6247091,
+                "place_name": "Alpe di Siusi, Castelrotto, Salto-Sciliar, Bolzano, Trentino-Alto Adige, Italia"
+            }
+        ]
     }
 }

@@ -4,174 +4,117 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\User;
-use App\Models\Slogan;
-use App\Http\Controllers\AccountController;
+use App\Support\AlbumCover;
+use App\Support\Media;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Mail;
+use Inertia\Inertia;
 
 class CategoryController extends Controller
 {
-    public $accountController;
+    // Forum home: the categories not hidden from the user
+    public function index()
+    {
+        $user = auth()->user();
+        $hidden = $user->hidedCategories()->allRelatedIds()->all();
 
-    public function __construct(AccountController $accountController) {
-        $this->accountController = $accountController;
+        $categories = Category::with(['posts.hidedUser', 'hidedUser'])
+            ->whereNotIn('id', $hidden)
+            ->orderBy('title')
+            ->get()
+            ->map(function (Category $category) use ($user) {
+                // Posts know their category already: no query per post in isVisibleTo()
+                $category->posts->each->setRelation('category', $category);
+                $posts = $category->posts->filter(fn ($post) => $post->isVisibleTo($user));
+
+                return [
+                    'id' => $category->id,
+                    'title' => $category->title,
+                    'description' => $category->description,
+                    'tags' => $this->tags($category->tags),
+                    'logo' => Media::url($category->logo) ?? asset('images/no-image.png'),
+                    'postCount' => $posts->count(),
+                    'lastPostAt' => $posts->max('created_at')?->toIso8601String(),
+                    'canEdit' => $this->canEdit($category),
+                    'canDelete' => $user->isAdmin == 1,
+                ];
+            });
+
+        return Inertia::render('Forum/Index', ['categories' => $categories]);
     }
 
-    // Show all categories
-    public function index() {
-        $user = auth()->user();
-        if ($user) {
-            $categories = Category::all()->sortBy('title');
-        }
-
-        $hided = $user->hidedCategories()->allRelatedIds()->all();
-        $categories->filter(function($value, $key) use ($hided, $categories) {
-            if(in_array($value->id, $hided)) {
-                $categories->forget($key);
-            }
-        });
-
-
-        $slogan = Slogan::all();
-
-        if(count($slogan) > 0) {
-            $randomSlogan = $slogan->random();
-        } else {
-            $randomSlogan["sloganPhrase"] = "Find your albums";
-            $randomSlogan["author"] = "TheBoise";
-        }
-
-        return view('forum.categories.index', [
-            'user' => $user,
-            'slogan' => $randomSlogan,
-            'categories' => $categories
-        ]);
-    }
-
-     // Show Create Form
-    public function create() {
-        $user = auth()->user();
-        $users = User::all();
-
-        if (auth()->user()) {
-            return view('forum.categories.create', [
-                'user' => $user,
-                'users' => $users
-            ]);
-        } else {
-            abort(403, 'Unauthorized Action');
-        }
+    // Show Create Form
+    public function create()
+    {
+        return Inertia::render('Forum/CategoryForm', $this->formProps(null));
     }
 
     // Store Category Data
-    public function store(Request $request) {
-        $formFields = $request->validate([
-            'title' => 'required',
-            'tags' => 'required',
-            'description' => 'required',
-            'logo' => 'required'
-        ]);
-
-        $resizedImage = $this->accountController->resizeImage($request->file('logo')->path(), 144, 144);
-        $image = $this->accountController->imageConvert($resizedImage, 100);
-
-        $formFields['logo'] = $image->store('categoryLogo', 'public');
-
+    public function store(Request $request)
+    {
+        $formFields = $this->validateCategory($request, logoRequired: true);
+        $formFields['logo'] = AlbumCover::store($request->file('logo'), 'categoryLogo', 400);
         $formFields['created_by'] = auth()->id();
 
         $category = Category::create($formFields);
+        $category->hidedUser()->sync($request->input('hideFrom', []));
 
-        if($request->hideCategoryFrom) {
-            foreach($request->hideCategoryFrom as $person) {
-                $category->hidedUser()->attach($person);
-            }
-        }
-
-        return redirect('/forum')->with('message', 'Category created successfully!');
+        return redirect('/forum/' . $category->id)->with('message', 'Category created!');
     }
 
-    // Manage Categories
-    public function manage() {
-        $user = auth()->user();
-        $category = $user->categories()->get();
-
-        return view('forum.categories.manage', [
-            'category' => $category
-        ]);
+    // The old "manage" page: everything is on the forum home now
+    public function manage()
+    {
+        return redirect('/forum');
     }
 
-    // Show Edit Form
-    public function edit(Category $category) {
-        $categoryCreator = $category->created_by;
-        $allUsers = User::all();
+    // Show Edit Form (creator and admins)
+    public function edit(Category $category)
+    {
+        abort_unless($this->canEdit($category), 403, 'Unauthorized Action');
 
-        if (auth()->id() == $categoryCreator || auth()->user()->isAdmin == 1) {
-            return view('forum.categories.edit', [
-                'category' => $category,
-                'users' => auth()->user(),
-                'allUsers' => $allUsers
-            ]);
-        } else {
-            abort(403, 'Unauthorized Action');
-        }
+        return Inertia::render('Forum/CategoryForm', $this->formProps($category));
     }
 
-    // Update Category Data
-    public function update(Request $request, Category $category) {
-        $categoryCreator = $category->created_by;
+    // Update Category Data (creator and admins)
+    public function update(Request $request, Category $category)
+    {
+        abort_unless($this->canEdit($category), 403, 'Unauthorized Action');
 
-        // Only the creator and admins can edit a category
-        if ($categoryCreator != auth()->id() && auth()->user()->isAdmin != 1) {
-            abort(403, 'Unauthorized Action');
-        }
+        $formFields = $this->validateCategory($request, logoRequired: false);
 
-        $formFields = $request->validate([
-            'title' => 'required',
-            'tags' => 'required',
-            'description' => 'required'
-        ]);
-
-        if($request->hasFile('logo')) {
-            if($category->logo && Storage::disk('public')->exists($category->logo)) {
+        if ($request->hasFile('logo')) {
+            if ($category->logo && Storage::disk('public')->exists($category->logo)) {
                 Storage::disk('public')->delete($category->logo);
             }
-
-            $resizedImage = $this->accountController->resizeImage($request->file('logo')->path(), 144, 144);
-            $image = $this->accountController->imageConvert($resizedImage, 100);
-
-            $formFields['logo'] = $image->store('categoryLogo', 'public');
+            $formFields['logo'] = AlbumCover::store($request->file('logo'), 'categoryLogo', 400);
         }
 
         // Nobody selected means visible to everyone
-        $category->hidedUser()->sync($request->input('hideCategoryFrom', []));
-
+        $category->hidedUser()->sync($request->input('hideFrom', []));
         $category->update($formFields);
 
-        return redirect('/forum/category/manage')->with('message', 'Category updated successfully!');
+        return redirect('/forum/' . $category->id)->with('message', 'Category updated!');
     }
 
-    // Delete Category
-    public function destroy(Category $category) {
-        // Make sure logged in user is owner
-        $user = auth()->user()['isAdmin'];
-        if($user != 1) {
-            abort(403, 'Unauthorized Action');
-        }
+    // Delete Category (admins), with its posts' files
+    public function destroy(Category $category)
+    {
+        abort_unless(auth()->user()->isAdmin == 1, 403, 'Unauthorized Action');
 
-        if($category->logo && Storage::disk('public')->exists($category->logo)) {
+        if ($category->logo && Storage::disk('public')->exists($category->logo)) {
             Storage::disk('public')->delete($category->logo);
         }
 
-        foreach($category->posts()->getResults() as $post) {
-            if($post->cover && Storage::disk('public')->exists($post->cover)) {
+        foreach ($category->posts()->getResults() as $post) {
+            if ($post->cover && Storage::disk('public')->exists($post->cover)) {
                 Storage::disk('public')->delete($post->cover);
             }
 
             // Posts without attachments have null here
             $attachments = json_decode($post->attachments ?? '', true) ?? [];
-            foreach($attachments as $attachment) {
-                if($attachment && Storage::disk('public')->exists($attachment)) {
+            foreach ($attachments as $attachment) {
+                if ($attachment && Storage::disk('public')->exists($attachment)) {
                     Storage::disk('public')->delete($attachment);
                 }
             }
@@ -179,38 +122,57 @@ class CategoryController extends Controller
 
         $category->delete();
 
-        return redirect('/forum/category/manage')->with('message', 'Category deleted successfully');
+        return redirect('/forum')->with('message', 'Category deleted');
     }
 
-    // Store Comments Data
-    public function comments(Request $request) {
-        $formFields = $request->validate([
-            'user_id' => 'required',
-            'listing_id' => 'required',
-            'comment' => 'required'
+    private function canEdit(Category $category): bool
+    {
+        return auth()->id() == $category->created_by || auth()->user()->isAdmin == 1;
+    }
+
+    private function validateCategory(Request $request, bool $logoRequired): array
+    {
+        $data = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string|max:2000',
+            'tags' => 'required|array|min:1',
+            'tags.*' => 'string|max:50',
+            'logo' => ($logoRequired ? 'required' : 'nullable') . '|image|max:20480',
+            'hideFrom' => 'nullable|array',
+            'hideFrom.*' => 'integer|exists:users,id',
         ]);
 
-        $users = Listing::findOrFail($request->listing_id)->users;
-        $commentOfUser = User::findOrFail(auth()->id())->name;
-        $albumTitle = Listing::findOrFail($request->listing_id)->title;
+        return [
+            'title' => $data['title'],
+            'description' => $data['description'],
+            'tags' => collect($data['tags'])->map(fn ($tag) => trim(str_replace(',', ' ', $tag)))->filter()->unique()->implode(', '),
+        ];
+    }
 
-        foreach($users as $user) {
-            $email_data = array(
-                'name' => $user['name'],
-                'email' => $user['email'],
-                'commentOfUser' => $commentOfUser,
-                'comment' => $formFields['comment'],
-                'albumTitle' => $albumTitle
-            );
-            Mail::send('/mails/new_comment', $email_data, function ($message) use ($email_data) {
-                $message->to($email_data['email'], $email_data['name'])
-                    ->subject('New comment added to album - theboise.it')
-                    ->from('info@theboise.it', 'TheBoise');
-            });
-        }
+    private function formProps(?Category $category): array
+    {
+        return [
+            'category' => $category ? [
+                'id' => $category->id,
+                'title' => $category->title,
+                'description' => $category->description,
+                'tags' => $this->tags($category->tags),
+                'logo' => Media::url($category->logo),
+                'hideFrom' => $category->hidedUser()->pluck('users.id'),
+            ] : null,
+            'users' => $this->people(),
+        ];
+    }
 
-        $listing = Comment::create($formFields);
+    // Everyone a category or post can be hidden from (not the demo account: it never sees the forum)
+    private function people()
+    {
+        return User::where('is_demo', false)->where('id', '!=', auth()->id())->orderBy('name')->get()
+            ->map(fn (User $user) => ['id' => $user->id, 'name' => $user->name, 'avatar' => Media::url($user->profilePicture)]);
+    }
 
-        return back()->with('message', 'Comment created successfully!');
+    private function tags(?string $tags): array
+    {
+        return array_values(array_filter(array_map('trim', explode(',', (string) $tags))));
     }
 }

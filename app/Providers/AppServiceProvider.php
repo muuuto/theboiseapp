@@ -64,7 +64,8 @@ class AppServiceProvider extends ServiceProvider
 
                 $view->with([
                     'unseenListings' => $unseenListings,
-                    'anniversaryNotification' => $userAnniversaryNotification
+                    'anniversaryNotification' => $userAnniversaryNotification,
+                    'likeNotifications' => \App\Http\Middleware\HandleInertiaRequests::likeNotifications(auth()->user()),
                 ]);
             }
         });

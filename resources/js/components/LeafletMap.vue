@@ -7,26 +7,28 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 
 // Two modes:
-// - markers: show albums ({ id, latitude, longitude, title, cover, dateFrom, suggested })
-// - picker: v-model is { latitude, longitude } and the admin sets it by clicking or dragging the pin
+// - markers: show pins ({ id, albumId?, latitude, longitude, title, cover, dateFrom, suggested }),
+//   the popup links to the album (albumId, or id when the pin is the album itself)
+// - picker: v-model is the list of places ({ latitude, longitude, placeName }): clicking the map
+//   adds one, dragging a pin moves it
 const props = defineProps({
     markers: { type: Array, default: () => [] },
     picker: { type: Boolean, default: false },
     zoom: { type: Number, default: 13 },
 });
-const point = defineModel({ type: Object, default: null });
+const places = defineModel({ type: Array, default: () => [] });
 
 const element = ref(null);
 let map;
 let layer;
-let pickerMarker;
 const markersById = new Map();
+let pickerMarkers = [];
 
-// Red pin drawn with CSS: no image files to bundle. Suggested locations are grey and dashed
-function pin(suggested = false) {
+// Red pin drawn with CSS: no image files to bundle. Suggested places are grey and dashed
+function pin(suggested = false, label = '') {
     return L.divIcon({
         className: '',
-        html: `<span class="map-pin ${suggested ? 'map-pin-suggested' : ''}"></span>`,
+        html: `<span class="map-pin ${suggested ? 'map-pin-suggested' : ''}"><span>${label}</span></span>`,
         iconSize: [28, 28],
         iconAnchor: [14, 28],
         popupAnchor: [0, -26],
@@ -36,9 +38,9 @@ function pin(suggested = false) {
 const dateFormatter = new Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric' });
 
 // Popup built from DOM nodes (album titles are text, never HTML)
-function popup(album) {
+function popup(marker) {
     const link = document.createElement('a');
-    link.href = `/listings/${album.id}`;
+    link.href = `/listings/${marker.albumId ?? marker.id}`;
     link.className = 'map-popup';
     link.addEventListener('click', (event) => {
         event.preventDefault();
@@ -46,15 +48,15 @@ function popup(album) {
     });
 
     const image = document.createElement('img');
-    image.src = album.cover;
+    image.src = marker.cover;
     image.alt = '';
     const title = document.createElement('strong');
-    title.textContent = album.title;
+    title.textContent = marker.title;
     const date = document.createElement('span');
-    date.textContent = dateFormatter.format(new Date(album.dateFrom));
+    date.textContent = dateFormatter.format(new Date(marker.dateFrom));
     link.append(image, title, date);
 
-    if (album.suggested) {
+    if (marker.suggested) {
         const note = document.createElement('em');
         note.textContent = 'Approximate location';
         link.append(note);
@@ -66,15 +68,18 @@ function drawMarkers() {
     layer.clearLayers();
     markersById.clear();
     const points = props.markers
-        .filter((album) => album.latitude !== null && album.longitude !== null)
-        .map((album) => {
-            const marker = L.marker([album.latitude, album.longitude], { icon: pin(album.suggested), title: album.title })
-                .bindPopup(() => popup(album), { minWidth: 200, maxWidth: 240 });
-            layer.addLayer(marker);
-            markersById.set(album.id, marker);
-            return [album.latitude, album.longitude];
+        .filter((marker) => marker.latitude !== null && marker.longitude !== null)
+        .map((marker) => {
+            const leafletMarker = L.marker([marker.latitude, marker.longitude], { icon: pin(marker.suggested), title: marker.title })
+                .bindPopup(() => popup(marker), { minWidth: 200, maxWidth: 240 });
+            layer.addLayer(leafletMarker);
+            markersById.set(marker.id, leafletMarker);
+            return [marker.latitude, marker.longitude];
         });
+    fit(points);
+}
 
+function fit(points) {
     if (points.length === 1) {
         map.setView(points[0], props.zoom);
     } else if (points.length > 1) {
@@ -82,28 +87,24 @@ function drawMarkers() {
     }
 }
 
-function setPickerPoint(latlng) {
-    point.value = { latitude: +latlng.lat.toFixed(7), longitude: +latlng.lng.toFixed(7) };
-}
-
+// Picker: one numbered, draggable pin per place
 function drawPicker() {
-    if (!point.value) {
-        pickerMarker?.remove();
-        pickerMarker = null;
-        return;
-    }
-    const latlng = [point.value.latitude, point.value.longitude];
-    if (!pickerMarker) {
-        pickerMarker = L.marker(latlng, { icon: pin(), draggable: true }).addTo(map);
-        pickerMarker.on('dragend', () => setPickerPoint(pickerMarker.getLatLng()));
-    } else {
-        pickerMarker.setLatLng(latlng);
-    }
+    pickerMarkers.forEach((marker) => marker.remove());
+    pickerMarkers = places.value.map((place, index) => {
+        const marker = L.marker([place.latitude, place.longitude], { icon: pin(place.suggested, index + 1), draggable: true }).addTo(map);
+        marker.on('dragend', () => {
+            const { lat, lng } = marker.getLatLng();
+            places.value = places.value.map((existing, position) =>
+                position === index ? { latitude: +lat.toFixed(7), longitude: +lng.toFixed(7), placeName: '' } : existing,
+            );
+        });
+        return marker;
+    });
 }
 
 onMounted(() => {
+    // Scroll-wheel zoom only while picking: on normal pages the wheel must scroll the page.
     // Until something is set: South Tyrol, where most albums are
-    // Scroll-wheel zoom only while picking: on normal pages the wheel must scroll the page
     map = L.map(element.value, { scrollWheelZoom: props.picker }).setView([46.5, 11.35], 8);
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
@@ -111,9 +112,11 @@ onMounted(() => {
     }).addTo(map);
 
     if (props.picker) {
-        map.on('click', (event) => setPickerPoint(event.latlng));
+        map.on('click', ({ latlng }) => {
+            places.value = [...places.value, { latitude: +latlng.lat.toFixed(7), longitude: +latlng.lng.toFixed(7), placeName: '' }];
+        });
         drawPicker();
-        if (point.value) map.setView([point.value.latitude, point.value.longitude], props.zoom);
+        fit(places.value.map((place) => [place.latitude, place.longitude]));
     } else {
         // Nearby pins merge into a bubble with their number, zooming in splits them
         layer = L.markerClusterGroup({
@@ -130,19 +133,20 @@ onMounted(() => {
 });
 
 watch(() => props.markers, () => layer && drawMarkers(), { deep: true });
-watch(point, (value, old) => {
+watch(places, (value, old) => {
     if (!props.picker) return;
     drawPicker();
-    // Moved from outside (place search): bring it into view
-    if (value && (!old || Math.abs(value.latitude - old.latitude) > 0.01 || Math.abs(value.longitude - old.longitude) > 0.01)) {
-        map.setView([value.latitude, value.longitude], Math.max(map.getZoom(), props.zoom));
+    // A place was added from outside (place search): bring it into view
+    if (value.length > (old?.length ?? 0)) {
+        const added = value[value.length - 1];
+        map.setView([added.latitude, added.longitude], Math.max(map.getZoom(), props.zoom));
     }
 });
 
 onBeforeUnmount(() => map?.remove());
 
 defineExpose({
-    // Zooms in until the album's pin is out of its cluster, then opens it
+    // Zooms in until the pin is out of its cluster, then opens it
     focus: (id) => {
         const marker = markersById.get(id);
         if (marker) layer.zoomToShowLayer(marker, () => marker.openPopup());
@@ -164,6 +168,17 @@ defineExpose({
     border: 3px solid white;
     box-shadow: 0 2px 6px rgb(0 0 0 / 0.35);
     transform: rotate(-45deg);
+}
+/* Number of the place in the album form */
+.map-pin > span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    transform: rotate(45deg);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
 }
 .map-cluster {
     display: flex;

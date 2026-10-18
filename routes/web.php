@@ -98,6 +98,13 @@ Route::post('/listings/comments', [ListingController::class, 'comments'])->middl
 // Like / unlike a comment
 Route::post('/likes', [LikeController::class, 'toggle'])->middleware(['auth', 'not-demo']);
 
+// The notification bell was opened: its notifications are read
+Route::post('/notifications/read', function (Illuminate\Http\Request $request) {
+    $request->user()->unreadNotifications->markAsRead();
+
+    return $request->header('X-Inertia') ? back() : response()->noContent();
+})->middleware('auth');
+
 // All the user's albums on a map
 Route::get('/map', [AlbumMapController::class, 'index'])->middleware('auth');
 
@@ -105,8 +112,8 @@ Route::get('/map', [AlbumMapController::class, 'index'])->middleware('auth');
 Route::middleware(['auth', 'can:admin'])->prefix('admin/locations')->group(function () {
     Route::get('/', [AlbumMapController::class, 'review']);
     Route::post('/confirm-all', [AlbumMapController::class, 'confirmAll']);
-    Route::post('/{listing}/confirm', [AlbumMapController::class, 'confirm']);
-    Route::delete('/{listing}', [AlbumMapController::class, 'clear']);
+    Route::post('/{place}/confirm', [AlbumMapController::class, 'confirm']);
+    Route::delete('/{place}', [AlbumMapController::class, 'clear']);
 });
 
 // Reset password form

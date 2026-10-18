@@ -75,7 +75,7 @@ class ListingController extends Controller
                 ->update(['seen' => true]);
         }
 
-        $listing->load(['users', 'comments.user', 'comments.likes.user']);
+        $listing->load(['users', 'places', 'comments.user', 'comments.likes.user']);
 
         return Inertia::render('Albums/Show', [
             'album' => [
@@ -85,9 +85,7 @@ class ListingController extends Controller
                 'dateFrom' => $listing->dateFrom,
                 'dateTo' => $listing->dateTo,
                 'location' => $listing->location,
-                'placeName' => $listing->place_name,
-                'latitude' => $listing->latitude ? (float) $listing->latitude : null,
-                'longitude' => $listing->longitude ? (float) $listing->longitude : null,
+                'places' => $this->places($listing),
                 'tags' => $this->tags($listing->tags),
                 'description' => SafeHtml::clean($listing->description),
                 'albumLink' => $listing->albumLink,
@@ -132,6 +130,7 @@ class ListingController extends Controller
 
         $listing = Listing::create($formFields);
         $listing->users()->attach($request->people);
+        $this->savePlaces($listing, $request->input('places', []));
 
         // send email to the people in the album
         foreach (User::findMany($request->people) as $user) {
@@ -176,6 +175,7 @@ class ListingController extends Controller
 
         $listing->users()->sync($request->people);
         $listing->update($formFields);
+        $this->savePlaces($listing, $request->input('places', []));
 
         return redirect('/listings/' . $listing->id)->with('message', 'Album updated successfully!');
     }
@@ -255,9 +255,10 @@ class ListingController extends Controller
             'dateFrom' => 'required|date',
             'dateTo' => 'required|date|after_or_equal:dateFrom',
             'location' => 'required|string|max:255',
-            'latitude' => 'nullable|numeric|between:-90,90|required_with:longitude',
-            'longitude' => 'nullable|numeric|between:-180,180|required_with:latitude',
-            'placeName' => 'nullable|string|max:255',
+            'places' => 'nullable|array|max:20',
+            'places.*.latitude' => 'required|numeric|between:-90,90',
+            'places.*.longitude' => 'required|numeric|between:-180,180',
+            'places.*.placeName' => 'nullable|string|max:255',
             'albumLink' => 'required|url|max:255',
             'tags' => 'required|array|min:1',
             'tags.*' => 'string|max:50',
@@ -275,18 +276,11 @@ class ListingController extends Controller
             $tags->push('Youtube');
         }
 
-        $hasCoordinates = isset($data['latitude'], $data['longitude']);
-
         return [
             'title' => $data['title'],
             'dateFrom' => $data['dateFrom'],
             'dateTo' => $data['dateTo'],
             'location' => $data['location'],
-            'latitude' => $hasCoordinates ? $data['latitude'] : null,
-            'longitude' => $hasCoordinates ? $data['longitude'] : null,
-            // Set (or confirmed) by the admin in the form
-            'coordinates_source' => $hasCoordinates ? 'manual' : null,
-            'place_name' => $hasCoordinates ? ($data['placeName'] ?? null) : null,
             'albumLink' => $data['albumLink'],
             'tags' => $tags->unique()->implode(', '),
             'description' => SafeHtml::clean($data['description']),
@@ -303,10 +297,7 @@ class ListingController extends Controller
                 'dateFrom' => $listing->dateFrom,
                 'dateTo' => $listing->dateTo,
                 'location' => $listing->location,
-                'latitude' => $listing->latitude ? (float) $listing->latitude : null,
-                'longitude' => $listing->longitude ? (float) $listing->longitude : null,
-                'placeName' => $listing->place_name,
-                'coordinatesSuggested' => $listing->coordinates_source === 'suggested',
+                'places' => $this->places($listing),
                 'albumLink' => $listing->albumLink,
                 'tags' => $this->tags($listing->tags),
                 'description' => SafeHtml::clean($listing->description),
@@ -322,6 +313,31 @@ class ListingController extends Controller
                 ->reject(fn ($tag) => $tag === 'Youtube')
                 ->countBy()->sortDesc()->keys()->values(),
         ];
+    }
+
+    private function places(Listing $listing): array
+    {
+        return $listing->places->map(fn ($place) => [
+            'latitude' => $place->latitude,
+            'longitude' => $place->longitude,
+            'placeName' => $place->place_name,
+            'suggested' => $place->source === 'suggested',
+        ])->all();
+    }
+
+    // The places in the form replace the album's places; saving the form confirms them
+    private function savePlaces(Listing $listing, array $places): void
+    {
+        $listing->places()->delete();
+        foreach (array_values($places) as $position => $place) {
+            $listing->places()->create([
+                'latitude' => round((float) $place['latitude'], 7),
+                'longitude' => round((float) $place['longitude'], 7),
+                'place_name' => isset($place['placeName']) ? mb_substr($place['placeName'], 0, 255) : null,
+                'source' => 'manual',
+                'position' => $position,
+            ]);
+        }
     }
 
     private function tags(?string $tags): array

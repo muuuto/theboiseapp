@@ -1,11 +1,12 @@
 <script setup>
-import { computed, nextTick, ref } from 'vue';
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { computed, nextTick, onMounted, ref } from 'vue';
+import { Head, Link, router } from '@inertiajs/vue3';
 import {
-    ArrowLeft, CalendarDays, Check, Copy, ExternalLink, MapPin, Pencil, PlayCircle, SendHorizontal, Trash2, Users,
+    ArrowLeft, CalendarDays, Check, Copy, ExternalLink, MapPin, Pencil, PlayCircle, Trash2, Users,
 } from 'lucide-vue-next';
 import LeafletMap from '../../components/LeafletMap.vue';
-import EmojiPicker from '../../components/EmojiPicker.vue';
+import CommentBox from '../../components/CommentBox.vue';
+import { ago, fullDate } from '../../time.js';
 import LikeButton from '../../components/LikeButton.vue';
 
 const props = defineProps({
@@ -21,7 +22,20 @@ const dates = computed(() => {
     return from === to ? [from] : [from, to];
 });
 
-const hasMap = computed(() => props.album.latitude !== null && props.album.longitude !== null);
+// One pin per place (an album can be in several places)
+const pins = computed(() =>
+    props.album.places.map((place, index) => ({
+        id: index,
+        albumId: props.album.id,
+        latitude: place.latitude,
+        longitude: place.longitude,
+        title: props.album.title,
+        cover: props.album.cover,
+        dateFrom: props.album.dateFrom,
+        suggested: place.suggested,
+    })),
+);
+const placeNames = computed(() => props.album.places.map((place) => place.placeName).filter((name) => name && name !== props.album.location));
 
 // YouTube links become embedded players (privacy-friendly domain), other links stay buttons
 function youtubeId(url) {
@@ -44,54 +58,16 @@ function destroy() {
     }
 }
 
-// Comments: plain text with emojis
-const form = useForm({ listing_id: props.album.id, comment: '' });
-const textarea = ref(null);
+// Arriving from a notification (#comment-12): scroll to that comment and light it up for a moment
+const highlighted = ref(null);
+onMounted(() => {
+    const match = window.location.hash.match(/^#comment-(\d+)$/);
+    if (!match) return;
+    highlighted.value = Number(match[1]);
+    nextTick(() => document.getElementById(`comment-${highlighted.value}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+    setTimeout(() => (highlighted.value = null), 2500);
+});
 
-function addEmoji(emoji) {
-    const field = textarea.value;
-    const start = field.selectionStart ?? form.comment.length;
-    const end = field.selectionEnd ?? form.comment.length;
-    form.comment = form.comment.slice(0, start) + emoji + form.comment.slice(end);
-    nextTick(() => {
-        field.focus();
-        field.setSelectionRange(start + emoji.length, start + emoji.length);
-        resize();
-    });
-}
-
-function resize() {
-    const field = textarea.value;
-    field.style.height = 'auto';
-    field.style.height = `${Math.min(field.scrollHeight, 240)}px`;
-}
-
-function submitComment() {
-    if (!form.comment.trim()) return;
-    form.post('/listings/comments', {
-        preserveScroll: true,
-        onSuccess: () => {
-            form.reset('comment');
-            nextTick(resize);
-        },
-    });
-}
-
-function onCommentKeydown(event) {
-    // Ctrl/Cmd + Enter sends, Enter alone makes a new line
-    if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) submitComment();
-}
-
-const relative = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
-const fullDate = new Intl.DateTimeFormat('en-GB', { dateStyle: 'long', timeStyle: 'short' });
-function ago(iso) {
-    const seconds = (new Date(iso) - new Date()) / 1000;
-    const units = [['year', 31536000], ['month', 2592000], ['week', 604800], ['day', 86400], ['hour', 3600], ['minute', 60]];
-    for (const [unit, size] of units) {
-        if (Math.abs(seconds) >= size) return relative.format(Math.round(seconds / size), unit);
-    }
-    return 'just now';
-}
 </script>
 
 <template>
@@ -179,10 +155,10 @@ function ago(iso) {
                     <MapPin class="mt-0.5 size-5 shrink-0 text-accent" />
                     <div class="text-sm">
                         <p class="font-medium">{{ album.location }}</p>
-                        <p v-if="album.placeName && album.placeName !== album.location" class="text-xs text-slate-500">{{ album.placeName }}</p>
+                        <p v-for="name in placeNames" :key="name" class="text-xs text-slate-500">{{ name }}</p>
                     </div>
                 </div>
-                <LeafletMap v-if="hasMap" :markers="[album]" :zoom="11" class="h-48" />
+                <LeafletMap v-if="pins.length" :markers="pins" :zoom="11" class="h-48" />
 
                 <a
                     :href="album.albumLink"
@@ -223,33 +199,22 @@ function ago(iso) {
                 Comments <span class="text-sm font-medium text-slate-500">{{ comments.length }}</span>
             </h2>
 
-            <form v-if="can.comment" class="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200 focus-within:ring-2 focus-within:ring-accent dark:bg-slate-900 dark:ring-slate-800" @submit.prevent="submitComment">
-                <textarea
-                    ref="textarea"
-                    v-model="form.comment"
-                    rows="2"
-                    maxlength="5000"
-                    placeholder="Write a comment... my favorite photo is"
-                    class="block w-full resize-none border-0 bg-transparent px-1 focus:outline-none"
-                    @input="resize"
-                    @keydown="onCommentKeydown"
-                />
-                <p v-if="form.errors.comment" class="px-1 text-sm text-red-600">{{ form.errors.comment }}</p>
-                <div class="mt-2 flex items-center justify-between">
-                    <EmojiPicker @pick="addEmoji" />
-                    <button
-                        type="submit"
-                        class="inline-flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-dark disabled:opacity-40"
-                        :disabled="form.processing || !form.comment.trim()"
-                    >
-                        <SendHorizontal class="size-4" /> Send
-                    </button>
-                </div>
-            </form>
+            <CommentBox
+                v-if="can.comment"
+                url="/listings/comments"
+                :extra="{ listing_id: album.id }"
+                placeholder="Write a comment... my favorite photo is"
+            />
 
             <p v-if="!comments.length" class="text-sm text-slate-500">No comments yet{{ can.comment ? ', be the first' : '' }}.</p>
 
-            <article v-for="comment in comments" :key="comment.id" class="flex gap-3">
+            <article
+                v-for="comment in comments"
+                :id="`comment-${comment.id}`"
+                :key="comment.id"
+                class="-mx-2 flex scroll-mt-24 gap-3 rounded-2xl p-2 transition-colors duration-700"
+                :class="highlighted === comment.id && 'bg-brand/10'"
+            >
                 <img v-if="comment.avatar" :src="comment.avatar" alt="" class="size-10 shrink-0 rounded-full object-cover" />
                 <span v-else class="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent font-bold text-white">
                     {{ comment.author.charAt(0).toUpperCase() }}
@@ -260,7 +225,7 @@ function ago(iso) {
                         <div class="rich-text text-[15px]" v-html="comment.html" />
                     </div>
                     <div class="mt-1 flex items-center gap-2 pl-2 text-xs text-slate-500">
-                        <time :datetime="comment.createdAt" :title="fullDate.format(new Date(comment.createdAt))">{{ ago(comment.createdAt) }}</time>
+                        <time :datetime="comment.createdAt" :title="fullDate(comment.createdAt)">{{ ago(comment.createdAt) }}</time>
                         <LikeButton type="album_comment" :id="comment.id" :likes="comment.likes" :disabled="!can.comment" />
                     </div>
                 </div>

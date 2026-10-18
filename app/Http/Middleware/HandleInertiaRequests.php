@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Console\Commands\GenerateAnniversaryNotifications;
 use App\Models\ListingUser;
+use App\Notifications\CommentLiked;
 use Illuminate\Http\Request;
 use App\Support\Media;
 use Inertia\Middleware;
@@ -54,6 +55,26 @@ class HandleInertiaRequests extends Middleware
         ];
     }
 
+    // "Zecca liked your comment" from the last 30 days (also used by the Blade layout's bell)
+    public static function likeNotifications($user): array
+    {
+        return $user->notifications()
+            ->where('type', CommentLiked::class)
+            ->where('created_at', '>=', now()->subDays(30))
+            ->latest()
+            ->limit(10)
+            ->get()
+            ->map(fn ($notification) => [
+                'id' => $notification->id,
+                'liker' => $notification->data['liker_name'],
+                'excerpt' => $notification->data['excerpt'],
+                'title' => $notification->data['title'],
+                'url' => $notification->data['url'],
+                'read' => ! is_null($notification->read_at),
+            ])
+            ->all();
+    }
+
     // Same data as the bell in the old layout: albums not seen yet and "on this day" memories
     private function notifications($user): array
     {
@@ -70,6 +91,7 @@ class HandleInertiaRequests extends Middleware
             'memories' => collect($memories)
                 ->map(fn ($listing) => ['id' => $listing->id, 'title' => $listing->title, 'years' => $listing->diffInYears])
                 ->values(),
+            'likes' => self::likeNotifications($user),
         ];
     }
 }
