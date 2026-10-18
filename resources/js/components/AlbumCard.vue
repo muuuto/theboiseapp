@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue';
+import { Link } from '@inertiajs/vue3';
 import { CalendarDays, MapPin } from 'lucide-vue-next';
 
 // eager: the first cards are visible right away, load them immediately instead of lazily
@@ -15,9 +16,8 @@ const dates = computed(() => {
 </script>
 
 <template>
-    <!-- Album pages are still Blade: a normal link -->
     <article class="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-lg dark:bg-slate-900 dark:ring-slate-800">
-        <a :href="`/listings/${album.id}`" class="block">
+        <Link :href="`/listings/${album.id}`" class="block">
             <div class="relative aspect-[4/3] overflow-hidden bg-slate-200 dark:bg-slate-800">
                 <img
                     :src="album.cover"
@@ -39,7 +39,7 @@ const dates = computed(() => {
                     <MapPin class="size-4 shrink-0" /> {{ album.location }}
                 </p>
             </div>
-        </a>
+        </Link>
 
         <ul class="flex flex-wrap gap-1.5 px-4 pt-1 pb-4">
             <li v-for="tag in album.tags" :key="tag">

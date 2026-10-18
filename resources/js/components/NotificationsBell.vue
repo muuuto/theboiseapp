@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
-import { usePage } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import { Bell, CalendarHeart, ImagePlus } from 'lucide-vue-next';
 
 const page = usePage();
@@ -42,8 +42,7 @@ onBeforeUnmount(() => document.removeEventListener('click', closeOnOutsideClick)
             >
                 <section class="p-2">
                     <h3 class="px-3 pt-2 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-400">On this day</h3>
-                    <!-- Album pages are still Blade: normal links, not Inertia ones -->
-                    <a
+                    <Link
                         v-for="memory in memories"
                         :key="`memory-${memory.id}`"
                         :href="`/listings/${memory.id}`"
@@ -54,13 +53,13 @@ onBeforeUnmount(() => document.removeEventListener('click', closeOnOutsideClick)
                             {{ memory.years }} {{ memory.years === 1 ? 'year' : 'years' }} ago:
                             <strong>{{ memory.title }}</strong>
                         </span>
-                    </a>
+                    </Link>
                     <p v-if="!memories.length" class="px-3 py-2 text-sm text-slate-400">No memories today</p>
                 </section>
 
                 <section class="border-t border-slate-100 p-2 dark:border-slate-700">
                     <h3 class="px-3 pt-2 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-400">New albums</h3>
-                    <a
+                    <Link
                         v-for="album in unseen"
                         :key="`album-${album.id}`"
                         :href="`/listings/${album.id}`"
@@ -68,7 +67,7 @@ onBeforeUnmount(() => document.removeEventListener('click', closeOnOutsideClick)
                     >
                         <ImagePlus class="mt-0.5 size-4 shrink-0 text-accent" />
                         <span class="text-sm"><strong>{{ album.title }}</strong></span>
-                    </a>
+                    </Link>
                     <p v-if="!unseen.length" class="px-3 py-2 text-sm text-slate-400">No new albums</p>
                 </section>
             </div>

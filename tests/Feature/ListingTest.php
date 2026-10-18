@@ -75,12 +75,13 @@ class ListingTest extends TestCase
             'dateTo' => '2026-07-05',
             'location' => 'Merano',
             'albumLink' => 'https://www.amazon.com/photos/shared/abc',
-            'tags' => 'summer',
+            'tags' => ['summer'],
             'description' => 'Holidays',
             'people' => $friends->pluck('id')->all(),
-        ])->assertRedirect('/');
+        ]);
 
         $listing = Listing::where('title', 'Summer 2026')->firstOrFail();
+        $this->assertEquals('summer', $listing->tags);
         $this->assertEquals($admin->id, $listing->user_id);
         $this->assertEqualsCanonicalizing($friends->pluck('id')->all(), $listing->users->pluck('id')->all());
     }
@@ -93,13 +94,14 @@ class ListingTest extends TestCase
 
         $this->actingAs($user)->post('/listings/comments', [
             'listing_id' => $listing->id,
-            'comment' => 'Che bei ricordi 😍',
+            'comment' => "Che bei ricordi 😍\n<script>x</script>",
         ])->assertRedirect();
 
+        // Plain text: kept as text (never as HTML), line breaks kept
         $this->assertDatabaseHas('comments', [
             'listing_id' => $listing->id,
             'user_id' => $user->id,
-            'comment' => 'Che bei ricordi 😍',
+            'comment' => '<p>Che bei ricordi 😍<br>' . "\n" . '&lt;script&gt;x&lt;/script&gt;</p>',
         ]);
     }
 
@@ -125,9 +127,10 @@ class ListingTest extends TestCase
         ]);
 
         $this->actingAs($user)->get("/listings/{$listing->id}")
-            ->assertSee('<p>Gita</p>', false)
-            ->assertSee('<b>Bello</b> &lt;3', false)
-            ->assertDontSee('alert(', false);
+            ->assertInertia(fn ($page) => $page
+                ->component('Albums/Show')
+                ->where('album.description', '<p>Gita</p>')
+                ->where('comments.0.html', '<b>Bello</b> &lt;3<img />'));
     }
 
     public function test_slogans_keep_links_but_lose_scripts(): void

@@ -8,6 +8,8 @@ use App\Http\Controllers\SloganController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\InviteController;
+use App\Http\Controllers\LikeController;
+use App\Http\Controllers\AlbumMapController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -92,6 +94,20 @@ Route::get('/monitor', [UserController::class, 'monitor'])->middleware('auth');
 
 // Show Create Form
 Route::post('/listings/comments', [ListingController::class, 'comments'])->middleware(['auth', 'not-demo']);
+
+// Like / unlike a comment
+Route::post('/likes', [LikeController::class, 'toggle'])->middleware(['auth', 'not-demo']);
+
+// All the user's albums on a map
+Route::get('/map', [AlbumMapController::class, 'index'])->middleware('auth');
+
+// Admin: confirm or fix the album coordinates suggested from the location text
+Route::middleware(['auth', 'can:admin'])->prefix('admin/locations')->group(function () {
+    Route::get('/', [AlbumMapController::class, 'review']);
+    Route::post('/confirm-all', [AlbumMapController::class, 'confirmAll']);
+    Route::post('/{listing}/confirm', [AlbumMapController::class, 'confirm']);
+    Route::delete('/{listing}', [AlbumMapController::class, 'clear']);
+});
 
 // Reset password form
 Route::get('/forgot-password', [UserController::class, 'forgotPasswordShow'])->middleware('guest')->name('password.request');

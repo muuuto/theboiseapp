@@ -6,9 +6,11 @@ import AppLayout from './layouts/AppLayout.vue';
 
 createInertiaApp({
     title: (title) => (title ? `${title} | TheBoise` : 'TheBoise'),
-    resolve: (name) => {
-        const pages = import.meta.glob('./pages/**/*.vue', { eager: true });
-        const page = pages[`./pages/${name}.vue`];
+    // Each page is its own file, downloaded when first opened: the editor, the maps and the emoji
+    // picker are only loaded by the pages that use them
+    resolve: async (name) => {
+        const pages = import.meta.glob('./pages/**/*.vue');
+        const page = await pages[`./pages/${name}.vue`]();
         // Every page uses the app layout unless it sets its own
         page.default.layout ??= AppLayout;
         return page;

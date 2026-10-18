@@ -14,6 +14,9 @@ class MaintenanceController extends Controller
         'clear-cache' => ['optimize:clear'],
         'backup' => ['backup:database'],
         'migrate' => ['backup:database', 'migrate --force'],
+        // One-time jobs of the album redesign (safe to run again: they skip what's already done)
+        'trim-album-covers' => ['albums:trim-cover-bars'],
+        'import-album-coordinates' => ['albums:import-coordinates'],
     ];
 
     public function index()

@@ -118,8 +118,8 @@ Steps (one release each):
 1. **Foundation**: Inertia + Vue + Tailwind setup, new layout with sidebar/drawer, dark mode,
    flash messages, demo mode; first Vue page: the album home. Document the build in `DEPLOY.md`.
    Adds a PHP package (Inertia) → full release.
-   ✅ Done locally, 84 tests passing, checked with screenshots (desktop, phone, dark mode).
-   To deploy (after quick release 2):
+   ✅ Deployed 2026-10-18 (commit `662e136`), with quick release 2 (invites).
+   After deploying:
    - [ ] **Full release** (Composer cron job), then **Backup + run migrations**
    - [ ] Server `.env`: add `DEMO_LOGIN_SECRET=` followed by a long random secret, then put
          `https://theboise.it/demo/<that secret>` in the CV (changing the secret disables old links)
@@ -128,6 +128,18 @@ Steps (one release each):
          `resources/js/bootstrap.js`
 2. **Albums**: album page, comments with **likes** and **emoji picker**, previews cropped by the
    site (fixes the black bars, trim the 60 existing), **maps**, responsive email images.
+   Built: album page (YouTube players, small map, people), comments as plain text + emoji picker,
+   likes, album form with Tiptap editor, people picker, tags with suggestions, map picker with place
+   search, covers resized by the site keeping their shape, a **Map** page for every user (clusters),
+   admin review page for the guessed locations (farthest first, confirm all).
+   The "strips" in emails were transparent padding from BulkResize (not black bars): 125 previews.
+   To deploy (quick release, no new PHP packages):
+   - [ ] Push, then cPanel Git deploy
+   - [ ] `/admin/maintenance` → **Backup + run migrations** (album coordinates, likes)
+   - [ ] `/admin/maintenance` → **Remove bars from old album previews** (originals are kept)
+   - [ ] `/admin/maintenance` → **Import suggested album locations**, then **Review album locations**:
+         fix the far-away wrong ones first, then "Confirm all remaining"
+   - [ ] Check an email with an album preview (new album / reminder) in your mail app
 3. **Forum**: categories, posts, post page, Tiptap editor, likes and emojis on comments.
 4. **The rest**: account, login/password pages, invite page, admin pages.
 5. After the redesign: **Splitwise**.

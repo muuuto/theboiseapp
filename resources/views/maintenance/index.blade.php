@@ -40,6 +40,28 @@
         </div>
 
         <div>
+            <h2 class="text-xl font-bold mb-2">One-time album jobs</h2>
+            <p class="text-sm mb-3">Safe to run more than once: they skip what's already done.</p>
+            <div class="flex flex-wrap gap-4 items-center">
+                <form method="POST" action="/admin/maintenance/trim-album-covers">
+                    @csrf
+                    <button class="bg-laravel text-white rounded py-2 px-4 hover:bg-black">
+                        <i class="fa-solid fa-crop-simple"></i> Remove bars from old album previews
+                    </button>
+                </form>
+                <form method="POST" action="/admin/maintenance/import-album-coordinates">
+                    @csrf
+                    <button class="bg-laravel text-white rounded py-2 px-4 hover:bg-black">
+                        <i class="fa-solid fa-location-dot"></i> Import suggested album locations
+                    </button>
+                </form>
+                <a href="/admin/locations" class="text-laravel hover:underline">
+                    <i class="fa-solid fa-map-location-dot"></i> Review album locations
+                </a>
+            </div>
+        </div>
+
+        <div>
             <h2 class="text-xl font-bold mb-2">Invites</h2>
 
             @if (is_null($invites))

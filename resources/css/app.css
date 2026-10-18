@@ -22,6 +22,55 @@
     @apply pointer-events-none absolute left-full z-50 ml-3 hidden rounded-lg bg-slate-900 px-2.5 py-1 text-xs font-medium whitespace-nowrap text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 lg:block dark:bg-white dark:text-slate-900;
 }
 
+/* Formatted user content (descriptions, posts, comments) and the editor that writes it */
+@layer components {
+    .rich-text {
+        @apply leading-relaxed break-words;
+    }
+    .rich-text > * + * {
+        @apply mt-3;
+    }
+    .rich-text h1 {
+        @apply text-2xl font-bold;
+    }
+    .rich-text h2 {
+        @apply text-xl font-bold;
+    }
+    .rich-text h3 {
+        @apply text-lg font-semibold;
+    }
+    .rich-text a {
+        @apply font-medium text-brand underline underline-offset-2;
+    }
+    .rich-text ul {
+        @apply list-disc pl-6;
+    }
+    .rich-text ol {
+        @apply list-decimal pl-6;
+    }
+    .rich-text blockquote {
+        @apply border-l-4 border-slate-300 pl-4 italic dark:border-slate-600;
+    }
+    .rich-text hr {
+        @apply border-slate-200 dark:border-slate-700;
+    }
+    .rich-text table {
+        @apply w-full border-collapse text-sm;
+    }
+    .rich-text td,
+    .rich-text th {
+        @apply border border-slate-300 px-2 py-1 align-top dark:border-slate-600;
+    }
+    .rich-text mark {
+        @apply rounded px-0.5 text-slate-900;
+    }
+    /* Old TinyMCE content sometimes forces black text: keep it readable in dark mode */
+    .dark .rich-text [style*='color: #000000'],
+    .dark .rich-text [style*='color: rgb(0, 0, 0)'] {
+        color: inherit !important;
+    }
+}
+
 @layer base {
     body {
         @apply bg-slate-100 text-slate-800 antialiased dark:bg-slate-950 dark:text-slate-200;

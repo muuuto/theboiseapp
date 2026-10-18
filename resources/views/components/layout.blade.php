@@ -92,6 +92,9 @@
                 <a href="/" class="{{ $navLink }} {{ request()->is('/') ? $navActive : $navIdle }}">
                     <i class="fa-solid fa-images w-5 text-center"></i> <span class="nav-label">Albums</span><span class="nav-tip">Albums</span>
                 </a>
+                <a href="/map" class="{{ $navLink }} {{ request()->is('map') ? $navActive : $navIdle }}">
+                    <i class="fa-solid fa-map-location-dot w-5 text-center"></i> <span class="nav-label">Map</span><span class="nav-tip">Map</span>
+                </a>
                 @unless ($isDemo)
                 <a href="/forum" class="{{ $navLink }} {{ request()->is('forum*') ? $navActive : $navIdle }}">
                     <i class="fa-solid fa-comments w-5 text-center"></i> <span class="nav-label">Forum</span><span class="nav-tip">Forum</span>

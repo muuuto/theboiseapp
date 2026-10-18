@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
-import { Images, LogOut, Menu, MessagesSquare, Monitor, PanelLeftClose, PanelLeftOpen, PlusCircle, User, Wrench, X } from 'lucide-vue-next';
+import { Images, LogOut, Map, Menu, MessagesSquare, Monitor, PanelLeftClose, PanelLeftOpen, PlusCircle, User, Wrench, X } from 'lucide-vue-next';
 import NotificationsBell from '../components/NotificationsBell.vue';
 import ThemeToggle from '../components/ThemeToggle.vue';
 import FlashMessage from '../components/FlashMessage.vue';
@@ -32,6 +32,7 @@ function toggleCollapsed() {
 const navigation = computed(() => {
     const items = [
         { label: 'Albums', href: '/', icon: Images, inertia: true },
+        { label: 'Map', href: '/map', icon: Map, inertia: true },
     ];
     if (!user.value?.isDemo) {
         items.push({ label: 'Forum', href: '/forum', icon: MessagesSquare });
@@ -41,7 +42,7 @@ const navigation = computed(() => {
 });
 
 const adminNavigation = [
-    { label: 'Post album', href: '/listings/create', icon: PlusCircle },
+    { label: 'Post album', href: '/listings/create', icon: PlusCircle, inertia: true },
     { label: 'Monitor', href: '/monitor', icon: Monitor },
     { label: 'Maintenance', href: '/admin/maintenance', icon: Wrench },
 ];
@@ -115,16 +116,17 @@ const idleClass = 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:t
                 <template v-if="user?.isAdmin">
                     <p class="px-3 pt-6 pb-2 text-xs font-semibold uppercase tracking-wider text-slate-400" :class="collapsed && 'lg:hidden'">Admin</p>
                     <hr v-if="collapsed" class="mx-2 my-4 hidden border-slate-200 dark:border-slate-800 lg:block" />
-                    <a
+                    <component
+                        :is="item.inertia ? Link : 'a'"
                         v-for="item in adminNavigation"
                         :key="item.href"
                         :href="item.href"
-                        :class="[itemClass, idleClass, collapsed && 'lg:justify-center']"
+                        :class="[itemClass, isActive(item.href) ? 'bg-brand/10 text-brand' : idleClass, collapsed && 'lg:justify-center']"
                     >
                         <component :is="item.icon" class="size-5 shrink-0" />
                         <span :class="collapsed && 'lg:sr-only'">{{ item.label }}</span>
                         <span v-if="collapsed" class="sidebar-tooltip">{{ item.label }}</span>
-                    </a>
+                    </component>
                 </template>
             </nav>
 

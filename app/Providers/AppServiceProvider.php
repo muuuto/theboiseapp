@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use App\Models\ListingUser;
 use App\Models\User;
+use App\Models\Comment;
+use App\Models\PostComment;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use App\Console\Commands\GenerateAnniversaryNotifications;
 use Illuminate\Mail\Events\MessageSending;
 use Illuminate\Support\Facades\Event;
@@ -27,6 +30,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Short names stored in likes.likeable_type instead of class names
+        Relation::morphMap([
+            'album_comment' => Comment::class,
+            'post_comment' => PostComment::class,
+        ]);
+
         // The demo account never receives emails: cancel any email addressed only to demo users
         Event::listen(MessageSending::class, function (MessageSending $event) {
             $recipients = collect($event->message->getTo())->map(fn ($address) => strtolower($address->getAddress()));

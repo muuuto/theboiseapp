@@ -1,6 +1,90 @@
 {
+  "_EmojiPicker-DWk4N62z.js": {
+    "file": "assets/EmojiPicker-DWk4N62z.js",
+    "name": "EmojiPicker",
+    "imports": [
+      "_createLucideIcon-Cza_Ae7j.js"
+    ],
+    "assets": [
+      "assets/data-BF1r6TM-.json"
+    ]
+  },
+  "_LeafletMap-mFn3kbVf.js": {
+    "file": "assets/LeafletMap-mFn3kbVf.js",
+    "name": "LeafletMap",
+    "imports": [
+      "_createLucideIcon-Cza_Ae7j.js"
+    ],
+    "css": [
+      "assets/LeafletMap-oUspC08C.css"
+    ],
+    "assets": [
+      "assets/layers-BWBAp2CZ.png",
+      "assets/layers-2x-Bpkbi35X.png",
+      "assets/marker-icon-hN30_KVU.png"
+    ]
+  },
+  "_LeafletMap-oUspC08C.css": {
+    "file": "assets/LeafletMap-oUspC08C.css",
+    "src": "_LeafletMap-oUspC08C.css"
+  },
+  "_calendar-days-BecJuJG8.js": {
+    "file": "assets/calendar-days-BecJuJG8.js",
+    "name": "calendar-days",
+    "imports": [
+      "_createLucideIcon-Cza_Ae7j.js"
+    ]
+  },
+  "_createLucideIcon-Cza_Ae7j.js": {
+    "file": "assets/createLucideIcon-Cza_Ae7j.js",
+    "name": "createLucideIcon"
+  },
+  "_map-pin-DgX1nyYs.js": {
+    "file": "assets/map-pin-DgX1nyYs.js",
+    "name": "map-pin",
+    "imports": [
+      "_createLucideIcon-Cza_Ae7j.js"
+    ]
+  },
+  "_pencil-PR7kvitb.js": {
+    "file": "assets/pencil-PR7kvitb.js",
+    "name": "pencil",
+    "imports": [
+      "_createLucideIcon-Cza_Ae7j.js"
+    ]
+  },
+  "_search-DYLi3o7u.js": {
+    "file": "assets/search-DYLi3o7u.js",
+    "name": "search",
+    "imports": [
+      "_createLucideIcon-Cza_Ae7j.js"
+    ]
+  },
+  "_trash-2-DaJTQdNM.js": {
+    "file": "assets/trash-2-DaJTQdNM.js",
+    "name": "trash-2",
+    "imports": [
+      "_createLucideIcon-Cza_Ae7j.js"
+    ]
+  },
+  "node_modules/emoji-picker-element-data/en/emojibase/data.json": {
+    "file": "assets/data-BF1r6TM-.json",
+    "src": "node_modules/emoji-picker-element-data/en/emojibase/data.json"
+  },
+  "node_modules/leaflet/dist/images/layers-2x.png": {
+    "file": "assets/layers-2x-Bpkbi35X.png",
+    "src": "node_modules/leaflet/dist/images/layers-2x.png"
+  },
+  "node_modules/leaflet/dist/images/layers.png": {
+    "file": "assets/layers-BWBAp2CZ.png",
+    "src": "node_modules/leaflet/dist/images/layers.png"
+  },
+  "node_modules/leaflet/dist/images/marker-icon.png": {
+    "file": "assets/marker-icon-hN30_KVU.png",
+    "src": "node_modules/leaflet/dist/images/marker-icon.png"
+  },
   "resources/css/app.css": {
-    "file": "assets/app-Dys0I90o.css",
+    "file": "assets/app-Cv6yrfwc.css",
     "name": "app",
     "names": [
       "app.css"
@@ -9,12 +93,87 @@
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-BDEhHKDm.js",
+    "file": "assets/app-BtfcXFkr.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
+    "imports": [
+      "_createLucideIcon-Cza_Ae7j.js"
+    ],
+    "dynamicImports": [
+      "resources/js/pages/Admin/Locations.vue",
+      "resources/js/pages/Albums/Form.vue",
+      "resources/js/pages/Albums/Index.vue",
+      "resources/js/pages/Albums/Map.vue",
+      "resources/js/pages/Albums/Show.vue"
+    ],
     "css": [
-      "assets/app-Dys0I90o.css"
+      "assets/app-Cv6yrfwc.css"
+    ]
+  },
+  "resources/js/pages/Admin/Locations.vue": {
+    "file": "assets/Locations-DbhH0o45.js",
+    "name": "Locations",
+    "src": "resources/js/pages/Admin/Locations.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_LeafletMap-mFn3kbVf.js",
+      "_createLucideIcon-Cza_Ae7j.js",
+      "_trash-2-DaJTQdNM.js",
+      "_pencil-PR7kvitb.js"
+    ]
+  },
+  "resources/js/pages/Albums/Form.vue": {
+    "file": "assets/Form-YSEtLLB7.js",
+    "name": "Form",
+    "src": "resources/js/pages/Albums/Form.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_LeafletMap-mFn3kbVf.js",
+      "_createLucideIcon-Cza_Ae7j.js",
+      "_EmojiPicker-DWk4N62z.js",
+      "_trash-2-DaJTQdNM.js",
+      "_map-pin-DgX1nyYs.js",
+      "_search-DYLi3o7u.js",
+      "resources/js/app.js"
+    ]
+  },
+  "resources/js/pages/Albums/Index.vue": {
+    "file": "assets/Index-CIQ4TW8D.js",
+    "name": "Index",
+    "src": "resources/js/pages/Albums/Index.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_createLucideIcon-Cza_Ae7j.js",
+      "_calendar-days-BecJuJG8.js",
+      "_map-pin-DgX1nyYs.js",
+      "_search-DYLi3o7u.js",
+      "resources/js/app.js"
+    ]
+  },
+  "resources/js/pages/Albums/Map.vue": {
+    "file": "assets/Map-JOzfAfGk.js",
+    "name": "Map",
+    "src": "resources/js/pages/Albums/Map.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_LeafletMap-mFn3kbVf.js",
+      "_createLucideIcon-Cza_Ae7j.js"
+    ]
+  },
+  "resources/js/pages/Albums/Show.vue": {
+    "file": "assets/Show-pz9L8IHZ.js",
+    "name": "Show",
+    "src": "resources/js/pages/Albums/Show.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_LeafletMap-mFn3kbVf.js",
+      "_createLucideIcon-Cza_Ae7j.js",
+      "_EmojiPicker-DWk4N62z.js",
+      "_calendar-days-BecJuJG8.js",
+      "_trash-2-DaJTQdNM.js",
+      "_map-pin-DgX1nyYs.js",
+      "_pencil-PR7kvitb.js"
     ]
   }
 }

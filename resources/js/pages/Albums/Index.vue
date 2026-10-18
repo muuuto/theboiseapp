@@ -4,6 +4,7 @@ import { Head, router, usePage } from '@inertiajs/vue3';
 import { Plus, Quote, Search, X } from 'lucide-vue-next';
 import AlbumCard from '../../components/AlbumCard.vue';
 import Pagination from '../../components/Pagination.vue';
+import { heroPatterns, randomHeroPattern } from '../../heroPatterns.js';
 
 const props = defineProps({
     albums: Object,
@@ -12,6 +13,10 @@ const props = defineProps({
 });
 
 const user = computed(() => usePage().props.auth.user);
+
+// A different banner pattern on each visit (?pattern=waves shows a specific one, to preview them)
+const requested = new URLSearchParams(window.location.search).get('pattern');
+const pattern = heroPatterns.find((candidate) => candidate.name === requested) ?? randomHeroPattern();
 const search = ref(props.filters.search);
 const hasFilters = computed(() => props.filters.search || props.filters.tag);
 
@@ -35,7 +40,10 @@ function resetFilters() {
 
     <!-- Hero: the familiar teal banner with a random slogan from the friends -->
     <section class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-teal-600 to-teal-700 px-6 py-10 text-center text-white shadow-lg sm:py-14">
-        <div class="absolute inset-0 bg-[url('/images/protruding-squares.png')] bg-contain bg-repeat opacity-30" />
+        <div
+            class="absolute inset-0 bg-repeat"
+            :style="{ backgroundImage: pattern.image, backgroundSize: pattern.size, opacity: pattern.opacity }"
+        />
         <div class="relative">
             <h1 class="text-5xl font-extrabold uppercase tracking-tight sm:text-6xl">
                 The<span class="text-slate-900">Boise</span>
@@ -70,18 +78,19 @@ function resetFilters() {
             </p>
         </div>
 
-        <div class="flex flex-wrap gap-2 sm:ml-auto">
+        <!-- Phones: a full-width row above the title. Larger screens: next to the title, on the right -->
+        <div v-if="!user.isDemo || user.isAdmin" class="order-first flex gap-2 sm:order-none sm:ml-auto">
             <a
                 v-if="!user.isDemo"
                 href="/slogan/create"
-                class="inline-flex items-center gap-1.5 rounded-xl bg-white px-4 py-2 text-sm font-semibold shadow-sm ring-1 ring-slate-200 transition hover:ring-slate-300 dark:bg-slate-800 dark:ring-slate-700"
+                class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-white px-4 py-2.5 sm:flex-none sm:py-2 text-sm font-semibold shadow-sm ring-1 ring-slate-200 transition hover:ring-slate-300 dark:bg-slate-800 dark:ring-slate-700"
             >
                 <Quote class="size-4" /> Post slogan
             </a>
             <a
                 v-if="user.isAdmin"
                 href="/listings/create"
-                class="inline-flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark"
+                class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-brand px-4 py-2.5 sm:flex-none sm:py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark"
             >
                 <Plus class="size-4" /> Post album
             </a>
