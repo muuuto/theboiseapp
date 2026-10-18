@@ -7,6 +7,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\SloganController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\MaintenanceController;
+use App\Http\Controllers\InviteController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -54,10 +55,11 @@ Route::get('/listings/manage', [ListingController::class, 'manage'])->middleware
 Route::get('/listings/{listing}', [ListingController::class, 'show'])->middleware('auth');
 
 // Show Register/Create Form
-Route::get('/register', [UserController::class, 'create'])->middleware('guest');
+// Registration is invite-only: /register/{token} comes from an invite link
+Route::get('/register/{token?}', [UserController::class, 'create'])->middleware('guest');
 
 // Create New User
-Route::post('/users', [UserController::class, 'store']);
+Route::post('/users', [UserController::class, 'store'])->middleware('guest');
 
 // Log User Out
 Route::post('/logout', [UserController::class, 'logout']);
@@ -169,4 +171,10 @@ Route::middleware(['auth', 'can:admin'])->prefix('admin/maintenance')->group(fun
     Route::get('/', [MaintenanceController::class, 'index']);
     Route::post('/{action}', [MaintenanceController::class, 'run']);
     Route::get('/backups/{file}', [MaintenanceController::class, 'download']);
+});
+
+// Invite links (admin only), listed on the maintenance page
+Route::middleware(['auth', 'can:admin'])->prefix('admin/invites')->group(function () {
+    Route::post('/', [InviteController::class, 'store']);
+    Route::delete('/{invite}', [InviteController::class, 'destroy']);
 });

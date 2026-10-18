@@ -37,8 +37,7 @@
 
       <div class="mt-6">
         <p>
-          Don't have an account?
-          <a href="/register" class="text-laravel">Register</a>
+          Don't have an account? TheBoise is invite only: ask a friend for an invite link.
         </p>
       </div>
 

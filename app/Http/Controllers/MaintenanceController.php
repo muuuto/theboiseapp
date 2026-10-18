@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Invite;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 // Lets admins run a fixed set of artisan commands, since the shared hosting has no SSH
 class MaintenanceController extends Controller
@@ -23,7 +25,13 @@ class MaintenanceController extends Controller
         $backups = glob(config('backup.path') . '/theboise-*.sql.gz') ?: [];
         rsort($backups);
 
+        // Before its migration runs the table doesn't exist: the page must still work to run it
+        $invites = Schema::hasTable('invites')
+            ? Invite::with(['creator', 'usedBy'])->latest()->limit(30)->get()
+            : null;
+
         return view('maintenance.index', [
+            'invites' => $invites,
             'pendingMigrations' => array_values($pending),
             'backups' => array_map(fn ($file) => [
                 'name' => basename($file),

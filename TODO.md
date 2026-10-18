@@ -11,6 +11,8 @@ Feature wishlist is in `notes.md`. How-to for local development and deploying is
    ✅ Done locally, 58 tests passing, ready to commit and deploy. After deploying you can delete
    `public_html/app/Http/Controllers/SplitwiseController.php` (deploys never delete files).
 3. **Quick release 2: invite-only registration** (needs a migration → run it from `/admin/maintenance`).
+   ✅ Done locally, 69 tests passing, rehearsed on a copy of the production database.
+   Deploy: quick release, then `/admin/maintenance` → **Backup + run migrations**.
 4. **Redesign** with Inertia + Vue 3 + Tailwind 4, page by page. This adds built frontend assets
    (`public/build`, not in git): decide how to ship them (commit them, or build on the server).
 
@@ -78,6 +80,9 @@ Also done in the same release:
 - **Invite links only.** On `/admin/maintenance` the admin creates an invite link, sends it
   (e.g. WhatsApp). Single use, expires after a few days. `/register` only opens with a valid link.
 - No public registration, no approval queue.
+- Built: optional note ("for Zecca"), valid 1/7/30 days, link shown once (the database keeps only
+  a hash of the code), list of open/used/expired invites, revoke for open ones. The admin email
+  about a new user says which invite was used.
 
 ## Decided: redesign
 

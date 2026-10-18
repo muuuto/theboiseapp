@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Invite;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
@@ -13,9 +15,13 @@ use Illuminate\Auth\Events\PasswordReset;
 
 class UserController extends Controller
 {
-    // Show Register/Create Form
-    public function create() {
-        return view('users.register');
+    // Show Register/Create Form: registration is invite-only
+    public function create(?string $token = null) {
+        if (! Invite::findUsable($token)) {
+            return view('users.invite-only');
+        }
+
+        return view('users.register', ['token' => $token]);
     }
 
     // Create New User
@@ -23,19 +29,42 @@ class UserController extends Controller
         $formFields = $request->validate([
             'name' => ['required', 'min:3'],
             'email' => ['required', 'email', Rule::unique('users', 'email')],
-            'password' => 'required|confirmed|min:6'
+            'password' => 'required|confirmed|min:6',
+            'invite' => 'required|string'
         ]);
 
-        // Hash Password
-        $formFields['password'] = bcrypt($formFields['password']);
+        // Lock the invite so the same link can't create two accounts at the same time
+        $user = DB::transaction(function () use ($formFields) {
+            $invite = Invite::where('token_hash', hash('sha256', $formFields['invite']))
+                ->whereNull('used_at')
+                ->where('expires_at', '>', now())
+                ->lockForUpdate()
+                ->first();
 
-        // Create User
-        $user = User::create($formFields);
-        
+            if (! $invite) {
+                return null;
+            }
+
+            $user = User::create([
+                'name' => $formFields['name'],
+                'email' => $formFields['email'],
+                'password' => bcrypt($formFields['password']),
+            ]);
+
+            $invite->update(['used_at' => now(), 'used_by' => $user->id]);
+
+            return $user;
+        });
+
+        if (! $user) {
+            return back()->withErrors(['invite' => 'This invite link is not valid anymore, ask for a new one.'])->onlyInput('name', 'email');
+        }
+
          // email data
         $email_data = array(
-            'name' => $formFields['name'],
-            'email' => $formFields['email'],
+            'name' => $user->name,
+            'email' => $user->email,
+            'note' => Invite::where('used_by', $user->id)->value('note'),
         );
     
         // send email to user with the template

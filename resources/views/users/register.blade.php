@@ -2,11 +2,17 @@
     <x-card class="p-10 max-w-lg mx-auto mt-24">
       <header class="text-center">
         <h2 class="text-2xl font-bold uppercase mb-1">Register</h2>
-        <p class="mb-4">Create an account to post gigs</p>
+        <p class="mb-4">You've been invited to TheBoise, create your account</p>
       </header>
-  
+
       <form method="POST" action="/users">
         @csrf
+        <input type="hidden" name="invite" value="{{ $token }}" />
+
+        @error('invite')
+        <p class="text-red-500 mb-6">{{$message}}</p>
+        @enderror
+
         <div class="mb-6">
           <label for="name" class="inline-block text-lg mb-2"> Name </label>
           <input type="text" class="border border-gray-200 rounded p-2 w-full" name="name" value="{{old('name')}}" />
