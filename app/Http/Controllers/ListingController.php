@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Listing;
 use App\Models\Slogan;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
 use App\Models\Comment;
@@ -87,8 +88,14 @@ class ListingController extends Controller
                 'location' => $listing->location,
                 'places' => $this->places($listing),
                 'tags' => $this->tags($listing->tags),
-                'description' => SafeHtml::clean($listing->description),
-                'albumLink' => $listing->albumLink,
+                // The viewer's own link/description when the admin set one, otherwise the general ones.
+                // Nothing tells them it's personal: everyone must think they see what everyone else sees
+                'description' => SafeHtml::clean($membership->custom_description ?: $listing->description),
+                'albumLink' => $membership->custom_album_link ?: $listing->albumLink,
+                // Only for admins: how many people see a different version
+                'personalizedCount' => $user->isAdmin == 1 && ListingUser::hasPersonalVersions()
+                    ? $listing->listingUser()->where(fn ($query) => $query->whereNotNull('custom_album_link')->orWhereNotNull('custom_description'))->count()
+                    : 0,
                 'videoLinks' => $this->videoLinks($listing->videoLinks),
                 'people' => $listing->users->map(fn (User $person) => [
                     'id' => $person->id,
@@ -131,6 +138,7 @@ class ListingController extends Controller
         $listing = Listing::create($formFields);
         $listing->users()->attach($request->people);
         $this->savePlaces($listing, $request->input('places', []));
+        $this->savePersonalVersions($listing, $request->input('personal', []));
 
         // send email to the people in the album
         foreach (User::findMany($request->people) as $user) {
@@ -176,6 +184,7 @@ class ListingController extends Controller
         $listing->users()->sync($request->people);
         $listing->update($formFields);
         $this->savePlaces($listing, $request->input('places', []));
+        $this->savePersonalVersions($listing, $request->input('personal', []));
 
         return redirect('/listings/' . $listing->id)->with('message', 'Album updated successfully!');
     }
@@ -262,6 +271,10 @@ class ListingController extends Controller
             'videoLinks.*' => 'url|max:500',
             'people' => 'required|array|min:1',
             'people.*' => 'integer|exists:users,id',
+            'personal' => 'nullable|array',
+            'personal.*.userId' => ['required', 'integer', 'distinct', Rule::in($request->input('people', []))],
+            'personal.*.albumLink' => 'nullable|url|max:255',
+            'personal.*.description' => 'nullable|string',
             'cover' => 'nullable|image|max:20480',
         ]);
 
@@ -298,10 +311,19 @@ class ListingController extends Controller
                 'description' => SafeHtml::clean($listing->description),
                 'videoLinks' => $this->videoLinks($listing->videoLinks),
                 'people' => $listing->users()->pluck('users.id'),
+                'personal' => ! ListingUser::hasPersonalVersions() ? [] : $listing->listingUser()
+                    ->where(fn ($query) => $query->whereNotNull('custom_album_link')->orWhereNotNull('custom_description'))
+                    ->get()
+                    ->map(fn ($row) => [
+                        'userId' => $row->user_id,
+                        'albumLink' => $row->custom_album_link ?? '',
+                        'description' => $row->custom_description ?? '',
+                    ]),
                 'cover' => Media::url($listing->logo),
             ] : null,
-            'users' => User::where('is_demo', false)->orderBy('name')->get()
-                ->map(fn (User $user) => ['id' => $user->id, 'name' => $user->name, 'avatar' => Media::url($user->profilePicture)]),
+            // Everyone, the demo account too: adding it to an album is how recruiters get to see it
+            'users' => User::orderBy('name')->get()
+                ->map(fn (User $user) => ['id' => $user->id, 'name' => $user->name, 'avatar' => Media::url($user->profilePicture), 'isDemo' => (bool) $user->is_demo]),
             // Every tag already used, most used first, to suggest them while typing
             'knownTags' => Listing::pluck('tags')
                 ->flatMap(fn ($tags) => $this->tags($tags))
@@ -331,6 +353,20 @@ class ListingController extends Controller
                 'place_name' => isset($place['placeName']) ? mb_substr($place['placeName'], 0, 255) : null,
                 'source' => 'manual',
                 'position' => $position,
+            ]);
+        }
+    }
+
+    // Each person's own link/description (the people not in the list get the general ones again)
+    private function savePersonalVersions(Listing $listing, array $versions): void
+    {
+        ListingUser::where('listing_id', $listing->id)->update(['custom_album_link' => null, 'custom_description' => null]);
+
+        foreach ($versions as $version) {
+            $description = SafeHtml::clean($version['description'] ?? '');
+            ListingUser::where('listing_id', $listing->id)->where('user_id', $version['userId'])->update([
+                'custom_album_link' => ($version['albumLink'] ?? '') ?: null,
+                'custom_description' => trim(strip_tags($description)) !== '' ? $description : null,
             ]);
         }
     }

@@ -174,12 +174,15 @@ Steps (one release each):
    - [ ] Optional: delete on the server the old Blade views removed from the repo:
          `resources/views/account`, `monitor`, `maintenance`, `slogan`, `users`, `listings`,
          `components` (everything in `resources/views` except `app.blade.php` and `mails`)
-5. **Per-person album link and description** (wanted): an album has a general photos link and a
-   general description, used for everyone, except the people for whom a specific link and/or
-   description is set (e.g. a different Amazon Photos link for some of them). Idea: two optional
-   fields on each person of the album (the `listing_user` table already links albums and people),
-   set in the album form next to each person; the album page and the emails pick the person's
-   own version when there is one.
+5. **Per-person album link and description**: an album has a general photos link and a general
+   description, used for everyone, except the people for whom a specific link and/or description
+   is set. ✅ Done locally, 137 tests passing. In the album form: "Different version for someone".
+   Nobody can tell their version is different (nothing in the page says so); only admins see
+   "N people see a different link or description". The demo account is back in the album people
+   list (it was missing since step 2), so recruiters can get their own description too.
+   **To deploy** (quick release, one migration):
+   - [ ] Push, cPanel Git deploy, then `/admin/maintenance` → **Backup + run migrations**
+     (until then album pages just show the general link and description)
 6. **Nicer emails** (wanted): all the emails (new album, comments, reminders, anniversaries,
    birthday, welcome, invites...) in one clean template with the site's look: logo, colors,
    album preview, a clear button, readable on phones and in dark mode.

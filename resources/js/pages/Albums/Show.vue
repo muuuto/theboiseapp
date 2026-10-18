@@ -2,7 +2,7 @@
 import { computed, nextTick, onMounted, ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import {
-    ArrowLeft, CalendarDays, Check, Copy, ExternalLink, MapPin, Pencil, PlayCircle, Trash2, Users,
+    ArrowLeft, CalendarDays, Check, Copy, ExternalLink, MapPin, Pencil, PlayCircle, Trash2, UserCog, Users,
 } from 'lucide-vue-next';
 import LeafletMap from '../../components/LeafletMap.vue';
 import CommentBox from '../../components/CommentBox.vue';
@@ -117,6 +117,12 @@ onMounted(() => {
                     </li>
                 </ul>
             </div>
+
+            <!-- Admins only (the count is 0 for everyone else): people never know their version is different -->
+            <p v-if="album.personalizedCount" class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                <UserCog class="size-3.5" />
+                Admin: {{ album.personalizedCount }} {{ album.personalizedCount === 1 ? 'person sees' : 'people see' }} a different link or description
+            </p>
 
             <section v-if="album.description" class="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
                 <div class="rich-text" v-html="album.description" />

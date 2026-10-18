@@ -16,8 +16,8 @@
       "_createLucideIcon-CRoJyS9p.js"
     ]
   },
-  "_GuestLayout-ClsXp6XV.js": {
-    "file": "assets/GuestLayout-ClsXp6XV.js",
+  "_GuestLayout-SXVYHuGM.js": {
+    "file": "assets/GuestLayout-SXVYHuGM.js",
     "name": "GuestLayout",
     "imports": [
       "_createLucideIcon-CRoJyS9p.js",
@@ -43,8 +43,8 @@
     "file": "assets/LeafletMap-DsSs_iP8.css",
     "src": "_LeafletMap-DsSs_iP8.css"
   },
-  "_LikeButton-swsk3mhp.js": {
-    "file": "assets/LikeButton-swsk3mhp.js",
+  "_LikeButton-BZDcByFl.js": {
+    "file": "assets/LikeButton-BZDcByFl.js",
     "name": "LikeButton",
     "imports": [
       "_createLucideIcon-CRoJyS9p.js",
@@ -52,8 +52,8 @@
       "resources/js/app.js"
     ]
   },
-  "_PeoplePicker-BIKjnY4f.js": {
-    "file": "assets/PeoplePicker-BIKjnY4f.js",
+  "_PeoplePicker-ChtLrlZW.js": {
+    "file": "assets/PeoplePicker-ChtLrlZW.js",
     "name": "PeoplePicker",
     "imports": [
       "_createLucideIcon-CRoJyS9p.js",
@@ -184,6 +184,13 @@
       "_createLucideIcon-CRoJyS9p.js"
     ]
   },
+  "_user-cog-CI4nlT1t.js": {
+    "file": "assets/user-cog-CI4nlT1t.js",
+    "name": "user-cog",
+    "imports": [
+      "_createLucideIcon-CRoJyS9p.js"
+    ]
+  },
   "node_modules/emoji-picker-element-data/en/emojibase/data.json": {
     "file": "assets/data-BF1r6TM-.json",
     "src": "node_modules/emoji-picker-element-data/en/emojibase/data.json"
@@ -201,7 +208,7 @@
     "src": "node_modules/leaflet/dist/images/marker-icon.png"
   },
   "resources/css/app.css": {
-    "file": "assets/app-DjBb5G5B.css",
+    "file": "assets/app-CFFs8w4J.css",
     "name": "app",
     "names": [
       "app.css"
@@ -210,7 +217,7 @@
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-D2S62exX.js",
+    "file": "assets/app-CnpJXlRD.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
@@ -241,11 +248,11 @@
       "resources/js/pages/Zecca.vue"
     ],
     "css": [
-      "assets/app-DjBb5G5B.css"
+      "assets/app-CFFs8w4J.css"
     ]
   },
   "resources/js/pages/Account/Index.vue": {
-    "file": "assets/Index-CcK_8Udd.js",
+    "file": "assets/Index-Cqt8yXhO.js",
     "name": "Index",
     "src": "resources/js/pages/Account/Index.vue",
     "isDynamicEntry": true,
@@ -284,7 +291,7 @@
     ]
   },
   "resources/js/pages/Admin/Monitor.vue": {
-    "file": "assets/Monitor-cR5SeBIt.js",
+    "file": "assets/Monitor-WSbWu0ZE.js",
     "name": "Monitor",
     "src": "resources/js/pages/Admin/Monitor.vue",
     "isDynamicEntry": true,
@@ -295,7 +302,7 @@
     ]
   },
   "resources/js/pages/Albums/Form.vue": {
-    "file": "assets/Form-NGCkcaDF.js",
+    "file": "assets/Form-DJXupM9K.js",
     "name": "Form",
     "src": "resources/js/pages/Albums/Form.vue",
     "isDynamicEntry": true,
@@ -308,12 +315,13 @@
       "_plus-SohKscRp.js",
       "_search-B85VN9Ep.js",
       "_trash-2-4tY51Ify.js",
+      "_user-cog-CI4nlT1t.js",
       "resources/js/app.js",
-      "_PeoplePicker-BIKjnY4f.js"
+      "_PeoplePicker-ChtLrlZW.js"
     ]
   },
   "resources/js/pages/Albums/Index.vue": {
-    "file": "assets/Index-5NouMxqy.js",
+    "file": "assets/Index-DfZigeAz.js",
     "name": "Index",
     "src": "resources/js/pages/Albums/Index.vue",
     "isDynamicEntry": true,
@@ -338,7 +346,7 @@
     ]
   },
   "resources/js/pages/Albums/Show.vue": {
-    "file": "assets/Show-bCLOVeBV.js",
+    "file": "assets/Show-DXEHkJW6.js",
     "name": "Show",
     "src": "resources/js/pages/Albums/Show.vue",
     "isDynamicEntry": true,
@@ -351,13 +359,14 @@
       "_copy-CzkeUTw9.js",
       "_map-pin-D_DkfKtE.js",
       "_pencil-CzM8J4_p.js",
-      "_LikeButton-swsk3mhp.js",
+      "_LikeButton-BZDcByFl.js",
       "_trash-2-4tY51Ify.js",
+      "_user-cog-CI4nlT1t.js",
       "_time-CsO2HH21.js"
     ]
   },
   "resources/js/pages/Auth/ForgotPassword.vue": {
-    "file": "assets/ForgotPassword-BrU4tFyO.js",
+    "file": "assets/ForgotPassword-Ceo9gTn9.js",
     "name": "ForgotPassword",
     "src": "resources/js/pages/Auth/ForgotPassword.vue",
     "isDynamicEntry": true,
@@ -366,21 +375,21 @@
       "_arrow-left-CPzr_pIt.js",
       "_loader-circle-JOIl9-hw.js",
       "_FormField-Dm5BwE6F.js",
-      "_GuestLayout-ClsXp6XV.js"
+      "_GuestLayout-SXVYHuGM.js"
     ]
   },
   "resources/js/pages/Auth/InviteOnly.vue": {
-    "file": "assets/InviteOnly-pal6LCWm.js",
+    "file": "assets/InviteOnly-BAV3hsdC.js",
     "name": "InviteOnly",
     "src": "resources/js/pages/Auth/InviteOnly.vue",
     "isDynamicEntry": true,
     "imports": [
       "_createLucideIcon-CRoJyS9p.js",
-      "_GuestLayout-ClsXp6XV.js"
+      "_GuestLayout-SXVYHuGM.js"
     ]
   },
   "resources/js/pages/Auth/Login.vue": {
-    "file": "assets/Login-DMjmda2o.js",
+    "file": "assets/Login-_pol7Wya.js",
     "name": "Login",
     "src": "resources/js/pages/Auth/Login.vue",
     "isDynamicEntry": true,
@@ -388,11 +397,11 @@
       "_createLucideIcon-CRoJyS9p.js",
       "_loader-circle-JOIl9-hw.js",
       "_FormField-Dm5BwE6F.js",
-      "_GuestLayout-ClsXp6XV.js"
+      "_GuestLayout-SXVYHuGM.js"
     ]
   },
   "resources/js/pages/Auth/Register.vue": {
-    "file": "assets/Register-BD9QMQ6R.js",
+    "file": "assets/Register-CfhjhBzK.js",
     "name": "Register",
     "src": "resources/js/pages/Auth/Register.vue",
     "isDynamicEntry": true,
@@ -400,11 +409,11 @@
       "_createLucideIcon-CRoJyS9p.js",
       "_loader-circle-JOIl9-hw.js",
       "_FormField-Dm5BwE6F.js",
-      "_GuestLayout-ClsXp6XV.js"
+      "_GuestLayout-SXVYHuGM.js"
     ]
   },
   "resources/js/pages/Auth/ResetPassword.vue": {
-    "file": "assets/ResetPassword-ChsvaLWh.js",
+    "file": "assets/ResetPassword-BImCwb33.js",
     "name": "ResetPassword",
     "src": "resources/js/pages/Auth/ResetPassword.vue",
     "isDynamicEntry": true,
@@ -412,7 +421,7 @@
       "_createLucideIcon-CRoJyS9p.js",
       "_loader-circle-JOIl9-hw.js",
       "_FormField-Dm5BwE6F.js",
-      "_GuestLayout-ClsXp6XV.js"
+      "_GuestLayout-SXVYHuGM.js"
     ]
   },
   "resources/js/pages/Forum/Category.vue": {
@@ -431,7 +440,7 @@
     ]
   },
   "resources/js/pages/Forum/CategoryForm.vue": {
-    "file": "assets/CategoryForm-OvPwgwX1.js",
+    "file": "assets/CategoryForm-BIy-U0SJ.js",
     "name": "CategoryForm",
     "src": "resources/js/pages/Forum/CategoryForm.vue",
     "isDynamicEntry": true,
@@ -440,7 +449,7 @@
       "_arrow-left-CPzr_pIt.js",
       "_loader-circle-JOIl9-hw.js",
       "resources/js/app.js",
-      "_PeoplePicker-BIKjnY4f.js"
+      "_PeoplePicker-ChtLrlZW.js"
     ]
   },
   "resources/js/pages/Forum/Index.vue": {
@@ -457,7 +466,7 @@
     ]
   },
   "resources/js/pages/Forum/Post.vue": {
-    "file": "assets/Post-DwlBTb3C.js",
+    "file": "assets/Post-DQeeKqW-.js",
     "name": "Post",
     "src": "resources/js/pages/Forum/Post.vue",
     "isDynamicEntry": true,
@@ -469,13 +478,13 @@
       "_file-text-BqHDwxQQ.js",
       "_link-2-DPt0eTlv.js",
       "_pencil-CzM8J4_p.js",
-      "_LikeButton-swsk3mhp.js",
+      "_LikeButton-BZDcByFl.js",
       "_trash-2-4tY51Ify.js",
       "_time-CsO2HH21.js"
     ]
   },
   "resources/js/pages/Forum/PostForm.vue": {
-    "file": "assets/PostForm-xLUumQPY.js",
+    "file": "assets/PostForm-B74A8bFx.js",
     "name": "PostForm",
     "src": "resources/js/pages/Forum/PostForm.vue",
     "isDynamicEntry": true,
@@ -486,7 +495,7 @@
       "_file-text-BqHDwxQQ.js",
       "_loader-circle-JOIl9-hw.js",
       "resources/js/app.js",
-      "_PeoplePicker-BIKjnY4f.js"
+      "_PeoplePicker-ChtLrlZW.js"
     ]
   },
   "resources/js/pages/Slogans/Create.vue": {
@@ -502,7 +511,7 @@
     ]
   },
   "resources/js/pages/Zecca.vue": {
-    "file": "assets/Zecca-C35MtMCG.js",
+    "file": "assets/Zecca-CPUV-oy8.js",
     "name": "Zecca",
     "src": "resources/js/pages/Zecca.vue",
     "isDynamicEntry": true,
@@ -510,7 +519,7 @@
       "_createLucideIcon-CRoJyS9p.js",
       "_arrow-left-CPzr_pIt.js",
       "resources/js/app.js",
-      "_GuestLayout-ClsXp6XV.js"
+      "_GuestLayout-SXVYHuGM.js"
     ]
   }
 }

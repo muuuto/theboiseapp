@@ -17,6 +17,15 @@ class ListingUser extends Model
     protected $primaryKey = null;
     public $timestamps = false;
 
+    // False right after a deploy, before the migration adding the personal versions has run:
+    // album pages then show the general link/description instead of crashing
+    public static function hasPersonalVersions(): bool
+    {
+        static $exists = null;
+
+        return $exists ??= \Illuminate\Support\Facades\Schema::hasColumn('listing_user', 'custom_album_link');
+    }
+
     public function user() {
         return $this->belongsTo(User::class, 'user_id'); 
     }

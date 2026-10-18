@@ -1,7 +1,7 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, ImagePlus, Loader2, Plus, Search, Trash2, X } from 'lucide-vue-next';
+import { ArrowLeft, ImagePlus, Loader2, Plus, Search, Trash2, UserCog, X } from 'lucide-vue-next';
 import LeafletMap from '../../components/LeafletMap.vue';
 import RichTextEditor from '../../components/RichTextEditor.vue';
 import TagsInput from '../../components/TagsInput.vue';
@@ -27,6 +27,8 @@ const form = useForm({
     description: props.album?.description ?? '',
     videoLinks: props.album?.videoLinks.length ? [...props.album.videoLinks] : [],
     people: props.album?.people ?? [],
+    // Own photos link and/or description for some of the people (empty = the general one)
+    personal: props.album?.personal.map((version) => ({ ...version })) ?? [],
     cover: null,
 });
 
@@ -63,6 +65,19 @@ function addPlace(result) {
 function removePlace(index) {
     form.places = form.places.filter((_, position) => position !== index);
 }
+
+// Personal versions: only for people in the album, one each
+const peopleInAlbum = computed(() => props.users.filter((user) => form.people.includes(user.id)));
+const available = (current) => peopleInAlbum.value.filter((user) => user.id === current || !form.personal.some((version) => version.userId === user.id));
+const canAddVersion = computed(() => form.personal.length < peopleInAlbum.value.length);
+function addVersion() {
+    const first = available(null)[0];
+    if (first) form.personal.push({ userId: first.id, albumLink: '', description: '' });
+}
+// Someone removed from the album loses their version
+watch(() => form.people, (people) => {
+    form.personal = form.personal.filter((version) => people.includes(version.userId));
+});
 
 // Cover preview before uploading
 const coverPreview = ref(props.album?.cover ?? null);
@@ -137,6 +152,50 @@ const labelClass = 'mb-1.5 block text-sm font-semibold';
                 <span :class="labelClass">People in the album</span>
                 <PeoplePicker v-model="form.people" :users="users" />
                 <p v-if="form.errors.people" class="text-sm text-red-600">{{ form.errors.people }}</p>
+            </section>
+
+            <section class="space-y-3">
+                <div>
+                    <span :class="labelClass">Different version for someone <span class="font-normal text-slate-500">(optional)</span></span>
+                    <p class="text-xs text-slate-500">
+                        These people see their own photos link and/or description instead of the general ones. Leave a field empty to keep the general one.
+                    </p>
+                </div>
+
+                <div
+                    v-for="(version, index) in form.personal"
+                    :key="index"
+                    class="space-y-3 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800"
+                >
+                    <div class="flex items-center gap-2">
+                        <UserCog class="size-5 shrink-0 text-accent" />
+                        <select v-model="version.userId" class="h-10 flex-1 rounded-xl border-0 bg-white px-3 text-sm font-semibold ring-1 ring-slate-200 dark:bg-slate-950 dark:ring-slate-700">
+                            <option v-for="user in available(version.userId)" :key="user.id" :value="user.id">{{ user.name }}{{ user.isDemo ? ' (demo, for recruiters)' : '' }}</option>
+                        </select>
+                        <button type="button" class="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40" @click="form.personal.splice(index, 1)">
+                            <Trash2 class="size-4" /><span class="sr-only">Remove this version</span>
+                        </button>
+                    </div>
+                    <div>
+                        <span class="mb-1 block text-xs font-semibold">Their photos link</span>
+                        <input v-model="version.albumLink" type="url" :placeholder="form.albumLink || 'https://...'" :class="inputClass" />
+                        <p v-if="form.errors[`personal.${index}.albumLink`]" class="mt-1 text-sm text-red-600">{{ form.errors[`personal.${index}.albumLink`] }}</p>
+                    </div>
+                    <div>
+                        <span class="mb-1 block text-xs font-semibold">Their description</span>
+                        <RichTextEditor v-model="version.description" />
+                    </div>
+                </div>
+
+                <button
+                    type="button"
+                    class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium ring-1 ring-slate-200 hover:bg-white disabled:opacity-40 dark:ring-slate-700 dark:hover:bg-slate-900"
+                    :disabled="!canAddVersion"
+                    @click="addVersion"
+                >
+                    <Plus class="size-4" /> Add a version for someone
+                </button>
+                <p v-if="!form.people.length" class="text-xs text-slate-500">Choose the people in the album first.</p>
             </section>
 
             <section class="space-y-2">

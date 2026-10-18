@@ -176,7 +176,8 @@ class AlbumFeaturesTest extends TestCase
                 ->component('Albums/Form')
                 ->where('album', null)
                 ->where('knownTags.0', 'mountains')
-                ->where('users', fn ($users) => ! collect($users)->contains('name', 'Guest')));
+                // The demo account can be added to albums (that's what recruiters see)
+                ->where('users', fn ($users) => collect($users)->firstWhere('name', 'Guest')['isDemo'] === true));
     }
 
     public function test_map_shows_a_pin_per_place_of_my_albums(): void

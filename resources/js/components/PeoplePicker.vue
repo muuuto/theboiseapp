@@ -54,6 +54,7 @@ function toggle(id) {
                     </span>
                 </span>
                 <span class="truncate">{{ user.name }}</span>
+                <span v-if="user.isDemo" class="ml-auto shrink-0 rounded-full bg-amber-100 px-1.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-950 dark:text-amber-300">demo</span>
             </button>
             <p v-if="!visible.length" class="col-span-full p-2 text-sm text-slate-500">Nobody found</p>
         </div>
