@@ -87,12 +87,16 @@ The dump has emails and password hashes: never put it inside the project folder 
 ## Deploying
 
 The site runs on Serverplan shared hosting (cPanel, no SSH) from `/home/bptheboi/public_html`.
+The code is deployed with cPanel *Git Version Control*: it copies the repository into
+`public_html` (see `.cpanel.yml`).
 
-Always commit and push to `main` first, so what is live is exactly a commit.
+`vendor/` (the PHP packages) is not in git and **can't be uploaded**: the server's malware scanner
+rejects any archive of PHP libraries (false positives on normal Laravel/Symfony code). So when
+packages change, the server installs them itself with Composer, run by a one-time cron job.
+
+Always commit and push to `main` first.
 
 ### Which kind of release?
-
-`vendor/` (the PHP packages) is not in git: it stays on the server from the last full release.
 
 - **Did you change packages** since the last deploy (`composer require / update / remove`,
   so `composer.lock` changed)? → [Full release](#full-release-packages-changed)
@@ -110,96 +114,46 @@ To undo a quick release: `git revert` the commit, push, and deploy again.
 
 ### Full release (packages changed)
 
-Needed for the Laravel 13 upgrade. Git deploy alone would put the new code next to the old
-`vendor/` and break the site, so here the code and `vendor/` are uploaded together as an archive.
+Pick a quiet moment: from step 3 to step 6 the site is down for a few minutes.
 
-Pick a quiet moment: between steps 3 and 6 the site is down for a few minutes.
-
-#### 1. Build the release (on your PC)
-
-```sh
-./deploy/build-release.sh           # packages the last commit (HEAD)
-./deploy/build-release.sh 1a2b3c4   # or a specific commit
-```
-
-Only committed files are packaged: uncommitted work in progress is never included.
-
-This creates `release/theboise-<date>-<commit>.tar.gz`. It contains the code and the production `vendor/`.
-It never contains `.env`, uploaded photos, logs, backups or the root `.htaccess`
-(cPanel MultiPHP manages the PHP version written in that file).
-
-#### 2. Back up (on the server)
-
-- **Database:** if the site already has the maintenance page, open `/admin/maintenance` →
-  *Backup database now* and download the file. Otherwise export it from phpMyAdmin.
-- **Files:** in File Manager select `public_html` → *Compress* → download the archive.
-
-Don't continue until both are safely on your PC.
-
-#### 3. PHP version (first deploy of Laravel 13 only)
-
-cPanel → *Gestione MultiPHP* → set the domain to **PHP 8.4**.
-
-#### 4. Prepare the folder
-
-In File Manager, inside `public_html`:
-
-- rename `vendor` to `vendor_old` (that's your quick rollback)
-- in `bootstrap/cache/` delete every `.php` file (old caches can crash the new version)
-- **first deploy of Laravel 13 only:** in `database/migrations/` delete all the `.php` files
-  (the old migrations, replaced by `database/schema/mysql-schema.sql`; keep the folder)
-
-#### 5. Upload and extract
-
-Upload the `.tar.gz` into `public_html`, right click → *Extract* (overwrite existing files),
-then delete the `.tar.gz`.
-
-#### 6. Check
-
-1. Open the site and log in.
-2. Go to `/admin/maintenance` (also linked from *Monitor*):
-   - PHP and Laravel versions are the expected ones
-   - all checks are green; if one is red, enable that extension in cPanel's PHP settings
-   - press **Clear caches**
-   - if there are pending migrations: **Backup + run migrations**
-3. Open an album, a forum post and your account page.
-
-#### 7. Cron (first deploy of Laravel 13 only)
-
-cPanel → *Processi cron* → edit the existing job so it uses PHP 8.4, keeping it every minute (`* * * * *`):
-
-```
-/usr/local/bin/ea-php84 /home/bptheboi/public_html/artisan schedule:run >> /dev/null 2>&1
-```
-
-If that path doesn't exist on the server, ask Serverplan for the PHP 8.4 CLI path.
-The old `/usr/local/bin/php` may still be PHP 8.1, and then emails and backups silently stop.
-
-To check it works: the next morning `/admin/maintenance` must list a new backup made at 03:00.
-
-Optional: add `BACKUP_MAIL_TO=your@email` to the server `.env` to receive a backup every Sunday.
-
-#### 8. Clean up
-
-- After a few days without problems, delete `vendor_old`.
-- cPanel → *Git Version Control* → **Update from Remote** (only that, don't deploy), so the
-  next quick release starts from this commit.
+1. Commit and push to `main`.
+2. Back up:
+   - `/admin/maintenance` → **Backup database now** → download the file
+   - File Manager → select `public_html` → *Compress* → download the archive (optional, but it
+     makes a rollback trivial)
+3. File Manager, inside `public_html`: rename `vendor` to `vendor_old` (quick rollback).
+4. cPanel → *Git Version Control* → *Pull or Deploy* → **Update from Remote** → **Deploy HEAD Commit**.
+5. Install the packages: cPanel → *Processi cron* → add a **new** job, every minute (`* * * * *`):
+   ```
+   cd /home/bptheboi && mkdir composer-ran 2>/dev/null && { curl -sSL -o composer.phar https://getcomposer.org/download/latest-stable/composer.phar; cd public_html && /usr/local/bin/ea-php84 -d memory_limit=1G ../composer.phar install --no-dev --optimize-autoloader --no-interaction; } > /home/bptheboi/composer-install.log 2>&1
+   ```
+   It runs only once (the `composer-ran` folder blocks the next runs). After 3–4 minutes open
+   `/home/bptheboi/composer-install.log`: it must end with *"Generating optimized autoload files"*
+   and the list of discovered packages. If it shows an error (e.g. a missing PHP extension), fix
+   that, delete the `composer-ran` folder and it runs again the next minute.
+6. **Delete the cron job** you added and the `composer-ran` folder.
+7. `/admin/maintenance`: versions as expected, all checks green, **Clear caches**, and if there
+   are pending migrations **Backup + run migrations**. Then open an album, a forum post and your
+   account page.
+8. After a few days without problems, delete `vendor_old`.
 
 #### Rollback
 
-The code and `vendor` must always come from the same version, so restore both:
-
-1. *Gestione MultiPHP* → back to the previous PHP version (if you changed it).
-2. Delete `vendor` and rename `vendor_old` to `vendor`.
-3. Delete the `.php` files in `bootstrap/cache/`.
-4. Upload the archive downloaded in step 2 and extract it over `public_html` (this puts the old code back).
-5. Only if data got damaged: restore the database backup with phpMyAdmin → Import.
+1. Delete `vendor` and rename `vendor_old` to `vendor`.
+2. Delete the `.php` files in `bootstrap/cache/`.
+3. Deploy the previous commit: `git revert` the release commit(s), push, *Update from Remote* →
+   *Deploy HEAD Commit* (or extract the `public_html` archive from step 2).
+4. Only if data got damaged: restore the database backup with phpMyAdmin → Import.
 
 ### Good to know
 
-- **Deleted files stay on the server** with both methods: neither the Git deploy nor extracting
-  an archive removes anything. If you delete a file that matters (a migration, a route file...),
-  delete it in File Manager too.
+- **Never extract an archive over `public_html`** that contains a top-level `./` entry: it can
+  change the permissions of `public_html` itself and the whole site answers "403 Forbidden".
+  `public_html` must be **750**.
+- **Deleted files stay on the server**: the Git deploy copies files but never removes any. If you
+  delete a file that matters (a migration, a route file...), delete it in File Manager too.
 - **The Git deploy copies the root `.htaccess`**, including the PHP version block that MultiPHP
   writes. The repo says PHP 8.4: if you ever change the version in MultiPHP, update that block
-  in the repo too, or the next Git deploy switches the site back.
+  in the repo too, or the next deploy switches the site back.
+- **Cron jobs must use** `/usr/local/bin/ea-php84`: `/usr/local/bin/php` is a different
+  (older) PHP version.

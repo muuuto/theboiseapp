@@ -44,4 +44,27 @@ class Post extends Model
     {
         return $this->belongsToMany(User::class, 'post_user');
     }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class, 'category_id');
+    }
+
+    // The author and admins can change privacy settings and notify everyone.
+    // Note: $this->author is the author's id (the column), $this->author() the relationship
+    public function isManagedBy(User $user): bool
+    {
+        return $this->author == $user->id || $user->isAdmin == 1;
+    }
+
+    // Private posts are only for the author; hidden posts and categories are not for the hidden users
+    public function isVisibleTo(User $user): bool
+    {
+        if ($this->is_private && $this->author != $user->id) {
+            return false;
+        }
+
+        return ! $this->hidedUser->contains('id', $user->id)
+            && ! $this->category->hidedUser->contains('id', $user->id);
+    }
 }

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Comment;
 use App\Models\Listing;
+use App\Models\Slogan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
@@ -110,5 +111,35 @@ class ListingTest extends TestCase
         Comment::factory()->create(['listing_id' => $listing->id, 'user_id' => $user->id, 'comment' => 'First!']);
 
         $this->actingAs($user)->get("/listings/{$listing->id}")->assertSee('First!');
+    }
+
+    public function test_scripts_in_album_comments_and_description_are_removed(): void
+    {
+        $user = User::factory()->create();
+        $listing = Listing::factory()->create(['description' => '<p>Gita</p><script>alert("description")</script>']);
+        $listing->users()->attach($user);
+        Comment::factory()->create([
+            'listing_id' => $listing->id,
+            'user_id' => $user->id,
+            'comment' => '<b>Bello</b> <3<img src=x onerror="alert(\'comment\')">',
+        ]);
+
+        $this->actingAs($user)->get("/listings/{$listing->id}")
+            ->assertSee('<p>Gita</p>', false)
+            ->assertSee('<b>Bello</b> &lt;3', false)
+            ->assertDontSee('alert(', false);
+    }
+
+    public function test_slogans_keep_links_but_lose_scripts(): void
+    {
+        $user = User::factory()->create();
+        Slogan::create([
+            'sloganPhrase' => 'check <a href="https://example.com">here</a><script>alert("slogan")</script>',
+            'author' => 'Zecca',
+        ]);
+
+        $this->actingAs($user)->get('/')
+            ->assertSee('<a href="https://example.com" rel="noopener noreferrer">here</a>', false)
+            ->assertDontSee('alert(', false);
     }
 }

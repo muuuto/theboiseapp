@@ -12,7 +12,7 @@
                 <div class="border border-gray-200 w-full mb-6"></div>
                 <div class="w-full">
                     <div class="text-lg space-y-6">
-                        {!! $post->content !!}
+                        {!! \App\Support\SafeHtml::clean($post->content) !!}
                         <br>
                     </div>
                 </div>
@@ -91,10 +91,11 @@
                         </div>
                     </div>
                 @endif
-                @if(auth()->user()->id == 1)
-                    <a href="/forum/{{$category->id}}/{{$post->id}}/notify">
-                        <i class="fa-solid fa-envelope"></i> Notify all
-                    </a>
+                @if($post->isManagedBy(auth()->user()))
+                    <form method="POST" action="/forum/{{$category->id}}/{{$post->id}}/notify">
+                        @csrf
+                        <button><i class="fa-solid fa-envelope"></i> Notify all</button>
+                    </form>
                 @endif
             </x-card>
             

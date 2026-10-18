@@ -95,12 +95,14 @@
                 @enderror
             </div>
 
+            {{-- Only the author and admins can change who sees and edits the post --}}
+            @if ($canManage)
             <div class="mb-6 flex">
                 <label for="canEdit" class="inline-block text-lg mb-2">
                     Others can edit your post
                 </label>
-                
-                <input type="checkbox" class="border border-gray-200 p-2 rounded-full grow h-6" name="canEdit" value="{{$post->canEdit}}" />
+
+                <input type="checkbox" class="border border-gray-200 p-2 rounded-full grow h-6" name="canEdit" value="1" @checked($post->canEdit) />
         
                 @error('canEdit')
                     <p class="text-red-500 text-xs mt-1">{{$message}}</p>
@@ -112,7 +114,7 @@
                     Only you can see this post
                 </label>
                 
-                <input type="checkbox" class="border border-gray-200 p-2 rounded-full grow h-6" name="is_private" value="{{$post->is_private}}" />
+                <input type="checkbox" class="border border-gray-200 p-2 rounded-full grow h-6" name="is_private" value="1" @checked($post->is_private) />
         
                 @error('is_private')
                     <p class="text-red-500 text-xs mt-1">{{$message}}</p>
@@ -137,6 +139,7 @@
                     <p class="text-red-500 text-xs mt-1">{{$message}}</p>
                 @enderror
             </div>
+            @endif
 
             <input type="hidden" name="user_id" value="{{$user->id}}">
 

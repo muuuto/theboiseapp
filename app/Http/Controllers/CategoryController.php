@@ -106,7 +106,7 @@ class CategoryController extends Controller
         $categoryCreator = $category->created_by;
         $allUsers = User::all();
 
-        if (auth()->id() == $categoryCreator || auth()->id() == 1) {
+        if (auth()->id() == $categoryCreator || auth()->user()->isAdmin == 1) {
             return view('forum.categories.edit', [
                 'category' => $category,
                 'users' => auth()->user(),
@@ -121,8 +121,8 @@ class CategoryController extends Controller
     public function update(Request $request, Category $category) {
         $categoryCreator = $category->created_by;
 
-        // Make sure logged in user is owner
-        if($categoryCreator != auth()->id() || auth()->id() != 1) {
+        // Only the creator and admins can edit a category
+        if ($categoryCreator != auth()->id() && auth()->user()->isAdmin != 1) {
             abort(403, 'Unauthorized Action');
         }
 
@@ -143,9 +143,8 @@ class CategoryController extends Controller
             $formFields['logo'] = $image->store('categoryLogo', 'public');
         }
 
-        if($request->hideCategoryFrom) {
-            $category->hidedUser()->sync($request->hideCategoryFrom);
-        }
+        // Nobody selected means visible to everyone
+        $category->hidedUser()->sync($request->input('hideCategoryFrom', []));
 
         $category->update($formFields);
 
@@ -169,7 +168,8 @@ class CategoryController extends Controller
                 Storage::disk('public')->delete($post->cover);
             }
 
-            $attachments = json_decode($post->attachments, true);
+            // Posts without attachments have null here
+            $attachments = json_decode($post->attachments ?? '', true) ?? [];
             foreach($attachments as $attachment) {
                 if($attachment && Storage::disk('public')->exists($attachment)) {
                     Storage::disk('public')->delete($attachment);

@@ -188,7 +188,8 @@ class AccountController extends Controller
                 return false;
         }
 
-        $file_type != '3' ?? $exif = exif_read_data($sourceImage);
+        // Phones save the rotation in the EXIF data (only JPEGs have it); @ because photos without EXIF warn
+        $exif = $file_type == IMAGETYPE_JPEG && function_exists('exif_read_data') ? @exif_read_data($sourceImage) : [];
 
         if (!empty($exif['Orientation'])) {
             switch ($exif['Orientation']) {

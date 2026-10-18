@@ -4,7 +4,7 @@
     a new comment was added to the <strong>{{$albumTitle}}</strong> album by <strong>{{$commentOfUser}}</strong>:
 
     <br>
-    <i>{!! $comment !!}</i>
+    <i>{!! \App\Support\SafeHtml::clean($comment) !!}</i>
     <br>
     <br>
 

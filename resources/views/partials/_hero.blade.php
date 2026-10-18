@@ -11,7 +11,7 @@
             @if (auth()->user()->id == 28)
                 Welcome to THEBOISE.IT
             @else
-                {!! $slogan["sloganPhrase"] !!} - by {{$slogan["author"]}}
+                {!! \App\Support\SafeHtml::clean($slogan["sloganPhrase"]) !!} - by {{$slogan["author"]}}
             @endif
         </p>
         @if (auth()->user()->id != 28)

@@ -6,7 +6,6 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SloganController;
 use App\Http\Controllers\AccountController;
-use App\Http\Controllers\SplitwiseController;
 use App\Http\Controllers\MaintenanceController;
 use Illuminate\Support\Facades\Route;
 
@@ -163,27 +162,7 @@ Route::get('/forum/{category}/{post}', [PostController::class, 'show'])->middlew
 Route::post('/forum/{category}/{post}/comment', [PostController::class, 'comment'])->middleware('auth')->name('forum.posts.comment');
 
 // Send Post
-Route::get('/forum/{category}/{post}/notify', [PostController::class, 'notify'])->middleware('auth')->name('forum.posts.notify');
-
-Route::get('/splitwise/', [SplitwiseController::class, 'index'])->middleware('auth')->name('splitwise.index');
-
-// Show Create Splitwise
-Route::get('/splitwise/create', [SplitwiseController::class, 'create'])->middleware('auth')->name('splitwise.create');
-
-// Store Splitwise Data
-Route::post('/splitwise/store', [SplitwiseController::class, 'store'])->middleware('auth')->name('splitwise.store');
-
-// Show Edit Splitwise
-Route::get('/splitwise/{group}/edit', [SplitwiseController::class, 'edit'])->middleware('auth')->name('splitwise.edit');
-
-// Update Splitwise
-Route::put('/splitwise/{group}/update', [SplitwiseController::class, 'update'])->middleware('auth')->name('splitwise.update');
-
-// Delete Splitwise
-Route::delete('/splitwise/{group}/delete', [SplitwiseController::class, 'destroy'])->middleware('auth')->name('splitwise.delete');
-
-// Manage Splitwise
-Route::get('/splitwise/{group}/manage', [SplitwiseController::class, 'manage'])->middleware('auth')->name('splitwise.manage');
+Route::post('/forum/{category}/{post}/notify', [PostController::class, 'notify'])->middleware('auth')->name('forum.posts.notify');
 
 // Maintenance (admin only): clear caches, backups and migrations without SSH
 Route::middleware(['auth', 'can:admin'])->prefix('admin/maintenance')->group(function () {

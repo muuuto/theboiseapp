@@ -21,7 +21,7 @@
                     </h3>
                     <div class="text-lg space-y-6">
                         <div class="text-left">
-                            {!!$listing->description!!}
+                            {!! \App\Support\SafeHtml::clean($listing->description) !!}
                         </div>
                         <br>
                         <a href="{{$listing->albumLink}}" target="_blank" class="block bg-black text-white py-2 rounded-xl hover:opacity-80"><i class="fa-solid fa-globe"></i> Visit
@@ -126,7 +126,7 @@
                                     {{$comment->user->name}}
                                 </div>
                                 <p>
-                                    {!! $comment->comment !!}
+                                    {!! \App\Support\SafeHtml::clean($comment->comment) !!}
                                 </p>
                                 <div class="text-slate-400">
                                     {{date('j F, Y h:i:s A', strtotime($comment->created_at))}}

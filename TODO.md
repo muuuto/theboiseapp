@@ -5,25 +5,19 @@ Feature wishlist is in `notes.md`. How-to for local development and deploying is
 
 ## Release plan
 
-1. **Full release: Laravel 13 upgrade** (packages changed → *Full release* in `deploy/DEPLOY.md`).
-   Contains the upgrade, tests, backups, maintenance page, and the `symfony/html-sanitizer`
-   package needed later for slogans (added now so the next releases don't change packages).
+1. ~~**Full release: Laravel 13 upgrade**~~ ✅ deployed 2026-10-17. Contains the upgrade, tests,
+   backups, maintenance page, and the `symfony/html-sanitizer` package needed later for slogans.
 2. **Quick release 1: bug fixes** (only code → usual cPanel Git deploy). See *Decided fixes*.
+   ✅ Done locally, 58 tests passing, ready to commit and deploy. After deploying you can delete
+   `public_html/app/Http/Controllers/SplitwiseController.php` (deploys never delete files).
 3. **Quick release 2: invite-only registration** (needs a migration → run it from `/admin/maintenance`).
-4. **Redesign** with Inertia + Vue 3 + Tailwind 4, page by page. This adds frontend assets
-   (`public/build`, not in git), so those releases will need the archive again.
+4. **Redesign** with Inertia + Vue 3 + Tailwind 4, page by page. This adds built frontend assets
+   (`public/build`, not in git): decide how to ship them (commit them, or build on the server).
 
-## Now (you)
+## On the server (after the Laravel 13 deploy)
 
-- [ ] Review the changes and commit them (nothing has been committed)
-- [ ] Deploy Laravel 13 with the **Full release** steps in `deploy/DEPLOY.md`, not the usual
-      cPanel Git deploy (packages changed). Don't forget to delete the old files in
-      `public_html/database/migrations/`
-
-## On the server (during / after the first deploy)
-
-- [ ] cPanel → *Gestione MultiPHP* → PHP 8.4
-- [ ] cPanel → *Processi cron* → change the command to the PHP 8.4 binary
+- [x] cPanel → *Gestione MultiPHP* → PHP 8.4
+- [ ] cPanel → *Processi cron* → the regular job must use the PHP 8.4 binary
       (`/usr/local/bin/ea-php84 /home/bptheboi/public_html/artisan schedule:run >> /dev/null 2>&1`)
 - [ ] The next morning: check that `/admin/maintenance` lists a new backup made at 03:00
       (if not, the cron is still using the old PHP)
@@ -71,6 +65,14 @@ Each fix gets a test.
 11. **Splitwise:** remove the broken page, route and controller (copied forum code, nothing reusable).
     Splitwise stays wanted: rebuild it properly after the redesign (see `notes.md`).
 
+Also done in the same release:
+- The same HTML cleaning as slogans (#9) for album comments, album descriptions, post content and
+  the album comment email: TinyMCE formatting kept, scripts removed. Checked on all real content:
+  nothing visible changes.
+- Other people's private posts are no longer listed (they only gave "forbidden" when opened).
+- Posts in a category hidden from someone can't be opened by them with a direct link anymore.
+- "Notify all" is now a button that sends a form (POST), so it can't be triggered just by opening a link.
+
 ## Decided: registration (quick release 2)
 
 - **Invite links only.** On `/admin/maintenance` the admin creates an invite link, sends it
@@ -84,6 +86,14 @@ Each fix gets a test.
 - Look: **keep the current colors** (familiar to the friends), modernize style and add modern
   features, no complete redesign. Simple, clean, dynamic, functional.
 - Replace the crowded top navbar with a **sidebar / drawer**.
+
+## Found later (to plan)
+
+- **Black bars in album previews (and in emails):** 60 of 202 album previews have black bars
+  on the sides, baked into the image. Cause: the BulkResize link on the album form uses
+  `type=exact` 800×600, which pads vertical photos. Plan (redesign phase): the site resizes and
+  crops the preview itself (fill 4:3, no bars, no external tool), and auto-trim the 60 existing
+  ones. Also make email images responsive (now fixed `width="800" height="600"`).
 
 ## Still open
 

@@ -31,17 +31,8 @@ class PostController extends Controller
             });
         }
 
-        if ($user) {
-            $posts = $category->posts;
-        }
+        $posts = $category->posts->filter(fn ($post) => $post->isVisibleTo($user));
 
-        $hided = $user->hidedPost()->allRelatedIds()->all();
-        $posts->filter(function($value, $key) use ($hided, $posts) {
-            if(in_array($value->id, $hided)) {
-                $posts->forget($key);
-            }
-        });
-        
         $slogan = Slogan::all();
 
         if(count($slogan) > 0) {
@@ -138,14 +129,10 @@ class PostController extends Controller
     // Show single Post
     public function show(Category $category, Post $post) {
         $user = auth()->user();
-        if ($post->hidedUser) {
-            $post->hidedUser->each(function ($hidedUser) use ($user) {
-                if($hidedUser->id == $user->id) {
-                    abort(403, 'Unauthorized Action');
-                };
-            });
+        if (! $post->isVisibleTo($user)) {
+            abort(403, 'Unauthorized Action');
         }
-        
+
         $comments = $post->comments;
         $author = $post->author()->getResults()->name; 
 
@@ -162,10 +149,6 @@ class PostController extends Controller
             }
         }
 
-        if($post->is_private && ($post->author()->getResults()->id != auth()->id())) {
-            abort(403, 'Unauthorized Action');
-        }
-        
         $formFields['counter'] = $post->counter + 1;
         $post->update($formFields);
 
@@ -189,31 +172,24 @@ class PostController extends Controller
         $formFields['user_id'] = $user;
         $formFields['post_id'] = $post->id;
 
-        $uniqueComments = $post->comments()->getResults()->unique('user_id');
-        foreach($uniqueComments as $comment) {
-            if($comment->user_id != $user) {
-                $email_data = array(
-                    'name' => $comment->user()->getResults()->name,
-                    'email' => $comment->user()->getResults()->email,
-                    'commentOfUser' => User::findOrFail(auth()->id())->name,
-                    'comment' => $formFields['comment'],
-                    'postTitle' => $post->title,
-                    'postLink' => 'https://theboise.it/forum/' . $category->id . '/' . $post->id
-                );
-
-                Mail::send('/mails/new_comment_post', $email_data, function ($message) use ($email_data, $post) {
-                    $message->to($email_data['email'], $email_data['name'])
-                        ->subject('New comment added to post ' . $post->title . ' - theboise.it')
-                        ->from('info@theboise.it', 'TheBoise');
-                });
-            }
+        if (! $post->isVisibleTo(auth()->user())) {
+            abort(403, 'Unauthorized Action');
         }
 
-        if (!$uniqueComments->contains('user_id', null, $category->created_by)) {
+        // Notify the author and everyone who commented before, once each,
+        // except the person commenting and whoever can't see the post
+        $recipients = User::whereIn('id', $post->comments()->pluck('user_id')->push($post->author))
+            ->where('id', '!=', $user)
+            ->get()
+            ->filter(fn ($recipient) => $post->isVisibleTo($recipient));
+
+        PostComment::create($formFields);
+
+        foreach ($recipients as $recipient) {
             $email_data = array(
-                'name' => $post->author()->getResults()->name,
-                'email' => $post->author()->getResults()->email,
-                'commentOfUser' => User::findOrFail(auth()->id())->name,
+                'name' => $recipient->name,
+                'email' => $recipient->email,
+                'commentOfUser' => auth()->user()->name,
                 'comment' => $formFields['comment'],
                 'postTitle' => $post->title,
                 'postLink' => 'https://theboise.it/forum/' . $category->id . '/' . $post->id
@@ -226,23 +202,6 @@ class PostController extends Controller
             });
         }
 
-        $email_data = array(
-            'name' => $post->author()->getResults()->name,
-            'email' => $post->author()->getResults()->email,
-            'commentOfUser' => $post->author()->getResults()->name,
-            'comment' => $formFields['comment'],
-            'postTitle' => $post->title,
-            'postLink' => 'https://theboise.it/forum/' . $category->id . '/' . $post->id
-        );
-
-        Mail::send('/mails/new_comment_post', $email_data, function ($message) use ($email_data, $post) {
-            $message->to($email_data['email'], $email_data['name'])
-                ->subject('New comment added to post ' . $post->title . ' - theboise.it')
-                ->from('info@theboise.it', 'TheBoise');
-        });
-
-        PostComment::create($formFields);
-        
         return back()->with('message', 'Comment created successfully!');
     }
 
@@ -265,13 +224,14 @@ class PostController extends Controller
         $author = $post->author()->getResults();
         $users = User::all();
 
-        if ($post->canEdit || auth()->id() == $author->id || auth()->id() == 1) {
+        if (($post->canEdit && $post->isVisibleTo(auth()->user())) || $post->isManagedBy(auth()->user())) {
             return view('forum.posts.edit', [
                 'category' => $category,
                 'post' => $post,
                 'author' => $author,
                 'user' => auth()->user(),
-                'users' => $users
+                'users' => $users,
+                'canManage' => $post->isManagedBy(auth()->user())
             ]);
         } else {
             abort(403, 'Unauthorized Action');
@@ -280,43 +240,51 @@ class PostController extends Controller
 
     // Send post
     public function notify(Category $category, Post $post) {
-        if($post->hidedUser) {
-            $users = User::all();
-            $allowedUsers = $users->diff($post->hidedUser);
-            foreach ($allowedUsers as $key => $user) {
-                $email_data = array(
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'postTitle' => $post->title,
-                    'postLink' => 'https://theboise.it/forum/' . $category->id . '/' . $post->id
-                );
-        
-                Mail::send('/mails/notify_post', $email_data, function ($message) use ($email_data, $post) {
-                    $message->to($email_data['email'], $email_data['name'])
-                        ->subject('Check out this new post inside forum: ' . $post->title . ' - theboise.it')
-                        ->from('info@theboise.it', 'TheBoise');
-                });
-            }
-
-            return redirect('/forum/' . $category->id . '/' . $post->id)->with('message', 'Notification created successfully!');
+        if (! $post->isManagedBy(auth()->user())) {
+            abort(403, 'Unauthorized Action');
         }
+
+        $allowedUsers = User::where('id', '!=', auth()->id())->get()
+            ->filter(fn ($user) => $post->isVisibleTo($user));
+
+        foreach ($allowedUsers as $user) {
+            $email_data = array(
+                'name' => $user->name,
+                'email' => $user->email,
+                'postTitle' => $post->title,
+                'postLink' => 'https://theboise.it/forum/' . $category->id . '/' . $post->id
+            );
+
+            Mail::send('/mails/notify_post', $email_data, function ($message) use ($email_data, $post) {
+                $message->to($email_data['email'], $email_data['name'])
+                    ->subject('Check out this new post inside forum: ' . $post->title . ' - theboise.it')
+                    ->from('info@theboise.it', 'TheBoise');
+            });
+        }
+
+        return redirect('/forum/' . $category->id . '/' . $post->id)->with('message', 'Notification created successfully!');
     }
 
     // Update Post Data
     public function update(Request $request, Category $category, Post $post) {
-        $author = $post->author()->getResults();
         $currentUser = auth()->user();
-        
-        // Make sure logged in user is owner
-        if($post->canEdit || auth()->id() == $author->id || auth()->id() == 1) {
-            $request->has('is_private') ? $formFields['is_private'] = 1 : $formFields['is_private'] = 0;
+        $canManage = $post->isManagedBy($currentUser);
 
+        // Author and admins, or anyone who can see the post if "others can edit" is on
+        if(($post->canEdit && $post->isVisibleTo($currentUser)) || $canManage) {
             $formFields = $request->validate([
                 'title' => 'required',
                 'description' => 'required',
                 'tags' => 'required',
                 'content' => 'required'
             ]);
+
+            // Only the author and admins can change who sees and edits the post
+            if ($canManage) {
+                $formFields['is_private'] = $request->has('is_private') ? 1 : 0;
+                $formFields['canEdit'] = $request->has('canEdit') ? 1 : 0;
+                $post->hidedUser()->sync($request->input('hideFrom', []));
+            }
 
             if($request->hasFile('cover')) {
                 if($post->cover && Storage::disk('public')->exists($post->cover)) {
@@ -361,10 +329,6 @@ class PostController extends Controller
             }
             array_push($arrayLastChanges, date('Y-m-d H:i:s', time()) . ': ' . $currentUser->name);
             $formFields['last_changes'] = json_encode(array_values($arrayLastChanges));
-            
-            if($request->hideFrom) {
-                $post->hidedUser()->sync($request->hideFrom);
-            }
 
             $post->update($formFields);
 
@@ -387,7 +351,8 @@ class PostController extends Controller
             Storage::disk('public')->delete($post->cover);
         }
         
-        $attachments = json_decode($post->attachments, true);
+        // Posts without attachments have null here
+        $attachments = json_decode($post->attachments ?? '', true) ?? [];
 
         foreach($attachments as $attachment) {
             if($attachment && Storage::disk('public')->exists($attachment)) {
