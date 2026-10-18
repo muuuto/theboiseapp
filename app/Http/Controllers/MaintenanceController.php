@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Invite;
+use Inertia\Inertia;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
@@ -29,11 +30,19 @@ class MaintenanceController extends Controller
         rsort($backups);
 
         // Before its migration runs the table doesn't exist: the page must still work to run it
+        // Only what the page shows: everything given to a Vue page reaches the browser
         $invites = Schema::hasTable('invites')
-            ? Invite::with(['creator', 'usedBy'])->latest()->limit(30)->get()
+            ? Invite::with(['creator', 'usedBy'])->latest()->limit(30)->get()->map(fn (Invite $invite) => [
+                'id' => $invite->id,
+                'note' => $invite->note,
+                'usedBy' => $invite->used_at ? ($invite->usedBy?->name ?? 'deleted user') : null,
+                'usedAt' => $invite->used_at?->toIso8601String(),
+                'expiresAt' => $invite->expires_at->toIso8601String(),
+                'expired' => $invite->expires_at->isPast(),
+            ])
             : null;
 
-        return view('maintenance.index', [
+        return Inertia::render('Admin/Maintenance', [
             'invites' => $invites,
             'pendingMigrations' => array_values($pending),
             'backups' => array_map(fn ($file) => [

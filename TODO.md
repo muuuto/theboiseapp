@@ -161,7 +161,29 @@ Steps (one release each):
          `resources/views/listings/show|create|edit.blade.php`, `components/posts-card`,
          `categories-card`, `forum-tags`, `listing-tags`, `googleAutocomplete`. Harmless if left.
 4. **The rest**: account, login/password pages, invite page, admin pages.
-5. After the redesign: **Splitwise**.
+   ✅ Done locally, 132 tests passing: every page is Vue now, the old Blade layout is gone (with the
+   Tailwind CDN, Font Awesome, Alpine and TinyMCE scripts). New: "Remember me" on login, birthday
+   and change password on the account page, readable password-reset messages. Fixed: WebP profile
+   pictures crashed. The Zecca page stays public. `/listings/manage` redirects to the albums.
+   Also includes the fix for the crash before migrations (the bell checks its table exists).
+
+   **To deploy** (quick release, no new PHP packages, no migrations):
+   - [ ] Push, then cPanel Git deploy, then `/admin/maintenance` → **Clear caches**
+   - [ ] Try: logout and login (with "Remember me"), the account page (set your birthday),
+         the maintenance page, an invite link in a private window
+   - [ ] Optional: delete on the server the old Blade views removed from the repo:
+         `resources/views/account`, `monitor`, `maintenance`, `slogan`, `users`, `listings`,
+         `components` (everything in `resources/views` except `app.blade.php` and `mails`)
+5. **Per-person album link and description** (wanted): an album has a general photos link and a
+   general description, used for everyone, except the people for whom a specific link and/or
+   description is set (e.g. a different Amazon Photos link for some of them). Idea: two optional
+   fields on each person of the album (the `listing_user` table already links albums and people),
+   set in the album form next to each person; the album page and the emails pick the person's
+   own version when there is one.
+6. **Nicer emails** (wanted): all the emails (new album, comments, reminders, anniversaries,
+   birthday, welcome, invites...) in one clean template with the site's look: logo, colors,
+   album preview, a clear button, readable on phones and in dark mode.
+7. After the redesign: **Splitwise**.
 
 ## Found later (to plan)
 

@@ -94,13 +94,12 @@ class LikeNotificationsTest extends TestCase
         $this->assertCount(0, $this->author->fresh()->unreadNotifications);
     }
 
-    public function test_the_old_pages_bell_shows_likes_too(): void
+    public function test_the_bell_shows_likes_on_every_page(): void
     {
         $this->like($this->friend);
 
         $this->actingAs($this->author)->get('/account')
-            ->assertSee('liked your comment')
-            ->assertSee('Zecca');
+            ->assertInertia(fn ($page) => $page->component('Account/Index')->where('notifications.likes.0.liker', 'Zecca'));
     }
 
     public function test_forum_comment_likes_link_to_the_post(): void

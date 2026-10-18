@@ -174,6 +174,18 @@ Pick a quiet moment: from step 3 to step 6 the site is down for a few minutes.
    *Deploy HEAD Commit* (or extract the `public_html` archive from step 2).
 4. Only if data got damaged: restore the database backup with phpMyAdmin → Import.
 
+### If the site crashes right after a deploy ("Table ... doesn't exist")
+
+The new code needs a migration that hasn't run yet, and the maintenance page can't be reached.
+Run the migrations with a one-time cron job (it makes a database backup first):
+
+1. cPanel → *Processi cron* → add a **new** job, every minute (`* * * * *`):
+   ```
+   cd /home/bptheboi/public_html && mkdir /home/bptheboi/migrate-ran 2>/dev/null && { /usr/local/bin/ea-php84 artisan backup:database; /usr/local/bin/ea-php84 artisan migrate --force; } > /home/bptheboi/migrate.log 2>&1
+   ```
+2. After 1–2 minutes, `/home/bptheboi/migrate.log` must show the backup and the migrations `DONE`.
+3. Delete the cron job and the `migrate-ran` folder.
+
 ### Good to know
 
 - **Never extract an archive over `public_html`** that contains a top-level `./` entry: it can

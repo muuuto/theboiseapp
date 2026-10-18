@@ -85,8 +85,15 @@ Route::get('/slogan/create', [SloganController::class, 'create'])->middleware(['
 Route::post('/slogan', [SloganController::class, 'store'])->middleware(['auth', 'not-demo']);
 
 // Zecca Gay page
+// The answer is always the same (2% of the time the site "has a technical problem"). Public page
 Route::get('/zeccaGay', function() {
-    return view('listings.zecca-gay');
+    $answers = ["yes", "of course", "mega gay", "giga gay", "i hate him and he's gay", "definitely", "100% gay", "yes and also bald", "site working correctly, he's gay", "shibsha gay", "we both already know the answer", "yep", "aye", "yeah", "indeed", "undoubtedly", "unquestionably", "absolutely", "hell yeah"];
+    $broken = rand(1, 100) > 98;
+
+    return Inertia\Inertia::render('Zecca', [
+        'answer' => $broken ? "no, but the site might have some technical problem, wanna try again?" : $answers[array_rand($answers)],
+        'broken' => $broken,
+    ]);
 });
 
 // monitoring
@@ -133,11 +140,12 @@ Route::get('/account', [AccountController::class, 'index'])->middleware('auth');
 // Update account
 Route::put('/account/update', [AccountController::class, 'update'])->middleware(['auth', 'not-demo']);
 
+// Change password
+Route::put('/account/password', [AccountController::class, 'password'])->middleware(['auth', 'not-demo']);
+
 // Add media to wallet
 Route::put('/account/addWallet', [AccountController::class, 'addWallet'])->middleware(['auth', 'not-demo']);
 
-// Update all the users with blank avatar
-// Route::put('/account/linkNoImage', [AccountController::class, 'linkNoImage'])->middleware('auth');
 
 
 // All Categories

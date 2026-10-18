@@ -193,15 +193,10 @@ class ListingController extends Controller
         return redirect('/')->with('message', 'Album deleted');
     }
 
-    // Manage Listings
+    // The old "manage" page listed the same albums as the home page
     public function manage()
     {
-        $user = auth()->user();
-        if ($user) {
-            $listings = $user->listing()->get();
-        }
-
-        return view('listings.manage', ['listings' => $user ? $listings : []]);
+        return redirect('/');
     }
 
     // Store Comments Data (people in the album only). Comments are plain text with emojis:

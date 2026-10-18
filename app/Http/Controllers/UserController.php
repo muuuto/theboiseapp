@@ -6,6 +6,7 @@ use App\Models\Invite;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Support\Media;
 use Inertia\Inertia;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Mail;
@@ -19,10 +20,10 @@ class UserController extends Controller
     // Show Register/Create Form: registration is invite-only
     public function create(?string $token = null) {
         if (! Invite::findUsable($token)) {
-            return view('users.invite-only');
+            return Inertia::render('Auth/InviteOnly');
         }
 
-        return view('users.register', ['token' => $token]);
+        return Inertia::render('Auth/Register', ['token' => $token]);
     }
 
     // Create New User
@@ -95,7 +96,7 @@ class UserController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        // From a Vue page: full page load, the login page is still Blade
+        // From a Vue page: full page load, nothing of the previous session stays in the browser
         if ($request->header('X-Inertia')) {
             return Inertia::location('/login');
         }
@@ -105,7 +106,7 @@ class UserController extends Controller
 
     // Show Login Form
     public function login() {
-        return view('users.login');
+        return Inertia::render('Auth/Login');
     }
 
     // Authenticate User
@@ -115,7 +116,8 @@ class UserController extends Controller
             'password' => 'required'
         ]);
 
-        if(auth()->attempt($formFields)) {
+        // "Remember me": stay logged in on this device
+        if(auth()->attempt($formFields, $request->boolean('remember'))) {
             $request->session()->regenerate();
             
             $user = auth()->user();
@@ -156,7 +158,7 @@ class UserController extends Controller
 
     // display form for resetting password
     public function forgotPasswordShow() {
-        return view('users.forgot-password');
+        return Inertia::render('Auth/ForgotPassword');
     }
 
     // post form of resetting password
@@ -168,13 +170,14 @@ class UserController extends Controller
         );
 
         return $status === Password::RESET_LINK_SENT
-                    ? back()->with(['status' => $status])
-                    : back()->withErrors(['email' => $status]);
+                    ? back()->with(['status' => __($status)])
+                    : back()->withErrors(['email' => __($status)]);
     }
 
     // form of the new password
-    public function forgotPasswordReset(string $token) {
-        return view('users.reset-password', ['token' => $token]);
+    public function forgotPasswordReset(Request $request, string $token) {
+        // The email comes in the link of the reset email
+        return Inertia::render('Auth/ResetPassword', ['token' => $token, 'email' => $request->query('email', '')]);
     }
 
     public function forgotPasswordUpdate(Request $request) {
@@ -198,18 +201,24 @@ class UserController extends Controller
         );
      
         return $status === Password::PASSWORD_RESET
-                    ? redirect()->route('login')->with('status', "Succesfully reset of password")
-                    : back()->withErrors(['email' => [($status)]]);
+                    ? redirect()->route('login')->with('status', 'Your password has been changed: you can log in.')
+                    : back()->withErrors(['email' => __($status)]);
     }
 
+    // Admin: who logged in and when
     public function monitor(Request $request) {
-        $users = User::all()->sortByDesc('last_login');
-        $user = auth()->user()['isAdmin'];
-        if ($user == 1) {
-            return view('monitor.index', [
-                'users' => $users
-            ]);        } else {
-            abort(403, 'Unauthorized Action');
-        }
+        abort_unless(auth()->user()->isAdmin == 1, 403, 'Unauthorized Action');
+
+        $users = User::orderByDesc('last_login')->get()->map(fn (User $user) => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'avatar' => Media::url($user->profilePicture),
+            'lastLogin' => $user->last_login ? \Carbon\Carbon::parse($user->last_login, 'Europe/Rome')->toIso8601String() : null,
+            'isAdmin' => $user->isAdmin == 1,
+            'isDemo' => (bool) $user->is_demo,
+        ]);
+
+        return Inertia::render('Admin/Monitor', ['users' => $users]);
     }
 }

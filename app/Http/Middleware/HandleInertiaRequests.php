@@ -6,6 +6,7 @@ use App\Console\Commands\GenerateAnniversaryNotifications;
 use App\Models\ListingUser;
 use App\Notifications\CommentLiked;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use App\Support\Media;
 use Inertia\Middleware;
 
@@ -51,6 +52,11 @@ class HandleInertiaRequests extends Middleware
             'notifications' => fn () => $user ? $this->notifications($user) : null,
             'flash' => [
                 'message' => fn () => $request->session()->get('message'),
+                // Password reset emails ("We have emailed your password reset link")
+                'status' => fn () => $request->session()->get('status'),
+                // Maintenance page: output of the commands, a newly created invite link
+                'output' => fn () => $request->session()->get('output'),
+                'inviteLink' => fn () => $request->session()->get('inviteLink'),
             ],
         ];
     }
@@ -58,6 +64,12 @@ class HandleInertiaRequests extends Middleware
     // "Zecca liked your comment" from the last 30 days (also used by the Blade layout's bell)
     public static function likeNotifications($user): array
     {
+        // Right after a deploy, before its migration runs, the table doesn't exist yet. Every page
+        // shows the bell, the maintenance page too: it must keep working to run the migration
+        if (! Schema::hasTable('notifications')) {
+            return [];
+        }
+
         return $user->notifications()
             ->where('type', CommentLiked::class)
             ->where('created_at', '>=', now()->subDays(30))

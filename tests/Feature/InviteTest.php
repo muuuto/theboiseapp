@@ -13,9 +13,9 @@ class InviteTest extends TestCase
 
     public function test_register_without_invite_shows_invite_only_page(): void
     {
-        $this->get('/register')->assertOk()->assertSee('Invite only')->assertDontSee('name="password"', false);
-        $this->get('/register/not-a-real-code')->assertOk()->assertSee('Invite only');
-        $this->get('/login')->assertDontSee('href="/register"', false);
+        $this->get('/register')->assertInertia(fn ($page) => $page->component('Auth/InviteOnly'));
+        $this->get('/register/not-a-real-code')->assertInertia(fn ($page) => $page->component('Auth/InviteOnly'));
+        $this->get('/login')->assertInertia(fn ($page) => $page->component('Auth/Login'));
     }
 
     public function test_valid_invite_shows_the_form(): void
@@ -23,9 +23,7 @@ class InviteTest extends TestCase
         [, $token] = $this->invite();
 
         $this->get("/register/{$token}")
-            ->assertOk()
-            ->assertSee('name="password"', false)
-            ->assertSee('value="' . $token . '"', false);
+            ->assertInertia(fn ($page) => $page->component('Auth/Register')->where('token', $token));
     }
 
     public function test_registering_with_an_invite_creates_the_user_and_uses_the_invite(): void
@@ -55,7 +53,7 @@ class InviteTest extends TestCase
         auth()->logout();
 
         $this->post('/users', $this->registration($token, 'someone@example.com'))->assertSessionHasErrors('invite');
-        $this->get("/register/{$token}")->assertSee('Invite only');
+        $this->get("/register/{$token}")->assertInertia(fn ($page) => $page->component('Auth/InviteOnly'));
         $this->assertDatabaseMissing('users', ['email' => 'someone@example.com']);
     }
 
@@ -64,7 +62,7 @@ class InviteTest extends TestCase
         [$invite, $token] = $this->invite();
         $invite->update(['expires_at' => now()->subMinute()]);
 
-        $this->get("/register/{$token}")->assertSee('Invite only');
+        $this->get("/register/{$token}")->assertInertia(fn ($page) => $page->component('Auth/InviteOnly'));
         $this->post('/users', $this->registration($token))->assertSessionHasErrors('invite');
     }
 
@@ -88,7 +86,8 @@ class InviteTest extends TestCase
         $this->assertEquals('For Zecca', Invite::first()->note);
         $this->assertEqualsWithDelta(now()->addDays(7)->timestamp, Invite::first()->expires_at->timestamp, 5);
 
-        $this->actingAs($admin)->get('/admin/maintenance')->assertSee('For Zecca')->assertSee('open until');
+        $this->actingAs($admin)->get('/admin/maintenance')
+            ->assertInertia(fn ($page) => $page->where('invites.0.note', 'For Zecca')->where('invites.0.expired', false)->where('invites.0.usedBy', null));
     }
 
     public function test_only_admins_can_manage_invites(): void

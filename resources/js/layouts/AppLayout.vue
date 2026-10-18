@@ -27,8 +27,8 @@ function toggleCollapsed() {
     } catch {}
 }
 
-// "inertia" links are Vue pages (instant navigation), the others are the remaining Blade pages
-// (account, monitor, maintenance) and need a normal page load
+// Every page is a Vue page: links navigate instantly (the "inertia" flag stays for any future
+// link that needs a normal page load)
 const navigation = computed(() => {
     const items = [
         { label: 'Albums', href: '/', icon: Images, inertia: true },
@@ -37,14 +37,14 @@ const navigation = computed(() => {
     if (!user.value?.isDemo) {
         items.push({ label: 'Forum', href: '/forum', icon: MessagesSquare, inertia: true });
     }
-    items.push({ label: 'Account', href: '/account', icon: User });
+    items.push({ label: 'Account', href: '/account', icon: User, inertia: true });
     return items;
 });
 
 const adminNavigation = [
     { label: 'Post album', href: '/listings/create', icon: PlusCircle, inertia: true },
-    { label: 'Monitor', href: '/monitor', icon: Monitor },
-    { label: 'Maintenance', href: '/admin/maintenance', icon: Wrench },
+    { label: 'Monitor', href: '/monitor', icon: Monitor, inertia: true },
+    { label: 'Maintenance', href: '/admin/maintenance', icon: Wrench, inertia: true },
 ];
 
 function isActive(href) {
@@ -167,13 +167,13 @@ const idleClass = 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:t
                 <div class="ml-auto flex items-center gap-1">
                     <NotificationsBell />
                     <ThemeToggle />
-                    <a href="/account" class="ml-2 flex items-center gap-2 rounded-full py-1 pr-1 pl-3 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <Link href="/account" class="ml-2 flex items-center gap-2 rounded-full py-1 pr-1 pl-3 hover:bg-slate-100 dark:hover:bg-slate-800">
                         <span class="hidden text-sm font-semibold text-accent sm:inline">Hi {{ user.name }}</span>
                         <img v-if="user.avatar" :src="user.avatar" alt="" class="size-8 rounded-full object-cover" />
                         <span v-else class="flex size-8 items-center justify-center rounded-full bg-accent text-sm font-bold text-white">
                             {{ user.name.charAt(0).toUpperCase() }}
                         </span>
-                    </a>
+                    </Link>
                 </div>
             </header>
 

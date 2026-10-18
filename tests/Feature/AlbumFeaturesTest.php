@@ -292,9 +292,7 @@ class AlbumFeaturesTest extends TestCase
     {
         $admin = User::factory()->admin()->create();
 
-        $this->actingAs($admin)->get('/admin/maintenance')
-            ->assertSee('/admin/maintenance/trim-album-covers')
-            ->assertSee('/admin/maintenance/import-album-coordinates');
+        $this->actingAs($admin)->get('/admin/maintenance')->assertInertia(fn ($page) => $page->component('Admin/Maintenance'));
 
         $this->actingAs($admin)->post('/admin/maintenance/trim-album-covers')
             ->assertSessionHas('output', fn ($output) => str_contains($output, 'album previews'));

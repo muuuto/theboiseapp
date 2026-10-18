@@ -2,272 +2,103 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Http\Request;
-use App\Models\User;
 use App\Models\Slogan;
+use App\Models\User;
+use App\Support\AlbumCover;
+use App\Support\Media;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
+use Inertia\Inertia;
 
 class AccountController extends Controller
 {
-    // Show all listings
     public function index()
     {
         $user = auth()->user();
+        $wallet = $user->wallet ? json_decode($user->wallet, true) : null;
 
-        if (!is_null($user->wallet)) {
-            $walletName = json_decode($user->wallet, true)['name'];
-            $walletMedia = json_decode($user->wallet, true)['path'];
-        } else {
-            $walletName = null;
-            $walletMedia = null;
-        }
-
-        return view('account.index', [
-            'user' => $user,
-            'walletName' => $walletName,
-            'walletMedia' => $walletMedia
+        return Inertia::render('Account/Index', [
+            'profile' => [
+                'name' => $user->name,
+                'email' => $user->email,
+                'avatar' => Media::url($user->profilePicture),
+                'birthday' => $user->birthday,
+            ],
+            'wallet' => $wallet ? ['name' => $wallet['name'], 'url' => Media::url($wallet['path'])] : null,
         ]);
     }
 
+    // Name, profile picture and birthday
     public function update(Request $request)
     {
         $user = auth()->user();
 
         $formFields = $request->validate([
-            'profilePicture' => 'image|nullable',
-            'name' => 'string|nullable',
+            'name' => ['required', 'string', 'min:3', 'max:255', Rule::unique('users', 'name')->ignore($user->id)],
+            'profilePicture' => 'nullable|image|max:20480',
+            // The birthday emails use it
+            'birthday' => 'nullable|date|before:today',
+        ], [
+            'name.unique' => 'This name is already taken.',
         ]);
 
         if ($request->hasFile('profilePicture')) {
-            $resizedImage = $this->resizeImage($request->file('profilePicture')->path(), 384, 384);
-            $image = $this->imageConvert($resizedImage, 100);
-
-            if (is_null($user->profilePicture)) {
-                $formFields['profilePicture'] = $image->store('profilePic', 'public');
-            } else {
+            if ($user->profilePicture) {
                 Storage::disk('public')->delete($user->profilePicture);
-                $formFields['profilePicture'] = $image->store('profilePic', 'public');
             }
+            $formFields['profilePicture'] = AlbumCover::store($request->file('profilePicture'), 'profilePic', 384);
+        } else {
+            unset($formFields['profilePicture']);
         }
 
-        if ($request->has('name')) {
-            if ($user->name != $formFields['name']) {
-                if (User::where('name', '=', ($formFields['name']))->exists()) {
-                    return redirect('/account')->with('message', 'Account update failed - username already taken!');
-                } else {
-                    Slogan::where('author', '=', ($user->name))
-                        ->update(['author' => $formFields['name']]);
-                }
-            }
-        }
-
-        if (!$request->has('name') && !$request->hasFile('profilePicture')) {
-            return redirect('/account')->with('message', 'Account update failed');
+        // Slogans store the author's name: they follow the rename
+        if ($formFields['name'] !== $user->name) {
+            Slogan::where('author', $user->name)->update(['author' => $formFields['name']]);
         }
 
         $user->update($formFields);
-        return redirect('/account')->with('message', 'Account updated successfully!');
+
+        return redirect('/account')->with('message', 'Account updated!');
     }
 
-    public function linkNoImage(Request $request)
+    public function password(Request $request)
     {
-        $users = User::all();
-
-        $formFields = $request->validate([
-            'profilePicture' => 'required',
+        $request->validate([
+            'current_password' => 'required|current_password',
+            'password' => 'required|string|min:8|confirmed|different:current_password',
+        ], [
+            'current_password.current_password' => 'The current password is not correct.',
         ]);
 
-        foreach ($users as $user) {
-            if ($request->hasFile('profilePicture')) {
-                $formFields['profilePicture'] = $request->file('profilePicture')->store('profilePic', 'public');
-            }
-            $user->update($formFields);
-        }
-        return redirect('/account')->with('message', 'Accounts updated successfully!');
+        $request->user()->update(['password' => Hash::make($request->password)]);
+
+        return redirect('/account')->with('message', 'Password changed!');
     }
 
-    public function imageConvert($file, $compression_quality)
-    {
-        // check if file exists
-        if (!file_exists($file)) {
-            return false;
-        }
-
-        // If output file already exists return path
-        $output_file = $file . '.webp';
-        $fileName = basename($file . '.webp');
-        if (file_exists($output_file)) {
-            return $output_file;
-        }
-
-        $file_type = exif_imagetype($file);
-
-        if (function_exists('imagewebp')) {
-
-            switch ($file_type) {
-                case '1': //IMAGETYPE_GIF
-                    $image = imagecreatefromgif($file);
-                    break;
-                case '2': //IMAGETYPE_JPEG
-                    $image = imagecreatefromjpeg($file);
-                    break;
-                case '3': //IMAGETYPE_PNG
-                    $image = imagecreatefrompng($file);
-                    break;
-                case '6': // IMAGETYPE_BMP
-                    $image = imagecreatefrombmp($file);
-                    break;
-                case '15': //IMAGETYPE_Webp
-                    return false;
-                    break;
-                case '16': //IMAGETYPE_XBM
-                    $image = imagecreatefromxbm($file);
-                    break;
-                default:
-                    return false;
-            }
-
-            imagepalettetotruecolor($image);
-            imagealphablending($image, true);
-            imagesavealpha($image, true);
-
-            // Save the image
-            $result = imagewebp($image, $output_file, $compression_quality);
-            if (false === $result) {
-                return false;
-            }
-
-            // Free up memory
-            imagedestroy($image);
-            return new UploadedFile($output_file, $fileName, 'image/webp');
-        } elseif (class_exists('Imagick')) {
-            $image = new Imagick();
-            $image->readImage($file);
-
-            if ($file_type === 'png') {
-                $image->setImageFormat('webp');
-                $image->setImageCompressionQuality($compression_quality);
-                $image->setOption('webp:lossless', 'true');
-            }
-
-            $image->writeImage($output_file);
-            return new UploadedFile($output_file, $fileName, 'image/webp');
-        }
-
-        return false;
-    }
-
-
-    public function resizeImage($sourceImage, $maxWidth, $maxHeight, $quality = 100)
-    {
-        $file_type = exif_imagetype($sourceImage);
-        $output_file = $sourceImage . '.jpg';
-        $fileName = basename($sourceImage . '.jpg');
-
-        switch ($file_type) {
-            case '1': //IMAGETYPE_GIF
-                $image = imagecreatefromgif($sourceImage);
-                break;
-            case '2': //IMAGETYPE_JPEG
-                $image = imagecreatefromjpeg($sourceImage);
-                break;
-            case '3': //IMAGETYPE_PNG
-                $image = imagecreatefrompng($sourceImage);
-                break;
-            case '6': // IMAGETYPE_BMP
-                $image = imagecreatefrombmp($sourceImage);
-                break;
-            case '15': //IMAGETYPE_Webp
-                return false;
-                break;
-            case '16': //IMAGETYPE_XBM
-                $image = imagecreatefromxbm($sourceImage);
-                break;
-            default:
-                return false;
-        }
-
-        // Phones save the rotation in the EXIF data (only JPEGs have it); @ because photos without EXIF warn
-        $exif = $file_type == IMAGETYPE_JPEG && function_exists('exif_read_data') ? @exif_read_data($sourceImage) : [];
-
-        if (!empty($exif['Orientation'])) {
-            switch ($exif['Orientation']) {
-                case 8:
-                    $image = imagerotate($image, 90, 0);
-                    break;
-                case 3:
-                    $image = imagerotate($image, 180, 0);
-                    break;
-                case 6:
-                    $image = imagerotate($image, -90, 0);
-                    break;
-            }
-        }
-
-        // Get dimensions of source image.
-        $origWidth = (imagesx($image));
-        $origHeight = imagesy($image);
-
-        if ($maxWidth == 0) {
-            $maxWidth  = $origWidth;
-        }
-
-        if ($maxHeight == 0) {
-            $maxHeight = $origHeight;
-        }
-
-        // Calculate ratio of desired maximum sizes and original sizes.
-        $widthRatio = $maxWidth / $origWidth;
-        $heightRatio = $maxHeight / $origHeight;
-
-        // Ratio used for calculating new image dimensions.
-        $ratio = min($widthRatio, $heightRatio);
-
-        // Calculate new image dimensions.
-        $newWidth  = (int)$origWidth  * $ratio;
-        $newHeight = (int)$origHeight * $ratio;
-
-        // Create final image with new dimensions.
-        $newImage = imagecreatetruecolor($newWidth, $newHeight);
-        imagecopyresampled($newImage, $image, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
-        imagejpeg($newImage, $output_file, $quality);
-
-        // Free up the memory.
-        imagedestroy($image);
-        imagedestroy($newImage);
-
-        return new UploadedFile($output_file, $fileName, 'image/jpg');
-    }
-
+    // One personal photo with a name, shown on the account page
     public function addWallet(Request $request)
     {
         $user = auth()->user();
 
         $request->validate([
-            'mediaName' => 'string',
-            'addWallet' => 'image',
+            'mediaName' => 'required|string|max:255',
+            'addWallet' => 'required|image|max:5120',
+        ], [
+            'addWallet.max' => 'The photo must be smaller than 5 MB.',
         ]);
 
-        if ($request->file('addWallet')->getSize() < 5242880) {
-            if (is_null($user->wallet)) {
-                $formFields['wallet'] = [
-                    'name' => $request["mediaName"],
-                    'path' => $request->file('addWallet')->store('wallet', 'public')
-                ];
-            } else {
-                $wallet = json_decode($user->wallet, true);
-                Storage::disk('public')->delete($wallet['path']);
-                $formFields['wallet'] = [
-                    'name' => $request["mediaName"],
-                    'path' => $request->file('addWallet')->store('wallet', 'public')
-                ];
-            }
-
-            $user->update($formFields);
-            return redirect('/account')->with('message', 'Wallet added to profile');
-        } else {
-            return redirect('/account')->with('message', 'Error, file size greater than 3Mb');
+        if ($user->wallet) {
+            Storage::disk('public')->delete(json_decode($user->wallet, true)['path']);
         }
+
+        // Stored as JSON text, like the wallets saved before
+        $user->update(['wallet' => json_encode([
+            'name' => $request->mediaName,
+            'path' => $request->file('addWallet')->store('wallet', 'public'),
+        ])]);
+
+        return redirect('/account')->with('message', 'Wallet updated!');
     }
 }
