@@ -38,7 +38,7 @@ function confirmAll() {
         <strong>confirm</strong> it, <strong>fix</strong> it in the album form, or <strong>remove</strong> it if it's wrong.
     </p>
 
-    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div class="space-y-6">
             <section>
                 <div class="mb-2 flex items-center gap-2">

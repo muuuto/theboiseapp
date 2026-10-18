@@ -66,7 +66,7 @@ const buttonClass = 'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-
 
     <pre v-if="output" class="mt-6 overflow-x-auto rounded-2xl bg-slate-950 p-4 text-sm text-green-400">{{ output }}</pre>
 
-    <div class="mt-6 grid gap-6 lg:grid-cols-2">
+    <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
         <!-- Everyday actions -->
         <section :class="cardClass" class="space-y-4">
             <h2 class="text-lg font-bold">Actions</h2>

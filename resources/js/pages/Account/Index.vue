@@ -67,7 +67,7 @@ const buttonClass = 'inline-flex items-center justify-center gap-2 rounded-xl bg
         This is a demo account: it can only look around.
     </p>
 
-    <div class="grid gap-6 lg:grid-cols-2">
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <!-- Profile -->
         <form :class="cardClass" class="space-y-4" @submit.prevent="saveProfile">
             <h2 class="text-lg font-bold">Profile</h2>
@@ -138,7 +138,7 @@ const buttonClass = 'inline-flex items-center justify-center gap-2 rounded-xl bg
                 <h2 class="flex items-center gap-2 text-lg font-bold"><Wallet class="size-5 text-accent" /> Your wallet</h2>
                 <p class="text-sm text-slate-500">One personal photo on your profile: a new one replaces the old one.</p>
             </div>
-            <div class="grid gap-4 sm:grid-cols-[16rem_minmax(0,1fr)]">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-[16rem_minmax(0,1fr)]">
                 <label class="block overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700" :class="!readOnly && 'cursor-pointer hover:ring-accent'">
                     <img v-if="walletPreview" :src="walletPreview" alt="" class="max-h-72 w-full object-contain" />
                     <span v-else class="flex h-40 flex-col items-center justify-center gap-2 text-sm text-slate-500"><ImagePlus class="size-7" /> {{ readOnly ? 'No photo' : 'Choose a photo' }}</span>

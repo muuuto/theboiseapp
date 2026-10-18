@@ -76,7 +76,7 @@ const labelClass = 'mb-1.5 block text-sm font-semibold';
 
     <h1 class="mb-6 text-3xl font-extrabold tracking-tight">{{ editing ? 'Edit post' : `New post in ${category.title}` }}</h1>
 
-    <form class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]" @submit.prevent="submit">
+    <form class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]" @submit.prevent="submit">
         <div class="min-w-0 space-y-6">
             <section class="space-y-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
                 <div>

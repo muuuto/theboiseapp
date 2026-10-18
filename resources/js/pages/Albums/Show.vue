@@ -95,7 +95,7 @@ onMounted(() => {
 
     <!-- Phones: photo and description, then the details, then the comments.
          Large screens: details in a column on the right, next to both -->
-    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div class="min-w-0 space-y-6 lg:col-start-1">
             <div class="overflow-hidden rounded-3xl bg-slate-200 shadow-sm dark:bg-slate-800">
                 <img :src="album.cover" :alt="album.title" class="mx-auto max-h-[75vh] w-full object-contain" />
