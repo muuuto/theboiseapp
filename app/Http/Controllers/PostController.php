@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Support\Notify;
+use App\Support\Locale;
 use App\Support\ForumOrder;
 use App\Models\Category;
 use App\Models\Post;
@@ -103,11 +104,11 @@ class PostController extends Controller
             'name' => $formFields['title'],
             'postLink' => url('/forum/' . $category->id . '/' . $post->id),
         );
-        Mail::send('/mails/new_post', $email_data, function ($message) {
+        Locale::for(User::firstWhere('email', 'matteo.gavoni@gmail.com'), fn () => Mail::send('/mails/new_post', $email_data, function ($message) {
             $message->to('matteo.gavoni@gmail.com', 'Admin')
-                ->subject('New post - theboise.it')
+                ->subject(__('New post - theboise.it'))
                 ->from('info@theboise.it', 'TheBoise');
-        });
+        }));
 
         return redirect("/forum/{$category->id}/{$post->id}")->with('message', 'Post published!');
     }
@@ -158,7 +159,9 @@ class PostController extends Controller
                 'edit' => $this->canEdit($post, $user),
                 'delete' => $post->author == $user->id,
                 'notify' => $post->isManagedBy($user),
+                'pin' => $user->isAdmin == 1,
             ],
+            'pinned' => \App\Support\Settings::get(\App\Support\Settings::PINNED_POST) == $post->id,
         ]);
     }
 
@@ -184,9 +187,9 @@ class PostController extends Controller
 
         $comment = PostComment::create($formFields);
 
-        Notify::push($recipients, 'forum', [
-            'title' => auth()->user()->name . ' replied in ' . $post->title,
-            'body' => 'Tap to read it and answer.',
+        Notify::push($recipients, 'forum', fn () => [
+            'title' => __(':name replied in :title', ['name' => auth()->user()->name, 'title' => $post->title]),
+            'body' => __('Tap to read it and answer.'),
             'url' => "/forum/{$category->id}/{$post->id}#comment-{$comment->id}",
             'tag' => 'post-comments-' . $post->id,
         ]);
@@ -204,11 +207,11 @@ class PostController extends Controller
                 'postLink' => url('/forum/' . $category->id . '/' . $post->id),
             );
 
-            Mail::send('/mails/new_comment_post', $email_data, function ($message) use ($email_data, $post) {
+            Locale::for($recipient, fn () => Mail::send('/mails/new_comment_post', $email_data, function ($message) use ($email_data, $post) {
                 $message->to($email_data['email'], $email_data['name'])
-                    ->subject('New comment added to post ' . $post->title . ' - theboise.it')
+                    ->subject(__('New comment on the post :title - theboise.it', ['title' => $post->title]))
                     ->from('info@theboise.it', 'TheBoise');
-            });
+            }));
         }
 
         return back()->with('message', 'Comment added!');
@@ -229,6 +232,16 @@ class PostController extends Controller
     }
 
     // Send post
+    // Admins: this post linked at the top of the home page (one at a time), or not any more
+    public function pin(Request $request, Category $category, Post $post)
+    {
+        abort_unless($request->user()->isAdmin == 1, 403, 'Unauthorized Action');
+        $pin = $request->isMethod('post');
+        \App\Support\Settings::set(\App\Support\Settings::PINNED_POST, $pin ? $post->id : null);
+
+        return back()->with('message', $pin ? 'Pinned on the home page' : 'Removed from the home page');
+    }
+
     public function notify(Category $category, Post $post) {
         if (! $post->isManagedBy(auth()->user())) {
             abort(403, 'Unauthorized Action');
@@ -238,8 +251,8 @@ class PostController extends Controller
         $allowedUsers = User::active()->where('id', '!=', auth()->id())->get()
             ->filter(fn ($user) => $post->isVisibleTo($user));
 
-        Notify::push($allowedUsers, 'forum', [
-            'title' => auth()->user()->name . ' shared a post',
+        Notify::push($allowedUsers, 'forum', fn () => [
+            'title' => __(':name shared a post', ['name' => auth()->user()->name]),
             'body' => $post->title,
             'url' => "/forum/{$category->id}/{$post->id}",
             'tag' => 'post-' . $post->id,
@@ -256,11 +269,11 @@ class PostController extends Controller
                 'postLink' => url('/forum/' . $category->id . '/' . $post->id),
             );
 
-            Mail::send('/mails/notify_post', $email_data, function ($message) use ($email_data, $post) {
+            Locale::for($user, fn () => Mail::send('/mails/notify_post', $email_data, function ($message) use ($email_data, $post) {
                 $message->to($email_data['email'], $email_data['name'])
-                    ->subject('Check out this new post inside forum: ' . $post->title . ' - theboise.it')
+                    ->subject(__('Check out this post in the forum: :title - theboise.it', ['title' => $post->title]))
                     ->from('info@theboise.it', 'TheBoise');
-            });
+            }));
         }
 
         return redirect('/forum/' . $category->id . '/' . $post->id)->with('message', 'Everyone was notified!');

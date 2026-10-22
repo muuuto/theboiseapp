@@ -37,7 +37,7 @@ onBeforeUnmount(() => document.removeEventListener('click', closeOnOutsideClick)
         >
             <Bell class="size-5" />
             <span v-if="hasNews" class="absolute top-1.5 right-1.5 size-2 rounded-full bg-brand ring-2 ring-white dark:ring-slate-900" />
-            <span class="sr-only">Notifications</span>
+            <span class="sr-only">{{ t('Notifications') }}</span>
         </button>
 
         <Transition
@@ -51,7 +51,7 @@ onBeforeUnmount(() => document.removeEventListener('click', closeOnOutsideClick)
                 class="absolute right-0 mt-2 max-h-[75vh] w-80 max-w-[calc(100vw-2rem)] overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-800"
             >
                 <section v-if="likes.length" class="border-b border-slate-100 p-2 dark:border-slate-700">
-                    <h3 class="px-3 pt-2 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-400">Likes</h3>
+                    <h3 class="px-3 pt-2 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-400">{{ t('Likes') }}</h3>
                     <Link
                         v-for="like in likes"
                         :key="like.id"
@@ -62,14 +62,14 @@ onBeforeUnmount(() => document.removeEventListener('click', closeOnOutsideClick)
                     >
                         <Heart class="mt-0.5 size-4 shrink-0 fill-current text-brand" />
                         <span class="min-w-0 text-sm">
-                            <strong>{{ like.liker }}</strong> liked your comment
+                            <strong>{{ like.liker }}</strong> {{ t('liked your comment') }}
                             <span class="block truncate text-xs text-slate-500">"{{ like.excerpt }}" · {{ like.title }}</span>
                         </span>
                     </Link>
                 </section>
 
                 <section class="p-2">
-                    <h3 class="px-3 pt-2 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-400">On this day</h3>
+                    <h3 class="px-3 pt-2 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-400">{{ t('On this day') }}</h3>
                     <Link
                         v-for="memory in memories"
                         :key="`memory-${memory.id}`"
@@ -78,15 +78,15 @@ onBeforeUnmount(() => document.removeEventListener('click', closeOnOutsideClick)
                     >
                         <CalendarHeart class="mt-0.5 size-4 shrink-0 text-brand" />
                         <span class="text-sm">
-                            {{ memory.years }} {{ memory.years === 1 ? 'year' : 'years' }} ago:
+                            {{ tc(':count year ago:|:count years ago:', memory.years) }}
                             <strong>{{ memory.title }}</strong>
                         </span>
                     </Link>
-                    <p v-if="!memories.length" class="px-3 py-2 text-sm text-slate-400">No memories today</p>
+                    <p v-if="!memories.length" class="px-3 py-2 text-sm text-slate-400">{{ t('No memories today') }}</p>
                 </section>
 
                 <section class="border-t border-slate-100 p-2 dark:border-slate-700">
-                    <h3 class="px-3 pt-2 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-400">New albums</h3>
+                    <h3 class="px-3 pt-2 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-400">{{ t('New albums') }}</h3>
                     <Link
                         v-for="album in unseen"
                         :key="`album-${album.id}`"
@@ -96,7 +96,7 @@ onBeforeUnmount(() => document.removeEventListener('click', closeOnOutsideClick)
                         <ImagePlus class="mt-0.5 size-4 shrink-0 text-accent" />
                         <span class="text-sm"><strong>{{ album.title }}</strong></span>
                     </Link>
-                    <p v-if="!unseen.length" class="px-3 py-2 text-sm text-slate-400">No new albums</p>
+                    <p v-if="!unseen.length" class="px-3 py-2 text-sm text-slate-400">{{ t('No new albums') }}</p>
                 </section>
             </div>
         </Transition>

@@ -51,12 +51,12 @@ const particles = computed(() =>
         <button
             type="button"
             class="rounded-full p-1 hover:bg-white/20"
-            :title="hidden ? 'Show the decorations' : 'Hide the decorations'"
-            :aria-label="hidden ? 'Show the decorations' : 'Hide the decorations'"
+            :title="hidden ? t('Show the decorations') : t('Hide the decorations')"
+            :aria-label="hidden ? t('Show the decorations') : t('Hide the decorations')"
             @click="toggle"
         >
             <X v-if="!hidden" class="size-3.5" />
-            <span v-else class="block px-1 text-xs">show</span>
+            <span v-else class="block px-1 text-xs">{{ t('show') }}</span>
         </button>
     </div>
 

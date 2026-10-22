@@ -24,7 +24,7 @@ class ListingReminderMail extends Mailable
     public function build()
     {
         return $this
-            ->subject('Reminder: Check your new Album')
+            ->subject(__('Reminder: you have new albums to see'))
             ->from('info@theboise.it', 'TheBoise')
             ->view('mails.listing_reminder');
     }

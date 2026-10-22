@@ -82,39 +82,39 @@ const buttonClass = 'inline-flex items-center justify-center gap-2 rounded-xl px
     <div class="space-y-6">
         <!-- The app -->
         <div class="space-y-3">
-            <h3 class="flex items-center gap-2 font-semibold"><Smartphone class="size-5 text-accent" /> TheBoise on your home screen</h3>
-            <p v-if="installed" class="rounded-xl bg-teal-50 px-3 py-2 text-sm text-teal-800 dark:bg-teal-950/40 dark:text-teal-300">You're using the app. 🎉</p>
+            <h3 class="flex items-center gap-2 font-semibold"><Smartphone class="size-5 text-accent" /> {{ t('TheBoise on your home screen') }}</h3>
+            <p v-if="installed" class="rounded-xl bg-teal-50 px-3 py-2 text-sm text-teal-800 dark:bg-teal-950/40 dark:text-teal-300">{{ t('You\'re using the app. 🎉') }}</p>
             <template v-else-if="ios">
-                <p class="text-sm text-slate-600 dark:text-slate-400">On iPhone, add it from Safari (notifications work only in the app):</p>
+                <p class="text-sm text-slate-600 dark:text-slate-400">{{ t('On iPhone, add it from Safari (notifications work only in the app):') }}</p>
                 <ol class="space-y-2 text-sm">
-                    <li class="flex items-center gap-2"><span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold dark:bg-slate-800">1</span> Tap <Share class="inline size-4 text-sky-600" /> <strong>Share</strong> at the bottom of Safari</li>
-                    <li class="flex items-center gap-2"><span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold dark:bg-slate-800">2</span> Choose <SquarePlus class="inline size-4" /> <strong>Add to Home Screen</strong></li>
-                    <li class="flex items-center gap-2"><span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold dark:bg-slate-800">3</span> Open TheBoise from the new icon and come back here</li>
+                    <li class="flex items-center gap-2"><span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold dark:bg-slate-800">1</span> {{ t('Tap') }} <Share class="inline size-4 text-sky-600" /> <strong>{{ t('Share') }}</strong> {{ t('at the bottom of Safari') }}</li>
+                    <li class="flex items-center gap-2"><span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold dark:bg-slate-800">2</span> {{ t('Choose') }} <SquarePlus class="inline size-4" /> <strong>{{ t('Add to Home Screen') }}</strong></li>
+                    <li class="flex items-center gap-2"><span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold dark:bg-slate-800">3</span> {{ t('Open TheBoise from the new icon and come back here') }}</li>
                 </ol>
             </template>
             <template v-else>
-                <p class="text-sm text-slate-600 dark:text-slate-400">Its own icon, full screen, like a real app.</p>
+                <p class="text-sm text-slate-600 dark:text-slate-400">{{ t('Its own icon, full screen, like a real app.') }}</p>
                 <button v-if="canInstall" type="button" :class="buttonClass" class="bg-slate-900 text-white hover:bg-black dark:bg-white dark:text-slate-900" @click="install">
-                    <Download class="size-4" /> Install the app
+                    <Download class="size-4" /> {{ t('Install the app') }}
                 </button>
-                <p v-else class="text-sm text-slate-500">Use your browser's menu: <strong>Install app</strong> or <strong>Add to Home screen</strong>.</p>
+                <p v-else class="text-sm text-slate-500">{{ t('Use your browser\'s menu:') }} <strong>{{ t('Install app') }}</strong> {{ t('or') }} <strong>{{ t('Add to Home screen') }}</strong>.</p>
             </template>
         </div>
 
         <!-- Notifications on this device -->
         <div class="space-y-3">
-            <h3 class="flex items-center gap-2 font-semibold"><Bell class="size-5 text-accent" /> Notifications on this device</h3>
-            <p v-if="state === 'install-first'" class="text-sm text-slate-600 dark:text-slate-400">Add TheBoise to your home screen first (above), then turn them on from the app.</p>
-            <p v-else-if="state === 'unsupported'" class="text-sm text-slate-600 dark:text-slate-400">This browser can't receive notifications.</p>
-            <p v-else-if="state === 'denied'" class="text-sm text-slate-600 dark:text-slate-400">Notifications are blocked for TheBoise: allow them in this browser's or phone's settings, then reload.</p>
+            <h3 class="flex items-center gap-2 font-semibold"><Bell class="size-5 text-accent" /> {{ t('Notifications on this device') }}</h3>
+            <p v-if="state === 'install-first'" class="text-sm text-slate-600 dark:text-slate-400">{{ t('Add TheBoise to your home screen first (above), then turn them on from the app.') }}</p>
+            <p v-else-if="state === 'unsupported'" class="text-sm text-slate-600 dark:text-slate-400">{{ t('This browser can\'t receive notifications.') }}</p>
+            <p v-else-if="state === 'denied'" class="text-sm text-slate-600 dark:text-slate-400">{{ t('Notifications are blocked for TheBoise: allow them in this browser\'s or phone\'s settings, then reload.') }}</p>
             <div v-else class="flex flex-wrap items-center gap-2">
                 <button v-if="!onHere" type="button" :class="buttonClass" class="bg-brand text-white hover:bg-brand-dark" :disabled="busy" @click="enable">
-                    <component :is="busy ? Loader2 : Bell" class="size-4" :class="busy && 'animate-spin'" /> Turn on notifications
+                    <component :is="busy ? Loader2 : Bell" class="size-4" :class="busy && 'animate-spin'" /> {{ t('Turn on notifications') }}
                 </button>
                 <template v-else>
-                    <span class="inline-flex items-center gap-1.5 rounded-xl bg-teal-50 px-3 py-2 text-sm font-semibold text-teal-800 dark:bg-teal-950/40 dark:text-teal-300"><Bell class="size-4" /> On for this device</span>
+                    <span class="inline-flex items-center gap-1.5 rounded-xl bg-teal-50 px-3 py-2 text-sm font-semibold text-teal-800 dark:bg-teal-950/40 dark:text-teal-300"><Bell class="size-4" /> {{ t('On for this device') }}</span>
                     <button type="button" :class="buttonClass" class="ring-1 ring-slate-200 hover:bg-slate-50 dark:ring-slate-700 dark:hover:bg-slate-800" :disabled="busy" @click="disable">
-                        <BellOff class="size-4" /> Turn off
+                        <BellOff class="size-4" /> {{ t('Turn off') }}
                     </button>
                 </template>
             </div>
@@ -122,18 +122,18 @@ const buttonClass = 'inline-flex items-center justify-center gap-2 rounded-xl px
 
             <div v-if="devices.length" class="rounded-2xl bg-slate-50 p-3 dark:bg-slate-800/60">
                 <div class="mb-1 flex items-center gap-2">
-                    <p class="text-xs font-semibold tracking-wide text-slate-500 uppercase">Your devices with notifications</p>
+                    <p class="text-xs font-semibold tracking-wide text-slate-500 uppercase">{{ t('Your devices with notifications') }}</p>
                     <button type="button" class="ml-auto text-sm font-semibold text-accent hover:underline disabled:opacity-50" :disabled="testing" @click="test">
-                        {{ testing ? 'Sending…' : 'Send a test' }}
+                        {{ testing ? t('Sending…') : t('Send a test') }}
                     </button>
                 </div>
                 <ul>
                     <li v-for="device in devices" :key="device.id" class="flex items-center gap-2 py-1 text-sm">
                         <Smartphone class="size-4 shrink-0 text-slate-400" />
-                        <span class="flex-1">{{ device.device }}<span v-if="device.endpointHash === thisDevice" class="text-slate-500"> (this one)</span></span>
-                        <span class="text-xs text-slate-500">since {{ ago(device.since) }}</span>
+                        <span class="flex-1">{{ device.device }}<span v-if="device.endpointHash === thisDevice" class="ml-1 text-slate-500">{{ t('(this one)') }}</span></span>
+                        <span class="text-xs text-slate-500">{{ t('since :when', { when: ago(device.since) }) }}</span>
                         <button type="button" class="rounded-lg p-1 text-slate-400 hover:text-red-600" :title="`Remove ${device.device}`" @click="forget(device)">
-                            <Trash2 class="size-4" /><span class="sr-only">Remove {{ device.device }}</span>
+                            <Trash2 class="size-4" /><span class="sr-only">{{ t('Remove :name', { name: device.device }) }}</span>
                         </button>
                     </li>
                 </ul>
@@ -142,29 +142,29 @@ const buttonClass = 'inline-flex items-center justify-center gap-2 rounded-xl px
 
         <!-- What to receive -->
         <div class="space-y-2">
-            <h3 class="font-semibold">What you receive</h3>
+            <h3 class="font-semibold">{{ t('What you receive') }}</h3>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="text-xs text-slate-500">
                             <th class="py-1 pr-2 text-left font-medium"></th>
-                            <th class="w-16 py-1 text-center font-medium">Phone</th>
-                            <th class="w-16 py-1 text-center font-medium">Email</th>
+                            <th class="w-16 py-1 text-center font-medium">{{ t('Phone') }}</th>
+                            <th class="w-16 py-1 text-center font-medium">{{ t('Email') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                         <tr v-for="row in choices" :key="row.key">
                             <td class="py-2 pr-2">{{ row.label }}</td>
-                            <td class="text-center"><input v-model="row.push" type="checkbox" class="size-5 accent-teal-600" :aria-label="`${row.label} on the phone`" @change="save" /></td>
+                            <td class="text-center"><input v-model="row.push" type="checkbox" class="size-5 accent-teal-600" :aria-label="t(':what on the phone', { what: row.label })" @change="save" /></td>
                             <td class="text-center">
-                                <input v-if="row.email !== null" v-model="row.email" type="checkbox" class="size-5 accent-teal-600" :aria-label="`${row.label} by email`" @change="save" />
-                                <span v-else class="text-slate-400" title="No email for this">—</span>
+                                <input v-if="row.email !== null" v-model="row.email" type="checkbox" class="size-5 accent-teal-600" :aria-label="t(':what by email', { what: row.label })" @change="save" />
+                                <span v-else class="text-slate-400" :title="t('No email for this')">—</span>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <p class="text-xs text-slate-500">Phone notifications arrive only on the devices where you turned them on.</p>
+            <p class="text-xs text-slate-500">{{ t('Phone notifications arrive only on the devices where you turned them on.') }}</p>
         </div>
     </div>
 </template>

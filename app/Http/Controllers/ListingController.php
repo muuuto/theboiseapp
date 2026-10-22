@@ -14,6 +14,7 @@ use App\Models\ListingUser;
 use App\Models\AlbumEvent;
 use App\Support\AlbumHistory;
 use App\Support\Notify;
+use App\Support\Locale;
 use App\Support\AlbumCover;
 use App\Support\Media;
 use App\Support\SafeHtml;
@@ -61,6 +62,7 @@ class ListingController extends Controller
             'slogan' => $slogan,
             'ownFilter' => $ownFilter,
             'wrappedBanner' => $this->wrappedBanner($user),
+            'pinned' => $this->pinnedPost($user),
             // Falling snow, pumpkins, confetti...: today's, or the one an admin previews (?decoration=halloween)
             'decoration' => $user->isAdmin == 1 && request('decoration')
                 ? \App\Support\Decorations::preview(request('decoration'), $user)
@@ -185,9 +187,9 @@ class ListingController extends Controller
 
         // Tell the people in the album (not who posted it): email and/or phone, as each prefers
         $recipients = User::findMany($people)->where('id', '!=', $poster->id);
-        Notify::push($recipients, 'album', [
-            'title' => 'New album: ' . $listing->title,
-            'body' => $poster->name . ' posted it. Have a look!',
+        Notify::push($recipients, 'album', fn () => [
+            'title' => __('New album: :title', ['title' => $listing->title]),
+            'body' => __(':name posted it. Have a look!', ['name' => $poster->name]),
             'url' => '/listings/' . $listing->id,
             'tag' => 'album-' . $listing->id,
             'image' => Media::url($listing->logo),
@@ -203,22 +205,22 @@ class ListingController extends Controller
                 'listing' => $listing,
                 'postedBy' => $poster->name,
             );
-            Mail::send('/mails/new_album', $email_data, function ($message) use ($email_data) {
+            Locale::for($user, fn () => Mail::send('/mails/new_album', $email_data, function ($message) use ($email_data) {
                 $message->to($email_data['email'], $email_data['name'])
-                    ->subject('New album ' . $email_data['albumTitle'] . ' added to theboise.it')
+                    ->subject(__('New album :title added to theboise.it', ['title' => $email_data['albumTitle']]))
                     ->from('info@theboise.it', 'TheBoise');
-            });
+            }));
         }
 
         // Someone who isn't an admin posted it: the admins not in the album hear about it too
         if ($poster->isAdmin != 1) {
             $admins = User::where('isAdmin', 1)->where('is_demo', false)->whereNotIn('id', $people)->get();
             foreach ($admins as $admin) {
-                Mail::send('/mails/album_posted', ['name' => $admin->name, 'postedBy' => $poster->name, 'listing' => $listing, 'peopleCount' => count($people)], function ($message) use ($admin, $listing, $poster) {
+                Locale::for($admin, fn () => Mail::send('/mails/album_posted', ['name' => $admin->name, 'postedBy' => $poster->name, 'listing' => $listing, 'peopleCount' => count($people)], function ($message) use ($admin, $listing, $poster) {
                     $message->to($admin->email, $admin->name)
-                        ->subject($poster->name . ' posted the album ' . $listing->title . ' - theboise.it')
+                        ->subject(__(':name posted the album :title', ['name' => $poster->name, 'title' => $listing->title]) . ' - theboise.it')
                         ->from('info@theboise.it', 'TheBoise');
-                });
+                }));
             }
         }
 
@@ -311,9 +313,9 @@ class ListingController extends Controller
         ]);
 
         // Short on purpose: it can show on a locked screen
-        Notify::push($listing->users->where('id', '!=', $author->id), 'comment', [
-            'title' => $author->name . ' commented on ' . $listing->title,
-            'body' => 'Tap to read it and answer.',
+        Notify::push($listing->users->where('id', '!=', $author->id), 'comment', fn () => [
+            'title' => __(':name commented on :title', ['name' => $author->name, 'title' => $listing->title]),
+            'body' => __('Tap to read it and answer.'),
             'url' => "/listings/{$listing->id}#comment-{$comment->id}",
             'tag' => 'album-comments-' . $listing->id,
         ]);
@@ -331,11 +333,11 @@ class ListingController extends Controller
                 'albumTitle' => $listing->title,
                 'albumLink' => url('/listings/' . $listing->id),
             );
-            Mail::send('/mails/new_comment', $email_data, function ($message) use ($email_data) {
+            Locale::for($user, fn () => Mail::send('/mails/new_comment', $email_data, function ($message) use ($email_data) {
                 $message->to($email_data['email'], $email_data['name'])
-                    ->subject('New comment added to album ' . $email_data['albumTitle'] . ' inside theboise.it')
+                    ->subject(__('New comment on the album :title - theboise.it', ['title' => $email_data['albumTitle']]))
                     ->from('info@theboise.it', 'TheBoise');
-            });
+            }));
         }
 
         return back()->with('message', 'Comment added!');
@@ -367,6 +369,17 @@ class ListingController extends Controller
         ] : null;
     }
 
+    // The post the admins pinned at the top, if this person can see it (never the demo account: no forum)
+    private function pinnedPost(User $user): ?array
+    {
+        $id = \App\Support\Settings::get(\App\Support\Settings::PINNED_POST);
+        $post = $id && ! $user->is_demo ? \App\Models\Post::with('category')->find($id) : null;
+
+        return $post && $post->isVisibleTo($user)
+            ? ['id' => $post->id, 'title' => $post->title, 'url' => "/forum/{$post->category_id}/{$post->id}"]
+            : null;
+    }
+
     // December: this year's Wrapped; January: last year's (if there are albums)
     private function wrappedBanner(User $user): ?int
     {
@@ -379,14 +392,13 @@ class ListingController extends Controller
         return $year && $user->listing()->whereYear('dateFrom', $year)->exists() ? $year : null;
     }
 
-    // "Only albums I posted": offered to who posted at least one album. Their choice is saved on the
-    // account; without one, the default set on the maintenance page
+    // "All albums | My albums": offered to who posted at least one album, saved on the account
+    // (album list, map, account page). Without a choice: all albums
     public static function ownFilter(User $user): array
     {
         $available = ! $user->is_demo && Listing::where('user_id', $user->id)->exists();
-        $on = $user->only_own_albums ?? \App\Support\Settings::get(\App\Support\Settings::ONLY_OWN_ALBUMS_DEFAULT, false);
 
-        return ['available' => $available, 'on' => $available && (bool) $on];
+        return ['available' => $available, 'on' => $available && (bool) $user->only_own_albums];
     }
 
     // Who's in the album: the poster always is (unless an admin), the demo account only by an admin

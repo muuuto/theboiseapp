@@ -14,13 +14,17 @@ class RemindTrips extends Command
 
     public function handle()
     {
-        foreach ([7 => 'one week to go', 1 => 'tomorrow!'] as $days => $when) {
+        foreach ([7 => ':trip: one week to go', 1 => ':trip: tomorrow!'] as $days => $when) {
             $trips = Trip::with(['members', 'items'])->whereNull('listing_id')->whereDate('date_from', now()->addDays($days)->toDateString())->get();
             foreach ($trips as $trip) {
                 $left = $trip->items->where('done', false)->count();
-                TripNotices::send($trip->members, $trip, "{$trip->title}: {$when}",
-                    $left ? "{$left} " . ($left === 1 ? 'thing' : 'things') . ' still to sort out on the list.' : 'Everything on the list is done. Pack your bags!',
-                    'See the list');
+                TripNotices::send($trip->members, $trip, fn () => [
+                    __($when, ['trip' => $trip->title]),
+                    $left
+                        ? trans_choice(':count thing still to sort out on the list.|:count things still to sort out on the list.', $left)
+                        : __('Everything on the list is done. Pack your bags!'),
+                    __('See the list'),
+                ]);
             }
             $this->line("{$trips->count()} trips starting in {$days} " . ($days === 1 ? 'day' : 'days'));
         }

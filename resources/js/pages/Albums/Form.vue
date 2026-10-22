@@ -6,6 +6,7 @@ import LeafletMap from '../../components/LeafletMap.vue';
 import RichTextEditor from '../../components/RichTextEditor.vue';
 import TagsInput from '../../components/TagsInput.vue';
 import PeoplePicker from '../../components/PeoplePicker.vue';
+import { t } from '../../i18n.js';
 
 const props = defineProps({
     album: Object, // null when creating
@@ -53,9 +54,9 @@ async function searchPlace() {
         const params = new URLSearchParams({ q: query, format: 'jsonv2', limit: '5', 'accept-language': 'it,en' });
         const response = await fetch(`https://nominatim.openstreetmap.org/search?${params}`);
         results.value = await response.json();
-        if (!results.value.length) searchError.value = 'Nothing found: try a nearby town, or click on the map.';
+        if (!results.value.length) searchError.value = t('Nothing found: try a nearby town, or click on the map.');
     } catch {
-        searchError.value = 'Search not available right now: click on the map instead.';
+        searchError.value = t('Search not available right now: click on the map instead.');
     } finally {
         searching.value = false;
     }
@@ -109,67 +110,67 @@ const labelClass = 'mb-1.5 block text-sm font-semibold';
 </script>
 
 <template>
-    <Head :title="editing ? `Edit ${album.title}` : 'New album'" />
+    <Head :title="editing ? t('Edit :title', { title: album.title }) : t('New album')" />
 
     <Link :href="editing ? `/listings/${album.id}` : '/'" class="mb-4 inline-flex items-center gap-1.5 rounded-xl px-2 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-200/60 dark:text-slate-300 dark:hover:bg-slate-800">
-        <ArrowLeft class="size-4" /> {{ editing ? 'Back to the album' : 'Albums' }}
+        <ArrowLeft class="size-4" /> {{ editing ? t('Back to the album') : t('Albums') }}
     </Link>
 
-    <h1 class="mb-6 text-3xl font-extrabold tracking-tight">{{ editing ? 'Edit album' : 'New album' }}</h1>
+    <h1 class="mb-6 text-3xl font-extrabold tracking-tight">{{ editing ? t('Edit album') : t('New album') }}</h1>
     <p v-if="fromTrip" class="-mt-4 mb-6 rounded-2xl bg-teal-50 px-4 py-3 text-sm text-teal-800 dark:bg-teal-950/40 dark:text-teal-300">
-        ✈️ From the trip <strong>{{ fromTrip.title }}</strong>: title, dates, place and people are filled in. Add the photos link, a preview photo and a description.
+        ✈️ {{ t('From the trip :title: title, dates, place and people are filled in. Add the photos link, a preview photo and a description.', { title: fromTrip.title }) }}
     </p>
 
     <form class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]" @submit.prevent="submit">
         <div class="min-w-0 space-y-6">
             <section class="space-y-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
                 <div>
-                    <label for="title" :class="labelClass">Title</label>
-                    <input id="title" v-model="form.title" type="text" placeholder="Example: Vacanzeyney in Toscania" :class="inputClass" />
+                    <label for="title" :class="labelClass">{{ t('Title') }}</label>
+                    <input id="title" v-model="form.title" type="text" :placeholder="t('Example: Vacanzeyney in Toscania')" :class="inputClass" />
                     <p v-if="form.errors.title" class="mt-1 text-sm text-red-600">{{ form.errors.title }}</p>
                 </div>
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div>
-                        <label for="dateFrom" :class="labelClass">From</label>
+                        <label for="dateFrom" :class="labelClass">{{ t('From') }}</label>
                         <input id="dateFrom" v-model="form.dateFrom" type="date" :class="inputClass" />
                         <p v-if="form.errors.dateFrom" class="mt-1 text-sm text-red-600">{{ form.errors.dateFrom }}</p>
                     </div>
                     <div>
-                        <label for="dateTo" :class="labelClass">To</label>
+                        <label for="dateTo" :class="labelClass">{{ t('To') }}</label>
                         <input id="dateTo" v-model="form.dateTo" type="date" :min="form.dateFrom" :class="inputClass" />
                         <p v-if="form.errors.dateTo" class="mt-1 text-sm text-red-600">{{ form.errors.dateTo }}</p>
                     </div>
                 </div>
                 <div>
-                    <label for="albumLink" :class="labelClass">Photos link (Amazon Photos)</label>
+                    <label for="albumLink" :class="labelClass">{{ t('Photos link (Amazon Photos)') }}</label>
                     <input id="albumLink" v-model="form.albumLink" type="url" placeholder="https://www.amazon.com/photos/shared/..." :class="inputClass" />
                     <p v-if="form.errors.albumLink" class="mt-1 text-sm text-red-600">{{ form.errors.albumLink }}</p>
                 </div>
                 <div>
-                    <span :class="labelClass">Tags</span>
+                    <span :class="labelClass">{{ t('Tags') }}</span>
                     <TagsInput v-model="form.tags" :suggestions="knownTags" />
                     <p v-if="form.errors.tags" class="mt-1 text-sm text-red-600">{{ form.errors.tags }}</p>
                 </div>
             </section>
 
             <section class="space-y-2">
-                <span :class="labelClass">Description</span>
+                <span :class="labelClass">{{ t('Description') }}</span>
                 <RichTextEditor v-model="form.description" />
                 <p v-if="form.errors.description" class="text-sm text-red-600">{{ form.errors.description }}</p>
             </section>
 
             <section class="space-y-2">
-                <span :class="labelClass">People in the album</span>
-                <p v-if="alwaysIn" class="text-xs text-slate-500">You're always in the albums you post.</p>
+                <span :class="labelClass">{{ t('People in the album') }}</span>
+                <p v-if="alwaysIn" class="text-xs text-slate-500">{{ t("You're always in the albums you post.") }}</p>
                 <PeoplePicker v-model="form.people" :users="users" />
                 <p v-if="form.errors.people" class="text-sm text-red-600">{{ form.errors.people }}</p>
             </section>
 
             <section v-if="canPersonalize" class="space-y-3">
                 <div>
-                    <span :class="labelClass">Different version for someone <span class="font-normal text-slate-500">(optional)</span></span>
+                    <span :class="labelClass">{{ t('Different version for someone') }} <span class="font-normal text-slate-500">{{ t('(optional)') }}</span></span>
                     <p class="text-xs text-slate-500">
-                        These people see their own photos link and/or description instead of the general ones. Leave a field empty to keep the general one.
+                        {{ t('These people see their own photos link and/or description instead of the general ones. Leave a field empty to keep the general one.') }}
                     </p>
                 </div>
 
@@ -181,19 +182,19 @@ const labelClass = 'mb-1.5 block text-sm font-semibold';
                     <div class="flex items-center gap-2">
                         <UserCog class="size-5 shrink-0 text-accent" />
                         <select v-model="version.userId" class="h-10 flex-1 rounded-xl border-0 bg-white px-3 text-sm font-semibold ring-1 ring-slate-200 dark:bg-slate-950 dark:ring-slate-700">
-                            <option v-for="user in available(version.userId)" :key="user.id" :value="user.id">{{ user.name }}{{ user.isDemo ? ' (demo, for recruiters)' : '' }}</option>
+                            <option v-for="user in available(version.userId)" :key="user.id" :value="user.id">{{ user.name }}{{ user.isDemo ? ' ' + t('(demo, for recruiters)') : '' }}</option>
                         </select>
                         <button type="button" class="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40" @click="form.personal.splice(index, 1)">
-                            <Trash2 class="size-4" /><span class="sr-only">Remove this version</span>
+                            <Trash2 class="size-4" /><span class="sr-only">{{ t('Remove this version') }}</span>
                         </button>
                     </div>
                     <div>
-                        <span class="mb-1 block text-xs font-semibold">Their photos link</span>
+                        <span class="mb-1 block text-xs font-semibold">{{ t('Their photos link') }}</span>
                         <input v-model="version.albumLink" type="url" :placeholder="form.albumLink || 'https://...'" :class="inputClass" />
                         <p v-if="form.errors[`personal.${index}.albumLink`]" class="mt-1 text-sm text-red-600">{{ form.errors[`personal.${index}.albumLink`] }}</p>
                     </div>
                     <div>
-                        <span class="mb-1 block text-xs font-semibold">Their description</span>
+                        <span class="mb-1 block text-xs font-semibold">{{ t('Their description') }}</span>
                         <RichTextEditor v-model="version.description" />
                     </div>
                 </div>
@@ -204,22 +205,22 @@ const labelClass = 'mb-1.5 block text-sm font-semibold';
                     :disabled="!canAddVersion"
                     @click="addVersion"
                 >
-                    <Plus class="size-4" /> Add a version for someone
+                    <Plus class="size-4" /> {{ t('Add a version for someone') }}
                 </button>
-                <p v-if="!form.people.length" class="text-xs text-slate-500">Choose the people in the album first.</p>
+                <p v-if="!form.people.length" class="text-xs text-slate-500">{{ t('Choose the people in the album first.') }}</p>
             </section>
 
             <section class="space-y-2">
-                <span :class="labelClass">Videos (YouTube links are shown as players)</span>
+                <span :class="labelClass">{{ t('Videos (YouTube links are shown as players)') }}</span>
                 <div v-for="(link, index) in form.videoLinks" :key="index" class="flex gap-2">
                     <input v-model="form.videoLinks[index]" type="url" placeholder="https://youtu.be/..." :class="inputClass" />
                     <button type="button" class="rounded-xl px-3 text-slate-500 ring-1 ring-slate-200 hover:text-red-600 dark:ring-slate-700" @click="form.videoLinks.splice(index, 1)">
-                        <Trash2 class="size-4" /><span class="sr-only">Remove video</span>
+                        <Trash2 class="size-4" /><span class="sr-only">{{ t('Remove video') }}</span>
                     </button>
                 </div>
                 <p v-for="(message, key) in form.errors" v-show="key.startsWith('videoLinks')" :key="key" class="text-sm text-red-600">{{ message }}</p>
                 <button type="button" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium ring-1 ring-slate-200 hover:bg-white dark:ring-slate-700 dark:hover:bg-slate-900" @click="form.videoLinks.push('')">
-                    <Plus class="size-4" /> Add a video
+                    <Plus class="size-4" /> {{ t('Add a video') }}
                 </button>
             </section>
         </div>
@@ -227,40 +228,40 @@ const labelClass = 'mb-1.5 block text-sm font-semibold';
         <!-- Right column: cover and location -->
         <div class="space-y-6">
             <section class="space-y-3 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
-                <span :class="labelClass">Cover photo</span>
+                <span :class="labelClass">{{ t('Cover photo') }}</span>
                 <label class="block cursor-pointer overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200 transition hover:ring-accent dark:bg-slate-800 dark:ring-slate-700">
                     <img v-if="coverPreview" :src="coverPreview" alt="" class="max-h-72 w-full object-contain" />
                     <span v-else class="flex h-40 flex-col items-center justify-center gap-2 text-sm text-slate-500">
-                        <ImagePlus class="size-8" /> Choose a photo
+                        <ImagePlus class="size-8" /> {{ t('Choose a photo') }}
                     </span>
                     <input type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" @change="onCover" />
                 </label>
-                <p class="text-xs text-slate-500">Any photo from the phone is fine: the site resizes it and keeps its shape.</p>
+                <p class="text-xs text-slate-500">{{ t('Any photo from the phone is fine: the site resizes it and keeps its shape.') }}</p>
                 <p v-if="form.errors.cover" class="text-sm text-red-600">{{ form.errors.cover }}</p>
             </section>
 
             <section class="space-y-3 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
                 <div>
-                    <label for="location" :class="labelClass">Location label</label>
-                    <input id="location" v-model="form.location" type="text" placeholder="Example: Terrazzina theboise, Pineta BZ" :class="inputClass" />
-                    <p class="mt-1 text-xs text-slate-500">Shown on the album, write it however you like.</p>
+                    <label for="location" :class="labelClass">{{ t('Location label') }}</label>
+                    <input id="location" v-model="form.location" type="text" :placeholder="t('Example: Terrazzina theboise, Pineta BZ')" :class="inputClass" />
+                    <p class="mt-1 text-xs text-slate-500">{{ t('Shown on the album, write it however you like.') }}</p>
                     <p v-if="form.errors.location" class="mt-1 text-sm text-red-600">{{ form.errors.location }}</p>
                 </div>
 
                 <div>
-                    <span :class="labelClass">Places on the map <span class="font-normal text-slate-500">(optional, one or more)</span></span>
+                    <span :class="labelClass">{{ t('Places on the map') }} <span class="font-normal text-slate-500">{{ t('(optional, one or more)') }}</span></span>
                     <div class="flex gap-2">
                         <input
                             v-model="placeQuery"
                             type="search"
-                            :placeholder="form.location || 'Search a place'"
+                            :placeholder="form.location || t('Search a place')"
                             :class="inputClass"
                             @keydown.enter.prevent="searchPlace"
                         />
                         <button type="button" class="rounded-xl bg-accent px-3 text-white hover:bg-teal-700" :disabled="searching" @click="searchPlace">
                             <Loader2 v-if="searching" class="size-4 animate-spin" />
                             <Search v-else class="size-4" />
-                            <span class="sr-only">Search</span>
+                            <span class="sr-only">{{ t('Search') }}</span>
                         </button>
                     </div>
                     <p v-if="searchError" class="mt-1 text-sm text-slate-500">{{ searchError }}</p>
@@ -274,7 +275,7 @@ const labelClass = 'mb-1.5 block text-sm font-semibold';
                 </div>
 
                 <LeafletMap v-model="form.places" picker class="h-64" />
-                <p class="text-xs text-slate-500">Click on the map to add a pin, drag a pin to move it.</p>
+                <p class="text-xs text-slate-500">{{ t('Click on the map to add a pin, drag a pin to move it.') }}</p>
 
                 <ol v-if="form.places.length" class="space-y-2">
                     <li v-for="(place, index) in form.places" :key="index" class="flex items-start gap-2 rounded-xl bg-slate-50 p-3 text-sm dark:bg-slate-800">
@@ -283,11 +284,11 @@ const labelClass = 'mb-1.5 block text-sm font-semibold';
                             <p v-if="place.placeName" class="truncate">{{ place.placeName }}</p>
                             <p class="text-xs text-slate-500">{{ place.latitude }}, {{ place.longitude }}</p>
                             <p v-if="place.suggested" class="mt-1 text-xs font-medium text-amber-600">
-                                Guessed from the location text: saving the album confirms it.
+                                {{ t('Guessed from the location text: saving the album confirms it.') }}
                             </p>
                         </div>
                         <button type="button" class="rounded-lg p-1 text-slate-400 hover:text-red-600" @click="removePlace(index)">
-                            <X class="size-4" /><span class="sr-only">Remove this place</span>
+                            <X class="size-4" /><span class="sr-only">{{ t('Remove this place') }}</span>
                         </button>
                     </li>
                 </ol>
@@ -300,9 +301,9 @@ const labelClass = 'mb-1.5 block text-sm font-semibold';
                 :disabled="form.processing"
             >
                 <Loader2 v-if="form.processing" class="size-5 animate-spin" />
-                {{ editing ? 'Save changes' : 'Create album' }}
+                {{ editing ? t('Save changes') : t('Create album') }}
             </button>
-            <p v-if="Object.keys(form.errors).length" class="text-center text-sm text-red-600">Some fields need a look: see the messages above.</p>
+            <p v-if="Object.keys(form.errors).length" class="text-center text-sm text-red-600">{{ t('Some fields need a look: see the messages above.') }}</p>
         </div>
     </form>
 </template>

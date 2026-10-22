@@ -110,7 +110,7 @@ class Decorations
     public static function preview(string $key, User $viewer): ?array
     {
         if ($key === 'birthday') {
-            return ['key' => 'birthday', 'falling' => self::BIRTHDAY, 'message' => '🎂 Today is ' . $viewer->name . '\'s birthday!', 'season' => 'preview'];
+            return ['key' => 'birthday', 'falling' => self::BIRTHDAY, 'message' => '🎂 ' . __("Today is :names's birthday!", ['names' => $viewer->name]), 'season' => 'preview'];
         }
         if (! isset(self::HOLIDAYS[$key])) {
             return null;
@@ -128,9 +128,9 @@ class Decorations
         return [
             'key' => $key,
             'falling' => $holiday['falling'],
-            'message' => $today->lt($first)
-                ? $holiday['icon'] . ' ' . $holiday['label'] . ' in ' . $daysLeft . ' ' . ($daysLeft === 1 ? 'day' : 'days')
-                : $holiday['icon'] . ' ' . $holiday['greeting'],
+            'message' => $holiday['icon'] . ' ' . ($today->lt($first)
+                ? trans_choice(':holiday in :count day|:holiday in :count days', $daysLeft, ['holiday' => __($holiday['label'])])
+                : __($holiday['greeting'])),
             // To remember "hidden" until this holiday is over
             'season' => $key . '-' . $last->toDateString(),
         ];
@@ -155,8 +155,10 @@ class Decorations
             'key' => 'birthday',
             'falling' => self::BIRTHDAY,
             'message' => $mine
-                ? '🥳 Happy birthday, ' . $viewer->name . '!' . ($names->isNotEmpty() ? ' (and ' . $names->join(', ', ' and ') . ' too)' : '')
-                : '🎂 Today is ' . $names->join(', ', ' and ') . '\'s birthday!',
+                ? '🥳 ' . ($names->isNotEmpty()
+                    ? __('Happy birthday, :name! (and :others too)', ['name' => $viewer->name, 'others' => $names->join(', ', ' ' . __('and') . ' ')])
+                    : __('Happy birthday, :name!', ['name' => $viewer->name]))
+                : '🎂 ' . __("Today is :names's birthday!", ['names' => $names->join(', ', ' ' . __('and') . ' ')]),
             'season' => 'birthday-' . $today->toDateString(),
         ];
     }

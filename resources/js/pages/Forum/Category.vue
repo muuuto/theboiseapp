@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ArrowDownUp, ArrowLeft, ChevronDown, ChevronUp, Eye, GripVertical, Lock, MessageCircle, Pencil, Plus, Trash2 } from 'lucide-vue-next';
 import { ago, fullDate } from '../../time.js';
+import { t } from '../../i18n.js';
 import { useReorder } from '../../reorder.js';
 
 const props = defineProps({
@@ -26,7 +27,7 @@ function saveOrder() {
 }
 
 function destroy(post) {
-    if (window.confirm(`Delete the post "${post.title}"? This can't be undone.`)) {
+    if (window.confirm(t('Delete the post ":title"? This can\'t be undone.', { title: post.title }))) {
         router.delete(`/forum/${props.category.id}/${post.id}/delete`, { preserveScroll: true });
     }
 }
@@ -36,7 +37,7 @@ function destroy(post) {
     <Head :title="category.title" />
 
     <Link href="/forum" class="mb-4 inline-flex items-center gap-1.5 rounded-xl px-2 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-200/60 dark:text-slate-300 dark:hover:bg-slate-800">
-        <ArrowLeft class="size-4" /> Forum
+        <ArrowLeft class="size-4" /> {{ t('Forum') }}
     </Link>
 
     <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -53,20 +54,20 @@ function destroy(post) {
                 class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold shadow-sm ring-1 ring-slate-200 hover:ring-slate-300 sm:flex-none sm:py-2 dark:bg-slate-800 dark:ring-slate-700"
                 @click="reorder.start()"
             >
-                <ArrowDownUp class="size-4" /> Reorder
+                <ArrowDownUp class="size-4" /> {{ t('Reorder') }}
             </button>
             <Link
                 v-if="category.canEdit"
                 :href="`/forum/${category.id}/edit`"
                 class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold shadow-sm ring-1 ring-slate-200 hover:ring-slate-300 sm:flex-none sm:py-2 dark:bg-slate-800 dark:ring-slate-700"
             >
-                <Pencil class="size-4" /> Edit category
+                <Pencil class="size-4" /> {{ t('Edit category') }}
             </Link>
             <Link
                 :href="`/forum/${category.id}/create`"
                 class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-forum px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-green-700 sm:flex-none sm:py-2"
             >
-                <Plus class="size-4" /> New post
+                <Plus class="size-4" /> {{ t('New post') }}
             </Link>
         </div>
     </div>
@@ -77,12 +78,12 @@ function destroy(post) {
         class="sticky top-[calc(env(safe-area-inset-top,0px)+4.5rem)] z-20 mb-4 flex flex-wrap items-center gap-3 rounded-2xl bg-forum/10 p-3 ring-1 ring-forum/30 backdrop-blur dark:bg-forum/20"
     >
         <p class="min-w-48 flex-1 text-sm">
-            Drag the posts by <GripVertical class="inline size-4" /> or use the arrows. Everyone sees this order.
+            {{ t('Drag the posts by') }} <GripVertical class="inline size-4" /> {{ t('or use the arrows. Everyone sees this order.') }}
         </p>
         <div class="flex gap-2">
-            <button class="rounded-xl px-4 py-2 text-sm font-semibold ring-1 ring-slate-300 hover:bg-white dark:ring-slate-600 dark:hover:bg-slate-800" @click="reorder.stop()">Cancel</button>
+            <button class="rounded-xl px-4 py-2 text-sm font-semibold ring-1 ring-slate-300 hover:bg-white dark:ring-slate-600 dark:hover:bg-slate-800" @click="reorder.stop()">{{ t('Cancel') }}</button>
             <button class="rounded-xl bg-forum px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50" :disabled="saving" @click="saveOrder">
-                {{ saving ? 'Saving…' : 'Save order' }}
+                {{ saving ? t('Saving…') : t('Save order') }}
             </button>
         </div>
     </div>
@@ -98,14 +99,14 @@ function destroy(post) {
                 v-if="reorder.active.value"
                 data-drag-handle
                 class="-ml-1 shrink-0 cursor-grab touch-none rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 active:cursor-grabbing dark:hover:bg-slate-800"
-                title="Drag to move"
+                :title="t('Drag to move')"
             >
-                <GripVertical class="size-5" /><span class="sr-only">Drag {{ post.title }}</span>
+                <GripVertical class="size-5" /><span class="sr-only">{{ t('Drag :name', { name: post.title }) }}</span>
             </button>
             <img v-if="post.cover" :src="post.cover" alt="" loading="lazy" class="size-20 shrink-0 rounded-xl object-cover sm:size-28" />
             <div class="min-w-0 flex-1">
                 <h2 class="flex items-center gap-2 font-bold leading-snug sm:text-lg" :class="{ 'group-hover:text-forum': !reorder.active.value }">
-                    <Lock v-if="post.isPrivate" class="size-4 shrink-0 text-amber-600" title="Only you can see it" />
+                    <Lock v-if="post.isPrivate" class="size-4 shrink-0 text-amber-600" :title="t('Only you can see it')" />
                     <span v-if="reorder.active.value">{{ post.title }}</span>
                     <Link v-else :href="`/forum/${category.id}/${post.id}`" class="after:absolute after:inset-0">{{ post.title }}</Link>
                 </h2>
@@ -119,23 +120,23 @@ function destroy(post) {
             </div>
 
             <div v-if="reorder.active.value" class="flex shrink-0 flex-col">
-                <button class="rounded-lg p-1 text-slate-500 hover:bg-slate-100 disabled:opacity-30 dark:hover:bg-slate-800" :disabled="index === 0" title="Move up" @click="reorder.move(index, index - 1)">
-                    <ChevronUp class="size-5" /><span class="sr-only">Move {{ post.title }} up</span>
+                <button class="rounded-lg p-1 text-slate-500 hover:bg-slate-100 disabled:opacity-30 dark:hover:bg-slate-800" :disabled="index === 0" :title="t('Move up')" @click="reorder.move(index, index - 1)">
+                    <ChevronUp class="size-5" /><span class="sr-only">{{ t('Move :name up', { name: post.title }) }}</span>
                 </button>
-                <button class="rounded-lg p-1 text-slate-500 hover:bg-slate-100 disabled:opacity-30 dark:hover:bg-slate-800" :disabled="index === list.length - 1" title="Move down" @click="reorder.move(index, index + 1)">
-                    <ChevronDown class="size-5" /><span class="sr-only">Move {{ post.title }} down</span>
+                <button class="rounded-lg p-1 text-slate-500 hover:bg-slate-100 disabled:opacity-30 dark:hover:bg-slate-800" :disabled="index === list.length - 1" :title="t('Move down')" @click="reorder.move(index, index + 1)">
+                    <ChevronDown class="size-5" /><span class="sr-only">{{ t('Move :name down', { name: post.title }) }}</span>
                 </button>
             </div>
 
             <div v-else-if="post.canEdit || post.canDelete" class="relative z-10 flex shrink-0 flex-col gap-1">
-                <Link v-if="post.canEdit" :href="`/forum/${category.id}/${post.id}/edit`" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200" title="Edit">
-                    <Pencil class="size-4" /><span class="sr-only">Edit {{ post.title }}</span>
+                <Link v-if="post.canEdit" :href="`/forum/${category.id}/${post.id}/edit`" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200" :title="t('Edit')">
+                    <Pencil class="size-4" /><span class="sr-only">{{ t('Edit :name', { name: post.title }) }}</span>
                 </Link>
-                <button v-if="post.canDelete" class="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40" title="Delete" @click="destroy(post)">
-                    <Trash2 class="size-4" /><span class="sr-only">Delete {{ post.title }}</span>
+                <button v-if="post.canDelete" class="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40" :title="t('Delete')" @click="destroy(post)">
+                    <Trash2 class="size-4" /><span class="sr-only">{{ t('Delete :name', { name: post.title }) }}</span>
                 </button>
             </div>
         </article>
     </div>
-    <p v-else class="mt-10 text-center text-slate-500">No posts yet: write the first one.</p>
+    <p v-else class="mt-10 text-center text-slate-500">{{ t('No posts yet: write the first one.') }}</p>
 </template>

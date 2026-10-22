@@ -110,7 +110,7 @@ class Wrapped
             'placeCount' => $places->pluck('name')->unique()->count(),
             'farthest' => $farthest ? ['name' => $farthest['name'], 'album' => $farthest['album'], 'km' => (int) round($farthest['km'])] : null,
             'longest' => ['title' => $longest->title, 'days' => $days($longest)],
-            'busiestMonth' => $months->isNotEmpty() ? ['name' => Carbon::create($year, $months->keys()->first())->format('F'), 'albums' => $months->first()] : null,
+            'busiestMonth' => $months->isNotEmpty() ? ['name' => ucfirst(Carbon::create($year, $months->keys()->first())->translatedFormat('F')), 'albums' => $months->first()] : null,
             'friends' => $friends,
             'comments' => self::comments($user, $year),
         ];

@@ -31,7 +31,7 @@ class BirthdayReminderMail extends Mailable
     public function build()
     {
         return $this
-            ->subject('Happy Birthday from TheBoise!')
+            ->subject(__('Happy Birthday from TheBoise!'))
             ->from('info@theboise.it', 'TheBoise')
             ->view('mails.birthday_reminder');
     }

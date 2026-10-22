@@ -32,7 +32,7 @@ class GenerateAnniversaryNotifications extends Command
 
         if ($specificUser) {
             if (isset($notifyUsersCollection[auth()->id()])) {
-                Mail::to($user->email)
+                Mail::to($user)
                     ->send(new AnniversaryReminderMail($user, collect($notifyUsersCollection[auth()->id()])));
             }
         } else {
@@ -50,15 +50,17 @@ class GenerateAnniversaryNotifications extends Command
                 if ($filteredListings->isNotEmpty()) {
                     $first = $filteredListings->first();
                     $more = $filteredListings->count() - 1;
-                    Notify::push($user, 'memories', [
-                        'title' => 'On this day: ' . $first->title . ($more ? " and {$more} more" : ''),
-                        'body' => $first->diffInYears . ' ' . Str::plural('year', $first->diffInYears) . ' ago. Relive it!',
+                    Notify::push($user, 'memories', fn () => [
+                        'title' => $more
+                            ? __('On this day: :title and :count more', ['title' => $first->title, 'count' => $more])
+                            : __('On this day: :title', ['title' => $first->title]),
+                        'body' => trans_choice(':count year ago. Relive it!|:count years ago. Relive it!', $first->diffInYears),
                         'url' => '/listings/' . $first->id,
                         'tag' => 'memories-' . now()->toDateString(),
                         'image' => Media::url($first->logo),
                     ]);
                     if (Notify::wants($user, 'memories', 'email')) {
-                        Mail::to($user->email)->send(new AnniversaryReminderMail($user, $filteredListings));
+                        Mail::to($user)->send(new AnniversaryReminderMail($user, $filteredListings));
                     }
                 }
             }

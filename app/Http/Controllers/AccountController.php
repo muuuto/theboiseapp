@@ -30,6 +30,8 @@ class AccountController extends Controller
                 'birthday' => $user->birthday,
             ],
             'wallet' => $wallet ? ['name' => $wallet['name'], 'url' => Media::url($wallet['path'])] : null,
+            // Which albums the list and the map start with (for who posted some)
+            'ownFilter' => ListingController::ownFilter($user),
             // Phone notifications (null until their migration runs; never for the demo account).
             // Not "notifications": that's the bell, given to every page
             'push' => ! $user->is_demo && Schema::hasTable('push_subscriptions') ? [
@@ -79,7 +81,7 @@ class AccountController extends Controller
             'current_password' => 'required|current_password',
             'password' => 'required|string|min:8|confirmed|different:current_password',
         ], [
-            'current_password.current_password' => 'The current password is not correct.',
+            'current_password.current_password' => __('The current password is not correct.'),
         ]);
 
         $request->user()->update(['password' => Hash::make($request->password)]);

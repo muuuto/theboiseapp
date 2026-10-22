@@ -48,14 +48,14 @@ function remove(tag) {
                 {{ tag }}
                 <button type="button" class="rounded-full p-0.5 hover:bg-slate-200 dark:hover:bg-slate-700" @click="remove(tag)">
                     <X class="size-3.5" />
-                    <span class="sr-only">Remove {{ tag }}</span>
+                    <span class="sr-only">{{ t('Remove :name', { name: tag }) }}</span>
                 </button>
             </span>
             <input
                 v-model="text"
                 type="text"
                 class="min-w-32 flex-1 border-0 bg-transparent py-1 text-sm focus:outline-none"
-                placeholder="Add a tag and press Enter"
+                :placeholder="t('Add a tag and press Enter')"
                 @keydown="onKeydown"
                 @blur="text.trim() && add(text)"
             />

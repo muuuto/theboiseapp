@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { router } from '@inertiajs/vue3';
 import { Heart } from 'lucide-vue-next';
+import { t } from '../i18n.js';
 
 // likes: { count, liked, names }
 const props = defineProps({
@@ -13,8 +14,8 @@ const props = defineProps({
 
 const who = computed(() => {
     const names = props.likes.names;
-    if (!names.length) return 'No likes yet';
-    return names.length > 6 ? `${names.slice(0, 6).join(', ')} and ${names.length - 6} more` : names.join(', ');
+    if (!names.length) return t('No likes yet');
+    return names.length > 6 ? t(':names and :count more', { names: names.slice(0, 6).join(', '), count: names.length - 6 }) : names.join(', ');
 });
 
 function toggle() {
@@ -37,6 +38,6 @@ function toggle() {
     >
         <Heart class="size-4 transition group-active:scale-125" :class="likes.liked && 'fill-current'" />
         <span v-if="likes.count">{{ likes.count }}</span>
-        <span class="sr-only">{{ likes.liked ? 'Unlike' : 'Like' }} ({{ who }})</span>
+        <span class="sr-only">{{ likes.liked ? t('Unlike') : t('Like') }} ({{ who }})</span>
     </button>
 </template>

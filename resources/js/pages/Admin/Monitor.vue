@@ -7,15 +7,15 @@ defineProps({ users: Array });
 </script>
 
 <template>
-    <Head title="Monitor" />
+    <Head :title="t('Monitor')" />
 
     <div class="mb-6 flex flex-wrap items-center gap-3">
         <div>
-            <h1 class="text-3xl font-extrabold tracking-tight">Monitor</h1>
-            <p class="text-sm text-slate-500">{{ users.length }} users, most recently on the site first</p>
+            <h1 class="text-3xl font-extrabold tracking-tight">{{ t('Monitor') }}</h1>
+            <p class="text-sm text-slate-500">{{ t(':count users, most recently on the site first', { count: users.length }) }}</p>
         </div>
         <Link href="/admin/maintenance" class="ml-auto inline-flex items-center gap-1.5 rounded-xl bg-white px-4 py-2 text-sm font-semibold shadow-sm ring-1 ring-slate-200 hover:ring-slate-300 dark:bg-slate-800 dark:ring-slate-700">
-            <Wrench class="size-4" /> Maintenance
+            <Wrench class="size-4" /> {{ t('Maintenance') }}
         </Link>
     </div>
 
@@ -29,13 +29,13 @@ defineProps({ users: Array });
                 <div class="min-w-0 flex-1">
                     <p class="flex items-center gap-2 font-semibold">
                         <span class="truncate">{{ user.name }}</span>
-                        <span v-if="user.isAdmin" class="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand">admin</span>
+                        <span v-if="user.isAdmin" class="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand">{{ t('admin') }}</span>
                         <span v-if="user.isDemo" class="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:bg-amber-950 dark:text-amber-300">demo</span>
                     </p>
                     <p class="truncate text-xs text-slate-500">{{ user.email }}</p>
                 </div>
                 <span class="shrink-0 text-sm text-slate-500" :title="user.lastLogin ? fullDate(user.lastLogin) : ''">
-                    {{ user.lastLogin ? ago(user.lastLogin) : 'never' }}
+                    {{ user.lastLogin ? ago(user.lastLogin) : t('never') }}
                 </span>
             </li>
         </ul>

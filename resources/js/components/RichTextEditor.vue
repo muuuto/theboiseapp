@@ -1,4 +1,5 @@
 <script setup>
+import { t } from '../i18n.js';
 import { onBeforeUnmount, watch } from 'vue';
 import { EditorContent, useEditor } from '@tiptap/vue-3';
 import StarterKit from '@tiptap/starter-kit';
@@ -45,7 +46,7 @@ onBeforeUnmount(() => editor.value?.destroy());
 
 function setLink() {
     const previous = editor.value.getAttributes('link').href || '';
-    const url = window.prompt('Link (empty to remove it)', previous);
+    const url = window.prompt(t('Link (empty to remove it)'), previous);
     if (url === null) return;
     if (url === '') {
         editor.value.chain().focus().extendMarkRange('link').unsetLink().run();
@@ -104,11 +105,11 @@ function isActive(button) {
                     :class="isActive(button)
                         ? 'bg-accent/15 text-accent'
                         : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100'"
-                    :title="button.label"
+                    :title="t(button.label)"
                     @click="press(button)"
                 >
                     <component :is="button.icon" class="size-4" />
-                    <span class="sr-only">{{ button.label }}</span>
+                    <span class="sr-only">{{ t(button.label) }}</span>
                 </button>
             </template>
             <span class="mx-1 h-5 w-px bg-slate-200 dark:bg-slate-700" />

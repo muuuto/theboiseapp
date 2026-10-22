@@ -3,7 +3,7 @@
     Sections: preheader (the grey preview line in the inbox) and content.
 --}}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -53,7 +53,7 @@
                     {{-- Footer --}}
                     <tr>
                         <td class="muted" style="padding: 20px 28px; text-align: center; font-family: Arial, Helvetica, sans-serif; font-size: 12px; line-height: 1.5; color: #64748b;">
-                            You get this email because you're part of
+                            {{ __("You get this email because you're part of") }}
                             <a href="{{ url('/') }}" style="color: #64748b; font-weight: bold;">theboise.it</a>
                         </td>
                     </tr>

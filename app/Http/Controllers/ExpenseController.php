@@ -88,7 +88,7 @@ class ExpenseController extends Controller
 
         $amount = ExpenseMath::parse($data['amount']);
         if (! $amount) {
-            throw ValidationException::withMessages(['amount' => 'Write an amount in euro, like 12.50']);
+            throw ValidationException::withMessages(['amount' => __('Write an amount in euro, like 12.50')]);
         }
 
         // Only the group's members, and only who's in (unticked, 0 or empty = not in)
@@ -101,18 +101,18 @@ class ExpenseController extends Controller
 
         if ($data['split_type'] === 'exact') {
             if ($values->contains(null)) {
-                throw ValidationException::withMessages(['split' => 'Write each amount in euro, like 12.50']);
+                throw ValidationException::withMessages(['split' => __('Write each amount in euro, like 12.50')]);
             }
             $values = $values->filter();
             if ($values->sum() !== $amount) {
-                throw ValidationException::withMessages(['split' => 'The amounts add up to ' . ExpenseMath::format($values->sum()) . ', not ' . ExpenseMath::format($amount) . '.']);
+                throw ValidationException::withMessages(['split' => __('The amounts add up to :sum, not :total.', ['sum' => ExpenseMath::format($values->sum()), 'total' => ExpenseMath::format($amount)])]);
             }
         }
         if ($values->isEmpty()) {
-            throw ValidationException::withMessages(['split' => 'Choose who shares this expense.']);
+            throw ValidationException::withMessages(['split' => __('Choose who shares this expense.')]);
         }
         if ($data['split_type'] === 'shares' && $values->contains(fn ($shares) => $shares > 1000)) {
-            throw ValidationException::withMessages(['split' => 'Use smaller numbers of shares (at most 1000).']);
+            throw ValidationException::withMessages(['split' => __('Use smaller numbers of shares (at most 1000).')]);
         }
 
         $split = ExpenseMath::split($amount, $data['split_type'], $values->all());

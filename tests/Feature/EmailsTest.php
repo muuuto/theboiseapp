@@ -41,7 +41,7 @@ class EmailsTest extends TestCase
         $this->assertCount(count(MailSamples::TEMPLATES), $messages);
         foreach ($messages as $message) {
             $this->assertEquals([$admin->email], collect($message->getEnvelope()->getRecipients())->map->getAddress()->all());
-            $this->assertStringContainsString("You get this email because you're part of", $message->getOriginalMessage()->getHtmlBody());
+            $this->assertStringContainsString('You get this email because', $message->getOriginalMessage()->getHtmlBody());
         }
         // The album samples use the admin's own albums
         $this->assertStringContainsString('Sicilia 2026', $this->htmlOf($messages->first()));
@@ -139,7 +139,7 @@ class EmailsTest extends TestCase
         $html = $this->htmlOf($this->sentMessages()->first());
         $this->assertStringContainsString('Hello there Anna', $html);
         $this->assertStringContainsString(url('/reset-password/'), $html);
-        $this->assertStringContainsString("You get this email because you're part of", $html);
+        $this->assertStringContainsString('You get this email because', $html);
     }
 
     // A 400x600 photo padded to 800x600 with transparent bars, like the old previews

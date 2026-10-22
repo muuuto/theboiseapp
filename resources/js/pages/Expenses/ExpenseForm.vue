@@ -3,6 +3,7 @@ import { computed, reactive } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, Trash2 } from 'lucide-vue-next';
 import { money, parseEuros, split } from '../../money.js';
+import { t } from '../../i18n.js';
 
 const props = defineProps({
     group: Object,
@@ -67,7 +68,7 @@ function submit() {
 }
 
 function destroy() {
-    if (window.confirm(`Delete "${props.expense.description}"? The balances change for everyone in it.`)) {
+    if (window.confirm(t('Delete ":what"? The balances change for everyone in it.', { what: props.expense.description }))) {
         router.delete(`/expenses/${props.group.id}/expenses/${props.expense.id}`);
     }
 }
@@ -84,7 +85,7 @@ const smallInputClass = 'h-10 rounded-xl border-0 bg-white px-2 ring-1 ring-slat
 </script>
 
 <template>
-    <Head :title="editing ? 'Edit expense' : 'Add expense'" />
+    <Head :title="editing ? t('Edit expense') : t('Add expense')" />
 
     <Link
         :href="`/expenses/${group.id}`"
@@ -93,19 +94,19 @@ const smallInputClass = 'h-10 rounded-xl border-0 bg-white px-2 ring-1 ring-slat
         <ArrowLeft class="size-4" /> {{ group.name }}
     </Link>
 
-    <h1 class="mb-6 text-3xl font-extrabold tracking-tight">{{ editing ? 'Edit expense' : 'Add expense' }}</h1>
+    <h1 class="mb-6 text-3xl font-extrabold tracking-tight">{{ editing ? t('Edit expense') : t('Add expense') }}</h1>
 
     <form class="mx-auto max-w-2xl space-y-6" @submit.prevent="submit">
         <section class="space-y-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
             <label class="block">
-                <span :class="labelClass">What</span>
-                <input v-model="form.description" maxlength="255" required placeholder="Example: Dinner at the beach" :class="[inputClass, form.errors.description && 'ring-2 ring-red-500']" />
+                <span :class="labelClass">{{ t('What') }}</span>
+                <input v-model="form.description" maxlength="255" required :placeholder="t('Example: Dinner at the beach')" :class="[inputClass, form.errors.description && 'ring-2 ring-red-500']" />
                 <span v-if="form.errors.description" class="mt-1 block text-sm text-red-600">{{ form.errors.description }}</span>
             </label>
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <label class="block">
-                    <span :class="labelClass">Amount</span>
+                    <span :class="labelClass">{{ t('Amount') }}</span>
                     <span class="relative block">
                         <span class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 font-semibold text-slate-500">€</span>
                         <input
@@ -119,21 +120,21 @@ const smallInputClass = 'h-10 rounded-xl border-0 bg-white px-2 ring-1 ring-slat
                     <span v-if="form.errors.amount" class="mt-1 block text-sm text-red-600">{{ form.errors.amount }}</span>
                 </label>
                 <label class="block">
-                    <span :class="labelClass">Date</span>
+                    <span :class="labelClass">{{ t('Date') }}</span>
                     <input v-model="form.spent_on" type="date" required :class="inputClass" />
                 </label>
             </div>
 
             <label class="block">
-                <span :class="labelClass">Paid by</span>
+                <span :class="labelClass">{{ t('Paid by') }}</span>
                 <select v-model="form.paid_by" :class="inputClass">
-                    <option v-for="member in members" :key="member.id" :value="member.id">{{ member.id === me ? `${member.name} (you)` : member.name }}</option>
+                    <option v-for="member in members" :key="member.id" :value="member.id">{{ member.id === me ? `${member.name} ${t('(you)')}` : member.name }}</option>
                 </select>
             </label>
         </section>
 
         <section class="space-y-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
-            <h2 class="font-bold">Split</h2>
+            <h2 class="font-bold">{{ t('Split') }}</h2>
             <div class="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800" role="tablist">
                 <button
                     v-for="type in types"
@@ -145,17 +146,17 @@ const smallInputClass = 'h-10 rounded-xl border-0 bg-white px-2 ring-1 ring-slat
                     :class="form.split_type === type.key ? 'bg-white shadow-sm dark:bg-slate-950' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'"
                     @click="form.split_type = type.key"
                 >
-                    {{ type.label }}
+                    {{ t(type.label) }}
                 </button>
             </div>
             <p class="text-xs text-slate-500">
-                <template v-if="form.split_type === 'equal'">Everyone ticked pays the same.</template>
-                <template v-else-if="form.split_type === 'exact'">Write how much each person spent: it must add up to the total.</template>
-                <template v-else>Example: 2 for who stayed 2 nights, 3 for who stayed 3. 0 = not in.</template>
+                <template v-if="form.split_type === 'equal'">{{ t('Everyone ticked pays the same.') }}</template>
+                <template v-else-if="form.split_type === 'exact'">{{ t('Write how much each person spent: it must add up to the total.') }}</template>
+                <template v-else>{{ t('Example: 2 for who stayed 2 nights, 3 for who stayed 3. 0 = not in.') }}</template>
             </p>
 
             <button v-if="form.split_type === 'equal'" type="button" class="text-sm font-medium text-accent hover:underline" @click="toggleEveryone">
-                {{ everyone ? 'Untick everyone' : 'Tick everyone' }}
+                {{ everyone ? t('Untick everyone') : t('Tick everyone') }}
             </button>
 
             <ul class="divide-y divide-slate-100 dark:divide-slate-800">
@@ -164,12 +165,12 @@ const smallInputClass = 'h-10 rounded-xl border-0 bg-white px-2 ring-1 ring-slat
                         <input v-if="form.split_type === 'equal'" v-model="values.equal[member.id]" type="checkbox" class="size-5 shrink-0 rounded accent-teal-600" />
                         <img v-if="member.avatar" :src="member.avatar" alt="" class="size-8 shrink-0 rounded-full object-cover" />
                         <span v-else class="flex size-8 shrink-0 items-center justify-center rounded-full bg-slate-200 text-sm font-bold dark:bg-slate-700">{{ member.name.charAt(0).toUpperCase() }}</span>
-                        <span class="truncate font-medium">{{ member.name }}<span v-if="member.id === me" class="text-slate-500"> (you)</span></span>
+                        <span class="truncate font-medium">{{ member.name }}<span v-if="member.id === me" class="ml-1 text-slate-500">{{ t('(you)') }}</span></span>
                     </label>
 
                     <span v-if="form.split_type === 'exact'" class="relative w-28 shrink-0">
                         <span class="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-sm text-slate-500">€</span>
-                        <input v-model="values.exact[member.id]" inputmode="decimal" placeholder="0.00" :aria-label="`${member.name}'s amount`" :class="smallInputClass" class="w-full pl-6 text-right" />
+                        <input v-model="values.exact[member.id]" inputmode="decimal" placeholder="0.00" :aria-label="t(':name\'s amount', { name: member.name })" :class="smallInputClass" class="w-full pl-6 text-right" />
                     </span>
                     <template v-else>
                         <input
@@ -179,7 +180,7 @@ const smallInputClass = 'h-10 rounded-xl border-0 bg-white px-2 ring-1 ring-slat
                             min="0"
                             max="1000"
                             step="1"
-                            :aria-label="`${member.name}'s shares`"
+                            :aria-label="t(':name\'s shares', { name: member.name })"
                             :class="smallInputClass" class="w-20 shrink-0 text-center"
                         />
                         <span class="w-20 shrink-0 text-right text-sm tabular-nums" :class="preview[member.id] ? 'font-semibold' : 'text-slate-400'">
@@ -190,7 +191,7 @@ const smallInputClass = 'h-10 rounded-xl border-0 bg-white px-2 ring-1 ring-slat
             </ul>
 
             <p v-if="exactLeft !== null && exactLeft !== 0" class="rounded-xl px-3 py-2 text-sm font-medium" :class="exactLeft > 0 ? 'bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300' : 'bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300'">
-                {{ exactLeft > 0 ? `${money(exactLeft)} still to assign` : `${money(-exactLeft)} too much` }}
+                {{ exactLeft > 0 ? t(':amount still to assign', { amount: money(exactLeft) }) : t(':amount too much', { amount: money(-exactLeft) }) }}
             </p>
             <p v-if="form.errors.split" class="text-sm text-red-600">{{ form.errors.split }}</p>
         </section>
@@ -201,7 +202,7 @@ const smallInputClass = 'h-10 rounded-xl border-0 bg-white px-2 ring-1 ring-slat
                 class="rounded-2xl bg-brand px-6 py-3 font-semibold text-white shadow-sm transition hover:bg-brand-dark disabled:opacity-50"
                 :disabled="form.processing"
             >
-                {{ editing ? 'Save expense' : 'Add expense' }}
+                {{ editing ? t('Save expense') : t('Add expense') }}
             </button>
             <button
                 v-if="editing"
@@ -209,7 +210,7 @@ const smallInputClass = 'h-10 rounded-xl border-0 bg-white px-2 ring-1 ring-slat
                 class="ml-auto inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"
                 @click="destroy"
             >
-                <Trash2 class="size-4" /> Delete
+                <Trash2 class="size-4" /> {{ t('Delete') }}
             </button>
         </div>
     </form>

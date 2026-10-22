@@ -247,14 +247,20 @@ class TripController extends Controller
 
     private function invite(Trip $trip, iterable $people, User $by): void
     {
-        $dates = TripNotices::dates($trip);
-        TripNotices::send($people, $trip, "{$by->name} invited you to {$trip->title}",
-            $dates ? "{$dates}. See who's going and what to bring." : 'Vote the dates that work for you and see what to bring.');
+        TripNotices::send($people, $trip, fn () => [
+            __(':name invited you to :trip', ['name' => $by->name, 'trip' => $trip->title]),
+            ($dates = TripNotices::dates($trip))
+                ? __(":dates. See who's going and what to bring.", ['dates' => $dates])
+                : __('Vote the dates that work for you and see what to bring.'),
+        ]);
     }
 
     private function datesDecided(Trip $trip, User $by): void
     {
-        TripNotices::send($trip->members()->where('users.id', '!=', $by->id)->get(), $trip, "{$trip->title}: dates decided", TripNotices::dates($trip) . '. Put it in the calendar!');
+        TripNotices::send($trip->members()->where('users.id', '!=', $by->id)->get(), $trip, fn () => [
+            __(':trip: dates decided', ['trip' => $trip->title]),
+            __(':dates. Put it in the calendar!', ['dates' => TripNotices::dates($trip)]),
+        ]);
     }
 
     private function memberOrNull(Trip $trip, $userId): ?int
@@ -278,12 +284,12 @@ class TripController extends Controller
             'options.*.from' => 'required|date',
             'options.*.to' => 'required|date|after_or_equal:options.*.from',
         ], [
-            'options.min' => 'Give at least two date options to vote on.',
-            'options.required_if' => 'Give at least two date options to vote on.',
+            'options.min' => __('Give at least two date options to vote on.'),
+            'options.required_if' => __('Give at least two date options to vote on.'),
         ]);
 
         if (User::whereIn('id', $data['members'] ?? [])->where('is_demo', true)->exists()) {
-            throw ValidationException::withMessages(['members' => 'The demo account can\'t join a trip.']);
+            throw ValidationException::withMessages(['members' => __('The demo account can\'t join a trip.')]);
         }
 
         return $data;

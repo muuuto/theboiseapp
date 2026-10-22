@@ -22,7 +22,7 @@ class WrappedController extends Controller
     {
         $user = $request->user();
         if (! Wrapped::isOpen($user, $year)) {
-            return redirect('/wrapped')->with('message', "Your {$year} Wrapped opens on {$this->opensOn()}");
+            return redirect('/wrapped')->with('message', __('Your :year Wrapped opens on :date', ['year' => $year, 'date' => $this->opensOn()]));
         }
 
         return Inertia::render('Wrapped', [
@@ -35,6 +35,6 @@ class WrappedController extends Controller
 
     private function opensOn(): string
     {
-        return now()->setDate(now()->year, Wrapped::OPENS_MONTH, 1)->format('j F');
+        return now()->setDate(now()->year, Wrapped::OPENS_MONTH, 1)->translatedFormat('j F');
     }
 }

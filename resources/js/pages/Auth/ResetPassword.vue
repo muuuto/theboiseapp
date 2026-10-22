@@ -11,9 +11,9 @@ const form = useForm({ token: props.token, email: props.email, password: '', pas
 </script>
 
 <template>
-    <Head title="New password" />
+    <Head :title="t('New password')" />
 
-    <h1 class="text-2xl font-bold">Choose a new password</h1>
+    <h1 class="text-2xl font-bold">{{ t('Choose a new password') }}</h1>
 
     <form class="mt-6 space-y-4" @submit.prevent="form.post('/reset-password', { onFinish: () => form.reset('password', 'password_confirmation') })">
         <FormField v-model="form.email" label="Email" type="email" autocomplete="email" :error="form.errors.email" />
@@ -24,7 +24,7 @@ const form = useForm({ token: props.token, email: props.email, password: '', pas
             class="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 font-semibold text-white transition hover:bg-brand-dark disabled:opacity-50"
             :disabled="form.processing"
         >
-            <Loader2 v-if="form.processing" class="size-5 animate-spin" /> Save the new password
+            <Loader2 v-if="form.processing" class="size-5 animate-spin" /> {{ t('Save the new password') }}
         </button>
     </form>
 </template>

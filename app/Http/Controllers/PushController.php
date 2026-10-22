@@ -56,17 +56,17 @@ class PushController extends Controller
     {
         $subscriptions = $request->user()->pushSubscriptions()->get();
         $results = app(PushSender::class)->send($subscriptions, [
-            'title' => 'It works! 🎉',
-            'body' => 'This is how TheBoise notifications look.',
+            'title' => __('It works! 🎉'),
+            'body' => __('This is how TheBoise notifications look.'),
             'url' => '/account',
             'tag' => 'test',
         ]);
         $delivered = collect($results)->where('success', true)->count();
 
         return back()->with('message', match (true) {
-            ! $subscriptions->count() => 'Turn on notifications on a device first',
-            $delivered === count($results) => "Test notification sent to {$delivered} " . ($delivered === 1 ? 'device' : 'devices'),
-            default => "Sent to {$delivered} of " . count($results) . ' devices: the others turned notifications off',
+            ! $subscriptions->count() => __('Turn on notifications on a device first'),
+            $delivered === count($results) => trans_choice('Test notification sent to :count device|Test notification sent to :count devices', $delivered),
+            default => __('Sent to :count of :total devices: the others turned notifications off', ['count' => $delivered, 'total' => count($results)]),
         });
     }
 

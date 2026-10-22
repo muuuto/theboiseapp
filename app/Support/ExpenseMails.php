@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Mail;
 // Emails of shared expenses (the demo account never gets them: it can't join a group)
 class ExpenseMails
 {
-    // To everyone with a share in a new expense, except who added it
+    // To everyone with a share in a new expense, except who added it (in their language)
     public static function expenseAdded(Expense $expense): void
     {
         $expense->load(['group', 'payer', 'creator', 'shares.user']);
@@ -19,32 +19,35 @@ class ExpenseMails
                 continue;
             }
 
-            $yourShare = ExpenseMath::format($share->amount);
-            Notify::push($share->user, 'expenses', [
-                'title' => $expense->description . ': your share ' . $yourShare,
-                'body' => ($expense->creator?->name ?? 'Someone') . ' added it in ' . $expense->group->name,
-                'url' => '/expenses/' . $expense->group->id,
-                'tag' => 'expense-' . $expense->id,
-            ]);
-            if (! Notify::wants($share->user, 'expenses', 'email')) {
-                continue;
-            }
+            Locale::for($share->user, function () use ($expense, $share) {
+                $yourShare = ExpenseMath::format($share->amount);
+                $addedBy = $expense->creator?->name ?? __('Someone');
+                Notify::push($share->user, 'expenses', [
+                    'title' => __(':what: your share :amount', ['what' => $expense->description, 'amount' => $yourShare]),
+                    'body' => __(':name added it in :group', ['name' => $addedBy, 'group' => $expense->group->name]),
+                    'url' => '/expenses/' . $expense->group->id,
+                    'tag' => 'expense-' . $expense->id,
+                ]);
+                if (! Notify::wants($share->user, 'expenses', 'email')) {
+                    return;
+                }
 
-            self::send($share->user, 'mails.expense_added', 'New expense in ' . $expense->group->name . ': ' . $expense->description, [
-                'name' => $share->user->name,
-                'addedBy' => $expense->creator?->name ?? 'Someone',
-                'description' => $expense->description,
-                'total' => ExpenseMath::format($expense->amount),
-                'paidBy' => $expense->paid_by == $share->user_id ? 'you' : ($expense->payer?->name ?? 'someone'),
-                'yourShare' => ExpenseMath::format($share->amount),
-                'date' => $expense->spent_on->format('j F Y'),
-                'groupName' => $expense->group->name,
-                'link' => url('/expenses/' . $expense->group->id),
-            ]);
+                self::send($share->user, 'mails.expense_added', __('New expense in :group: :what', ['group' => $expense->group->name, 'what' => $expense->description]), [
+                    'name' => $share->user->name,
+                    'addedBy' => $addedBy,
+                    'description' => $expense->description,
+                    'total' => ExpenseMath::format($expense->amount),
+                    'paidBy' => $expense->paid_by == $share->user_id ? __('you') : ($expense->payer?->name ?? __('someone')),
+                    'yourShare' => $yourShare,
+                    'date' => $expense->spent_on->translatedFormat('j F Y'),
+                    'groupName' => $expense->group->name,
+                    'link' => url('/expenses/' . $expense->group->id),
+                ]);
+            });
         }
     }
 
-    // To the two people of a payment, except who recorded it
+    // To the two people of a payment, except who recorded it (in their language)
     public static function paymentRecorded(ExpensePayment $payment): void
     {
         $payment->load(['group', 'from', 'to', 'creator']);
@@ -53,31 +56,32 @@ class ExpenseMails
             if (! $person || $person->id == $payment->created_by) {
                 continue;
             }
-            $received = $person->id == $payment->to_user_id;
-            $sentence = $received
-                ? ($payment->from?->name ?? 'Someone') . ' paid you'
-                : 'You paid ' . ($payment->to?->name ?? 'someone');
-            Notify::push($person, 'expenses', [
-                'title' => $sentence . ' ' . ExpenseMath::format($payment->amount),
-                'body' => 'Recorded by ' . ($payment->creator?->name ?? 'someone') . ' in ' . $payment->group->name,
-                'url' => '/expenses/' . $payment->group->id,
-                'tag' => 'payment-' . $payment->id,
-            ]);
-            if (! Notify::wants($person, 'expenses', 'email')) {
-                continue;
-            }
 
-            self::send($person, 'mails.expense_payment', 'Payment recorded in ' . $payment->group->name, [
-                'name' => $person->name,
-                'recordedBy' => $payment->creator?->name ?? 'Someone',
-                'sentence' => $received
-                    ? ($payment->from?->name ?? 'Someone') . ' paid you'
-                    : 'You paid ' . ($payment->to?->name ?? 'someone'),
-                'amount' => ExpenseMath::format($payment->amount),
-                'date' => $payment->paid_on->format('j F Y'),
-                'groupName' => $payment->group->name,
-                'link' => url('/expenses/' . $payment->group->id),
-            ]);
+            Locale::for($person, function () use ($payment, $person) {
+                $sentence = $person->id == $payment->to_user_id
+                    ? __(':name paid you', ['name' => $payment->from?->name ?? __('Someone')])
+                    : __('You paid :name', ['name' => $payment->to?->name ?? __('someone')]);
+                $recordedBy = $payment->creator?->name ?? __('Someone');
+                Notify::push($person, 'expenses', [
+                    'title' => $sentence . ' ' . ExpenseMath::format($payment->amount),
+                    'body' => __('Recorded by :name in :group', ['name' => $recordedBy, 'group' => $payment->group->name]),
+                    'url' => '/expenses/' . $payment->group->id,
+                    'tag' => 'payment-' . $payment->id,
+                ]);
+                if (! Notify::wants($person, 'expenses', 'email')) {
+                    return;
+                }
+
+                self::send($person, 'mails.expense_payment', __('Payment recorded in :group', ['group' => $payment->group->name]), [
+                    'name' => $person->name,
+                    'recordedBy' => $recordedBy,
+                    'sentence' => $sentence,
+                    'amount' => ExpenseMath::format($payment->amount),
+                    'date' => $payment->paid_on->translatedFormat('j F Y'),
+                    'groupName' => $payment->group->name,
+                    'link' => url('/expenses/' . $payment->group->id),
+                ]);
+            });
         }
     }
 

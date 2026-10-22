@@ -1,11 +1,11 @@
 @extends('mails.layouts.base')
 
-@section('preheader', $sentence . ' ' . $amount . ' in ' . $groupName)
+@section('preheader', __(':what :amount in :group', ['what' => $sentence, 'amount' => $amount, 'group' => $groupName]))
 
 @section('content')
-    <p style="font-size: 22px; font-weight: bold; margin: 0 0 12px;">Hello there {{ $name }} 👋</p>
+    <p style="font-size: 22px; font-weight: bold; margin: 0 0 12px;">{{ __('Hello there :name 👋', ['name' => $name]) }}</p>
 
-    <p><strong>{{ $recordedBy }}</strong> recorded a payment in <strong>{{ $groupName }}</strong>:</p>
+    <p>{!! __(':name recorded a payment in :group:', ['name' => '<strong>' . e($recordedBy) . '</strong>', 'group' => '<strong>' . e($groupName) . '</strong>']) !!}</p>
 
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 20px; border: 1px solid #e2e8f0; border-radius: 16px;">
         <tr>
@@ -17,9 +17,9 @@
         </tr>
     </table>
 
-    <p>If it's not right, you can delete it in the group.</p>
+    <p>{{ __("If it's not right, you can delete it in the group.") }}</p>
 
     @include('mails.partials.button', ['url' => $link, 'label' => 'See the balances'])
 
-    <p style="margin-bottom: 0;"><strong>theboise.it team</strong></p>
+    <p style="margin-bottom: 0;"><strong>{{ __('theboise.it team') }}</strong></p>
 @endsection

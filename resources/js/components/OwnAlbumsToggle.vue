@@ -2,39 +2,39 @@
 import { ref } from 'vue';
 import { router } from '@inertiajs/vue3';
 
-// "Only albums I posted": on = the albums others posted (where you're tagged) are hidden.
+// "All albums | My albums": My albums hides the albums others posted (where you're tagged).
 // Saved on the account, the album list and the map follow it
-const props = defineProps({
-    on: Boolean,
-    // Small, without a box: next to a title
-    compact: { type: Boolean, default: false },
-});
+const props = defineProps({ on: Boolean });
 const saving = ref(false);
 
-function toggle() {
+function choose(mine) {
+    if (mine === props.on || saving.value) return;
     saving.value = true;
-    router.put('/account/album-filter', { on: !props.on }, { preserveScroll: true, onFinish: () => (saving.value = false) });
+    router.put('/account/album-filter', { on: mine }, { preserveScroll: true, onFinish: () => (saving.value = false) });
 }
+
+const options = [
+    { mine: false, label: 'All albums', title: 'Every album you\'re in' },
+    { mine: true, label: 'My albums', title: 'Only the albums you posted' },
+];
 </script>
 
 <template>
-    <button
-        type="button"
-        role="switch"
-        :aria-checked="on"
-        aria-label="Only albums I posted"
-        title="Only albums I posted"
-        :disabled="saving"
-        class="inline-flex shrink-0 items-center gap-2 text-sm font-medium transition disabled:opacity-60"
-        :class="compact
-            ? 'rounded-full py-1 pr-1 pl-2.5 text-slate-600 hover:bg-slate-200/60 dark:text-slate-300 dark:hover:bg-slate-800'
-            : 'rounded-xl bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200 hover:ring-slate-300 dark:bg-slate-900 dark:ring-slate-700'"
-        @click="toggle"
-    >
-        <template v-if="compact">Only mine</template>
-        <span class="relative inline-flex h-5 w-9 shrink-0 rounded-full transition" :class="on ? 'bg-accent' : 'bg-slate-300 dark:bg-slate-600'">
-            <span class="absolute top-0.5 size-4 rounded-full bg-white shadow transition-all" :class="on ? 'left-4.5' : 'left-0.5'" />
-        </span>
-        <template v-if="!compact">Only albums I posted</template>
-    </button>
+    <div role="radiogroup" :aria-label="t('Which albums')" class="inline-flex shrink-0 rounded-full bg-slate-200/70 p-0.5 text-sm font-semibold dark:bg-slate-800" :class="saving && 'opacity-60'">
+        <button
+            v-for="option in options"
+            :key="option.label"
+            type="button"
+            role="radio"
+            :aria-checked="on === option.mine"
+            :title="t(option.title)"
+            class="rounded-full px-2.5 py-1 text-xs whitespace-nowrap transition sm:px-3 sm:text-sm"
+            :class="on === option.mine
+                ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-950 dark:text-white'
+                : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white'"
+            @click="choose(option.mine)"
+        >
+            {{ t(option.label) }}
+        </button>
+    </div>
 </template>

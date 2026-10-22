@@ -59,32 +59,36 @@ class AlbumHistory
 
     public static function describe(AlbumEvent $event): array
     {
-        $who = $event->user?->name ?? 'Someone';
-        $album = $event->listing_title ? '"' . $event->listing_title . '"' : 'an album';
+        $who = $event->user?->name ?? __('Someone');
+        $album = $event->listing_title ? '"' . $event->listing_title . '"' : __('an album');
         $details = $event->details ?? [];
-        $names = fn (string $key) => collect($details[$key] ?? [])->join(', ', ' and ');
+        $names = fn (string $key) => collect($details[$key] ?? [])->join(', ', ' ' . __('and') . ' ');
+        $vars = ['who' => $who, 'album' => $album, 'user' => $details['user'] ?? __('someone')];
 
         $summary = match ($event->action) {
-            'created' => "{$who} posted {$album}" . (isset($details['people']) ? ' with ' . $names('people') : ''),
-            'updated' => "{$who} edited {$album}",
-            'deleted' => "{$who} deleted {$album}",
-            'permission_granted' => "{$who} allowed " . ($details['user'] ?? 'someone') . ' to post albums',
-            'permission_revoked' => "{$who} stopped " . ($details['user'] ?? 'someone') . ' from posting albums',
-            'permission_everyone' => "{$who} allowed everyone to post albums",
-            'permission_no_one' => "{$who} stopped everyone (but admins) from posting albums",
-            'posting_on' => "{$who} switched on album posting for members",
-            'posting_off' => "{$who} switched off album posting for members",
+            'created' => isset($details['people'])
+                ? __(':who posted :album with :people', $vars + ['people' => $names('people')])
+                : __(':who posted :album', $vars),
+            'updated' => __(':who edited :album', $vars),
+            'deleted' => __(':who deleted :album', $vars),
+            'permission_granted' => __(':who allowed :user to post albums', $vars),
+            'permission_revoked' => __(':who stopped :user from posting albums', $vars),
+            'permission_everyone' => __(':who allowed everyone to post albums', $vars),
+            'permission_no_one' => __(':who stopped everyone (but admins) from posting albums', $vars),
+            'posting_on' => __(':who switched on album posting for members', $vars),
+            'posting_off' => __(':who switched off album posting for members', $vars),
             default => "{$who}: {$event->action}",
         };
 
+        // The field names are saved in English: translated when shown
         $lines = collect($details['changes'] ?? [])->map(fn ($change) => is_null($change['from']) && is_null($change['to'])
-            ? "{$change['field']} changed"
-            : "{$change['field']}: \"{$change['from']}\" → \"{$change['to']}\"");
+            ? __(':field changed', ['field' => __($change['field'])])
+            : __($change['field']) . ": \"{$change['from']}\" → \"{$change['to']}\"");
         if (! empty($details['added'])) {
-            $lines->push('added ' . $names('added'));
+            $lines->push(__('added :names', ['names' => $names('added')]));
         }
         if (! empty($details['removed'])) {
-            $lines->push('removed ' . $names('removed'));
+            $lines->push(__('removed :names', ['names' => $names('removed')]));
         }
 
         return [

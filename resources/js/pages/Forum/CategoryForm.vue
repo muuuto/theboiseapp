@@ -41,46 +41,46 @@ const labelClass = 'mb-1.5 block text-sm font-semibold';
 </script>
 
 <template>
-    <Head :title="editing ? `Edit ${category.title}` : 'New category'" />
+    <Head :title="editing ? t('Edit :title', { title: category.title }) : t('New category')" />
 
     <Link
         :href="editing ? `/forum/${category.id}` : '/forum'"
         class="mb-4 inline-flex items-center gap-1.5 rounded-xl px-2 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-200/60 dark:text-slate-300 dark:hover:bg-slate-800"
     >
-        <ArrowLeft class="size-4" /> {{ editing ? category.title : 'Forum' }}
+        <ArrowLeft class="size-4" /> {{ editing ? category.title : t('Forum') }}
     </Link>
 
-    <h1 class="mb-6 text-3xl font-extrabold tracking-tight">{{ editing ? 'Edit category' : 'New category' }}</h1>
+    <h1 class="mb-6 text-3xl font-extrabold tracking-tight">{{ editing ? t('Edit category') : t('New category') }}</h1>
 
     <form class="mx-auto max-w-2xl space-y-6" @submit.prevent="submit">
         <section class="space-y-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
             <div class="flex items-start gap-4">
                 <label class="block size-24 shrink-0 cursor-pointer overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200 transition hover:ring-accent dark:bg-slate-800 dark:ring-slate-700">
                     <img v-if="logoPreview" :src="logoPreview" alt="" class="size-full object-cover" />
-                    <span v-else class="flex size-full flex-col items-center justify-center gap-1 text-xs text-slate-500"><ImagePlus class="size-6" /> Logo</span>
+                    <span v-else class="flex size-full flex-col items-center justify-center gap-1 text-xs text-slate-500"><ImagePlus class="size-6" /> {{ t('Logo') }}</span>
                     <input type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" @change="onLogo" />
                 </label>
                 <div class="min-w-0 flex-1">
-                    <label for="title" :class="labelClass">Title</label>
+                    <label for="title" :class="labelClass">{{ t('Title') }}</label>
                     <input id="title" v-model="form.title" type="text" :class="inputClass" />
                     <p v-if="form.errors.title" class="mt-1 text-sm text-red-600">{{ form.errors.title }}</p>
                     <p v-if="form.errors.logo" class="mt-1 text-sm text-red-600">{{ form.errors.logo }}</p>
                 </div>
             </div>
             <div>
-                <label for="description" :class="labelClass">Description</label>
+                <label for="description" :class="labelClass">{{ t('Description') }}</label>
                 <textarea id="description" v-model="form.description" rows="3" class="w-full rounded-xl border-0 bg-white px-3 py-2 ring-1 ring-slate-200 focus:ring-2 focus:ring-accent focus:outline-none dark:bg-slate-900 dark:ring-slate-700" />
                 <p v-if="form.errors.description" class="mt-1 text-sm text-red-600">{{ form.errors.description }}</p>
             </div>
             <div>
-                <span :class="labelClass">Tags</span>
+                <span :class="labelClass">{{ t('Tags') }}</span>
                 <TagsInput v-model="form.tags" />
                 <p v-if="form.errors.tags" class="mt-1 text-sm text-red-600">{{ form.errors.tags }}</p>
             </div>
         </section>
 
         <section class="space-y-2">
-            <span :class="labelClass">Hidden from <span class="font-normal text-slate-500">(they won't see the category or its posts)</span></span>
+            <span :class="labelClass">{{ t('Hidden from') }} <span class="font-normal text-slate-500">{{ t('(they won\'t see the category or its posts)') }}</span></span>
             <PeoplePicker v-model="form.hideFrom" :users="users" />
         </section>
 
@@ -90,7 +90,7 @@ const labelClass = 'mb-1.5 block text-sm font-semibold';
             :disabled="form.processing"
         >
             <Loader2 v-if="form.processing" class="size-5 animate-spin" />
-            {{ editing ? 'Save changes' : 'Create category' }}
+            {{ editing ? t('Save changes') : t('Create category') }}
         </button>
     </form>
 </template>

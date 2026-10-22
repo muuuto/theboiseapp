@@ -24,7 +24,7 @@ class AnniversaryReminderMail extends Mailable
     public function build()
     {
         return $this
-            ->subject('On this day, many years ago')
+            ->subject(__('On this day, many years ago'))
             ->from('info@theboise.it', 'TheBoise')
             ->view('mails.anniversary_reminder');
     }

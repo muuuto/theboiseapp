@@ -38,6 +38,8 @@ class HandleInertiaRequests extends Middleware
 
         return [
             ...parent::share($request),
+            // English or Italian: the pages translate themselves with lang/it.json
+            'locale' => app()->getLocale(),
             'auth' => [
                 'user' => $user ? [
                     'id' => $user->id,
@@ -52,7 +54,8 @@ class HandleInertiaRequests extends Middleware
             ],
             'notifications' => fn () => $user ? $this->notifications($user) : null,
             'flash' => [
-                'message' => fn () => $request->session()->get('message'),
+                // Written in English by the controllers, translated here into the reader's language
+                'message' => fn () => ($message = $request->session()->get('message')) ? __($message) : null,
                 // Password reset emails ("We have emailed your password reset link")
                 'status' => fn () => $request->session()->get('status'),
                 // Maintenance page: output of the commands, a newly created invite link

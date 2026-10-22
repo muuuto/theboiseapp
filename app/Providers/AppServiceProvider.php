@@ -48,7 +48,7 @@ class AppServiceProvider extends ServiceProvider
         // Password reset email in the same design as the others
         ResetPassword::toMailUsing(function ($user, string $token) {
             return (new MailMessage)
-                ->subject('Reset your theboise.it password')
+                ->subject(__('Reset your theboise.it password'))
                 ->from('info@theboise.it', 'TheBoise')
                 ->view('mails.reset_password', [
                     'name' => $user->name,

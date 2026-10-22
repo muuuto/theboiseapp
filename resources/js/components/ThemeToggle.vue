@@ -47,10 +47,10 @@ function toggle() {
 <template>
     <button
         class="rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-        :title="`Theme: ${labels[theme]}`"
+        :title="t('Theme: :name', { name: t(labels[theme]) })"
         @click="toggle"
     >
         <component :is="icons[theme]" class="size-5" />
-        <span class="sr-only">Theme: {{ labels[theme] }}</span>
+        <span class="sr-only">{{ t('Theme: :name', { name: t(labels[theme]) }) }}</span>
     </button>
 </template>

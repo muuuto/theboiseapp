@@ -18,9 +18,14 @@ class ExpenseMath
         return (int) $match[1] * 100 + (int) str_pad($match[2] ?? '0', 2, '0');
     }
 
+    // "€12.50" in English, "12,50 €" in Italian
     public static function format(int $cents): string
     {
-        return ($cents < 0 ? '-' : '') . '€' . number_format(abs($cents) / 100, 2);
+        $sign = $cents < 0 ? '-' : '';
+
+        return app()->getLocale() === 'it'
+            ? $sign . number_format(abs($cents) / 100, 2, ',', '.') . ' €'
+            : $sign . '€' . number_format(abs($cents) / 100, 2);
     }
 
     // What each person owes for an expense, adding up exactly to the total:

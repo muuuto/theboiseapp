@@ -151,7 +151,7 @@ class ExpenseGroupController extends Controller
         $involved = $removed->filter(fn ($id) => $this->isInvolved($group, $id));
         if ($involved->isNotEmpty()) {
             throw ValidationException::withMessages([
-                'members' => User::findMany($involved)->pluck('name')->join(', ', ' and ') . ' can\'t leave: they have expenses or payments in this group.',
+                'members' => __(':names can\'t leave: they have expenses or payments in this group.', ['names' => User::findMany($involved)->pluck('name')->join(', ', ' ' . __('and') . ' ')]),
             ]);
         }
 
@@ -166,7 +166,7 @@ class ExpenseGroupController extends Controller
     {
         abort_unless($group->isManagedBy($request->user()) && $group->hasMember($request->user()), 403, 'Unauthorized Action');
         if (collect(ExpenseMath::balances($group))->contains(fn ($cents) => $cents !== 0)) {
-            return back()->withErrors(['group' => 'Settle up first: someone still owes money in this group.']);
+            return back()->withErrors(['group' => __('Settle up first: someone still owes money in this group.')]);
         }
 
         $group->delete();
@@ -186,11 +186,11 @@ class ExpenseGroupController extends Controller
         // Only albums you're in (keeping the one already linked)
         if (! empty($data['listing_id']) && $data['listing_id'] != $group?->listing_id
             && ! $user->listing()->whereKey($data['listing_id'])->exists()) {
-            throw ValidationException::withMessages(['listing_id' => 'You can only link an album you\'re in.']);
+            throw ValidationException::withMessages(['listing_id' => __('You can only link an album you\'re in.')]);
         }
         // The demo account never joins: its money isn't real
         if (User::whereIn('id', $data['members'] ?? [])->where('is_demo', true)->exists()) {
-            throw ValidationException::withMessages(['members' => 'The demo account can\'t join a group.']);
+            throw ValidationException::withMessages(['members' => __('The demo account can\'t join a group.')]);
         }
 
         $data['members'] ??= [];

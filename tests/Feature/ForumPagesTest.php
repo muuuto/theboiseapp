@@ -147,4 +147,28 @@ class ForumPagesTest extends TestCase
 
         return new UploadedFile($file, 'logo.webp', 'image/webp', null, true);
     }
+
+    public function test_admins_pin_a_post_on_the_home_page(): void
+    {
+        $admin = \App\Models\User::factory()->admin()->create();
+        $friend = \App\Models\User::factory()->create();
+        $post = \App\Models\Post::factory()->create(['title' => 'TheBoise 2.0 is here']);
+        $url = "/forum/{$post->category_id}/{$post->id}/pin";
+
+        $this->actingAs($friend)->post($url)->assertForbidden();
+        $this->actingAs($admin)->post($url)->assertSessionHas('message');
+        \App\Support\Settings::forget();
+
+        $this->actingAs($friend)->get('/')->assertInertia(fn ($page) => $page->where('pinned.title', 'TheBoise 2.0 is here')->where('pinned.url', "/forum/{$post->category_id}/{$post->id}"));
+        $this->actingAs($admin)->get("/forum/{$post->category_id}/{$post->id}")->assertInertia(fn ($page) => $page->where('pinned', true)->where('can.pin', true));
+        // Hidden from someone, or the demo account: not shown to them
+        $hidden = \App\Models\User::factory()->create();
+        $post->hidedUser()->attach($hidden);
+        $this->actingAs($hidden)->get('/')->assertInertia(fn ($page) => $page->where('pinned', null));
+        $this->actingAs(\App\Models\User::factory()->create(['is_demo' => true]))->get('/')->assertInertia(fn ($page) => $page->where('pinned', null));
+
+        $this->actingAs($admin)->delete($url);
+        \App\Support\Settings::forget();
+        $this->actingAs($friend)->get('/')->assertInertia(fn ($page) => $page->where('pinned', null));
+    }
 }

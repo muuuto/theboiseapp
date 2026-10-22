@@ -1,19 +1,19 @@
 @extends('mails.layouts.base')
 
-@section('preheader', 'A memory from ' . $listings->first()->title . ', ' . $listings->first()->diffInYears . ' ' . Str::plural('year', $listings->first()->diffInYears) . ' ago')
+@section('preheader', trans_choice('A memory from :title, :count year ago|A memory from :title, :count years ago', $listings->first()->diffInYears, ['title' => $listings->first()->title]))
 
 @section('content')
-    <p style="font-size: 22px; font-weight: bold; margin: 0 0 12px;">Hello {{ $user->name }} 👋</p>
+    <p style="font-size: 22px; font-weight: bold; margin: 0 0 12px;">{{ __('Hello :name 👋', ['name' => $user->name]) }}</p>
 
-    <p>On this day, a while ago, you were here:</p>
+    <p>{{ __('On this day, a while ago, you were here:') }}</p>
 
     @foreach ($listings as $listing)
         @include('mails.partials.album', [
             'listing' => $listing,
-            'note' => $listing->diffInYears . ' ' . Str::plural('year', $listing->diffInYears) . ' ago',
+            'note' => trans_choice(':count year ago|:count years ago', $listing->diffInYears),
             'label' => 'Relive it',
         ])
     @endforeach
 
-    <p style="margin-bottom: 0;">Thanks,<br><strong>theboise.it team</strong></p>
+    <p style="margin-bottom: 0;">{{ __('Thanks,') }}<br><strong>{{ __('theboise.it team') }}</strong></p>
 @endsection

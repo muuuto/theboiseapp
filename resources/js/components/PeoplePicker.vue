@@ -25,11 +25,11 @@ function toggle(id) {
                 <input
                     v-model="query"
                     type="search"
-                    placeholder="Search people..."
+                    :placeholder="t('Search people...')"
                     class="h-10 w-full rounded-xl border-0 bg-white pr-3 pl-9 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-accent focus:outline-none dark:bg-slate-900 dark:ring-slate-700"
                 />
             </div>
-            <span class="text-sm whitespace-nowrap text-slate-500">{{ selected.length }} selected</span>
+            <span class="text-sm whitespace-nowrap text-slate-500">{{ t(':count selected', { count: selected.length }) }}</span>
         </div>
 
         <div class="grid max-h-72 grid-cols-2 gap-1.5 overflow-y-auto rounded-2xl bg-white p-2 ring-1 ring-slate-200 @lg:grid-cols-3 dark:bg-slate-900 dark:ring-slate-700">
@@ -56,7 +56,7 @@ function toggle(id) {
                 <span class="truncate">{{ user.name }}</span>
                 <span v-if="user.isDemo" class="ml-auto shrink-0 rounded-full bg-amber-100 px-1.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-950 dark:text-amber-300">demo</span>
             </button>
-            <p v-if="!visible.length" class="col-span-full p-2 text-sm text-slate-500">Nobody found</p>
+            <p v-if="!visible.length" class="col-span-full p-2 text-sm text-slate-500">{{ t('Nobody found') }}</p>
         </div>
     </div>
 </template>

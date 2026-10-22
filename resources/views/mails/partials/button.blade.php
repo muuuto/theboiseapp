@@ -3,7 +3,7 @@
     <tr>
         <td bgcolor="{{ $color ?? '#ef3b2d' }}" style="border-radius: 12px; background: {{ $color ?? '#ef3b2d' }};">
             <a href="{{ $url }}" style="display: inline-block; padding: 13px 26px; font-family: Arial, Helvetica, sans-serif; font-size: 15px; font-weight: bold; color: #ffffff; text-decoration: none; border-radius: 12px;">
-                {{ $label }}
+                {{ __($label) }}
             </a>
         </td>
     </tr>

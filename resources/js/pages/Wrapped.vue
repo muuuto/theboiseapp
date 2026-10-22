@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { Download, Heart, Pause, Play, RotateCcw, Share2, X } from 'lucide-vue-next';
+import { intlLocale, t, tc } from '../i18n.js';
 
 // TheBoise Wrapped: the year as story slides (tap/swipe/arrows), ending with a card to save and share
 defineOptions({ layout: null });
@@ -13,7 +14,7 @@ const props = defineProps({
 });
 
 const w = props.wrapped;
-const number = new Intl.NumberFormat('en-GB');
+const number = new Intl.NumberFormat(intlLocale());
 const bolzanoRome = 516; // km as the crow flies
 
 // Only the slides with something to say
@@ -115,21 +116,23 @@ onBeforeUnmount(() => {
 
 const comparison = computed(() => {
     if (!w?.km) return null;
-    if (w.km >= 40075) return `That's ${(w.km / 40075).toFixed(1)} times around the Earth.`;
+    if (w.km >= 40075) return t("That's :times times around the Earth.", { times: (w.km / 40075).toFixed(1) });
     const romes = w.km / bolzanoRome;
-    return romes >= 1.5 ? `Like going from Bolzano to Rome ${Math.round(romes)} times.` : `${Math.round((w.km / 40075) * 1000) / 10}% of the way around the Earth.`;
+    return romes >= 1.5
+        ? t('Like going from Bolzano to Rome :times times.', { times: Math.round(romes) })
+        : t(':percent% of the way around the Earth.', { percent: Math.round((w.km / 40075) * 1000) / 10 });
 });
 const albumsVsLastYear = computed(() => {
-    if (!w?.previousYear) return 'Your first year on TheBoise. Welcome!';
+    if (!w?.previousYear) return t('Your first year on TheBoise. Welcome!');
     const diff = w.albumCount - w.previousYear;
-    if (diff > 0) return `${diff} more than in ${w.year - 1}. Someone's been busy.`;
-    if (diff < 0) return `${-diff} fewer than in ${w.year - 1}. Quality over quantity.`;
-    return `Exactly like ${w.year - 1}. Consistency is key.`;
+    if (diff > 0) return t(":count more than in :year. Someone's been busy.", { count: diff, year: w.year - 1 });
+    if (diff < 0) return t(':count fewer than in :year. Quality over quantity.', { count: -diff, year: w.year - 1 });
+    return t('Exactly like :year. Consistency is key.', { year: w.year - 1 });
 });
 const crewLine = computed(() => {
     const top = w?.friends[0];
     if (!top) return '';
-    return top.trips >= 5 ? `You and ${top.name}: basically inseparable.` : `${top.name} was there the most.`;
+    return top.trips >= 5 ? t('You and :name: basically inseparable.', { name: top.name }) : t(':name was there the most.', { name: top.name });
 });
 
 // The summary as an image (1080×1920, story size) to save or share
@@ -158,10 +161,10 @@ async function summaryImage() {
     text(w.name, 90, 500, 700, 64);
 
     const stats = [
-        [number.format(w.albumCount), 'albums'],
-        [number.format(w.daysAway), 'days away'],
-        [number.format(w.km), 'km travelled'],
-        [String(w.countries.length), w.countries.length === 1 ? 'country' : 'countries'],
+        [number.format(w.albumCount), t('albums')],
+        [number.format(w.daysAway), t('days away')],
+        [number.format(w.km), t('km travelled')],
+        [String(w.countries.length), w.countries.length === 1 ? t('country') : t('countries')],
     ];
     stats.forEach(([value, label], i) => {
         const x = 90 + (i % 2) * 470;
@@ -184,12 +187,12 @@ async function summaryImage() {
         y += 110;
     }
     if (w.friends.length) {
-        text('Top crew', 90, y, 600, 40, 'rgba(255,255,255,0.75)');
+        text(t('Top crew'), 90, y, 600, 40, 'rgba(255,255,255,0.75)');
         text(w.friends.map((f) => f.name).join(' · '), 90, y + 65, 800, 52);
         y += 170;
     }
     if (w.farthest) {
-        text('Farthest', 90, y, 600, 40, 'rgba(255,255,255,0.75)');
+        text(t('Farthest'), 90, y, 600, 40, 'rgba(255,255,255,0.75)');
         text(`${w.farthest.name}, ${number.format(w.farthest.km)} km`, 90, y + 65, 800, 52);
     }
     text('theboise.it', 990, 1840, 800, 40, 'rgba(255,255,255,0.75)', 'right');
@@ -209,7 +212,7 @@ async function saveImage() {
 async function shareImage() {
     const file = new File([await summaryImage()], fileName(), { type: 'image/png' });
     try {
-        if (navigator.canShare({ files: [file] })) await navigator.share({ files: [file], title: `My ${w.year} on TheBoise` });
+        if (navigator.canShare({ files: [file] })) await navigator.share({ files: [file], title: t('My :year on TheBoise', { year: w.year }) });
     } catch {
         // Share sheet closed
     }
@@ -223,15 +226,15 @@ async function shareImage() {
         <!-- Nothing to show -->
         <div v-if="!wrapped" class="max-w-sm p-8 text-center">
             <p class="text-6xl">🎁</p>
-            <h1 class="mt-4 text-3xl font-extrabold">TheBoise Wrapped</h1>
+            <h1 class="mt-4 text-3xl font-extrabold">{{ t('TheBoise Wrapped') }}</h1>
             <p class="mt-3 text-slate-300">
-                <template v-if="year">No albums in {{ year }} for you, so no Wrapped this time.</template>
-                <template v-else>Your year in albums, places and friends. It opens every year on {{ opensOn }}.</template>
+                <template v-if="year">{{ t('No albums in :year for you, so no Wrapped this time.', { year }) }}</template>
+                <template v-else>{{ t('Your year in albums, places and friends. It opens every year on :date.', { date: opensOn }) }}</template>
             </p>
             <div v-if="years.length" class="mt-5 flex flex-wrap justify-center gap-2">
                 <Link v-for="other in years" :key="other" :href="`/wrapped/${other}`" class="rounded-full bg-white/10 px-4 py-1.5 text-sm font-semibold hover:bg-white/20">{{ other }}</Link>
             </div>
-            <Link href="/" class="mt-6 inline-block text-sm font-semibold text-teal-300 hover:underline">Back to the albums</Link>
+            <Link href="/" class="mt-6 inline-block text-sm font-semibold text-teal-300 hover:underline">{{ t('Back to the albums') }}</Link>
         </div>
 
         <!-- The story: full screen on phones, a phone-shaped card on computers -->
@@ -252,10 +255,10 @@ async function shareImage() {
             <div class="relative z-10 flex items-center justify-between px-4 pt-2 text-xs font-bold tracking-widest text-white/80 uppercase">
                 <span>TheBoise Wrapped {{ wrapped.year }}</span>
                 <span class="flex items-center gap-1">
-                    <button type="button" class="rounded-full p-1.5 hover:bg-white/15" :aria-label="paused ? 'Play' : 'Pause'" @click="paused = !paused">
+                    <button type="button" class="rounded-full p-1.5 hover:bg-white/15" :aria-label="paused ? t('Play') : t('Pause')" @click="paused = !paused">
                         <component :is="paused ? Play : Pause" class="size-4" />
                     </button>
-                    <Link href="/" class="rounded-full p-1.5 hover:bg-white/15" aria-label="Close"><X class="size-5" /></Link>
+                    <Link href="/" class="rounded-full p-1.5 hover:bg-white/15" :aria-label="t('Close')"><X class="size-5" /></Link>
                 </span>
             </div>
 
@@ -269,17 +272,17 @@ async function shareImage() {
                 <div :key="current" class="flex flex-1 flex-col justify-center px-7 pb-10">
                     <!-- Intro -->
                     <template v-if="current === 'intro'">
-                        <p class="text-lg font-semibold text-white/80">Hey {{ wrapped.name }},</p>
-                        <h1 class="mt-2 text-6xl leading-none font-black">your {{ wrapped.year }}<br />on TheBoise</h1>
-                        <p class="mt-6 text-lg text-white/80">Albums, places, friends. Let's see what you've been up to.</p>
-                        <p class="mt-10 text-sm font-semibold text-white/60">Tap to start →</p>
+                        <p class="text-lg font-semibold text-white/80">{{ t('Hey :name,', { name: wrapped.name }) }}</p>
+                        <h1 class="mt-2 text-6xl leading-none font-black">{{ t('your :year', { year: wrapped.year }) }}<br />{{ t('on TheBoise') }}</h1>
+                        <p class="mt-6 text-lg text-white/80">{{ t('Albums, places, friends. Let\'s see what you\'ve been up to.') }}</p>
+                        <p class="mt-10 text-sm font-semibold text-white/60">{{ t('Tap to start →') }}</p>
                     </template>
 
                     <!-- Albums -->
                     <template v-else-if="current === 'albums'">
-                        <p class="text-xl font-semibold text-white/80">This year you were in</p>
+                        <p class="text-xl font-semibold text-white/80">{{ t('This year you were in') }}</p>
                         <p class="text-[7rem] leading-none font-black tabular-nums">{{ shown.albums ?? 0 }}</p>
-                        <p class="text-3xl font-extrabold">{{ wrapped.albumCount === 1 ? 'album' : 'albums' }}</p>
+                        <p class="text-3xl font-extrabold">{{ wrapped.albumCount === 1 ? t('album') : t('albums') }}</p>
                         <p class="mt-4 text-lg text-white/85">{{ albumsVsLastYear }}</p>
                         <div class="mt-6 grid grid-cols-4 gap-1.5">
                             <img
@@ -295,48 +298,48 @@ async function shareImage() {
 
                     <!-- Days -->
                     <template v-else-if="current === 'days'">
-                        <p class="text-xl font-semibold text-white/80">You spent</p>
+                        <p class="text-xl font-semibold text-white/80">{{ t('You spent') }}</p>
                         <p class="text-[7rem] leading-none font-black tabular-nums">{{ shown.days ?? 0 }}</p>
-                        <p class="text-3xl font-extrabold">days away from the sofa</p>
+                        <p class="text-3xl font-extrabold">{{ t('days away from the sofa') }}</p>
                         <div class="mt-8 rounded-3xl bg-white/15 p-5 backdrop-blur">
-                            <p class="text-sm font-semibold tracking-wide text-white/75 uppercase">Longest one</p>
+                            <p class="text-sm font-semibold tracking-wide text-white/75 uppercase">{{ t('Longest one') }}</p>
                             <p class="mt-1 text-2xl font-extrabold">{{ wrapped.longest.title }}</p>
-                            <p class="text-white/85">{{ wrapped.longest.days }} {{ wrapped.longest.days === 1 ? 'day' : 'days' }} in a row</p>
+                            <p class="text-white/85">{{ tc(':count day in a row|:count days in a row', wrapped.longest.days) }}</p>
                         </div>
                     </template>
 
                     <!-- World -->
                     <template v-else-if="current === 'world'">
-                        <p class="text-xl font-semibold text-white/80">You went to {{ wrapped.placeCount }} {{ wrapped.placeCount === 1 ? 'place' : 'places' }} in</p>
-                        <p class="text-6xl leading-none font-black">{{ wrapped.countries.length }} {{ wrapped.countries.length === 1 ? 'country' : 'countries' }}</p>
+                        <p class="text-xl font-semibold text-white/80">{{ tc('You went to :count place in|You went to :count places in', wrapped.placeCount) }}</p>
+                        <p class="text-6xl leading-none font-black">{{ tc(':count country|:count countries', wrapped.countries.length) }}</p>
                         <p class="mt-4 flex flex-wrap gap-2 text-5xl">
                             <span v-for="country in wrapped.countries" :key="country.name" :title="country.name">{{ country.flag ?? '🏳️' }}</span>
                         </p>
                         <template v-if="wrapped.km">
                             <p class="mt-8 text-5xl font-black tabular-nums">{{ number.format(shown.km ?? 0) }} km</p>
-                            <p class="text-lg text-white/85">as the crow flies, from Bolzano and back. {{ comparison }}</p>
+                            <p class="text-lg text-white/85">{{ t('as the crow flies, from Bolzano and back.') }} {{ comparison }}</p>
                         </template>
                     </template>
 
                     <!-- Farthest -->
                     <template v-else-if="current === 'farthest'">
-                        <p class="text-xl font-semibold text-white/80">The farthest you went</p>
+                        <p class="text-xl font-semibold text-white/80">{{ t('The farthest you went') }}</p>
                         <p class="mt-2 text-6xl leading-none font-black">{{ wrapped.farthest.name }}</p>
                         <p class="mt-4 text-4xl font-black tabular-nums">{{ number.format(shown.farthest ?? 0) }} km</p>
-                        <p class="text-lg text-white/85">from home, for "{{ wrapped.farthest.album }}".</p>
+                        <p class="text-lg text-white/85">{{ t('from home, for ":album".', { album: wrapped.farthest.album }) }}</p>
                     </template>
 
                     <!-- Month -->
                     <template v-else-if="current === 'month'">
-                        <p class="text-xl font-semibold text-white/80">Your busiest month</p>
+                        <p class="text-xl font-semibold text-white/80">{{ t('Your busiest month') }}</p>
                         <p class="mt-2 text-7xl leading-none font-black">{{ wrapped.busiestMonth.name }}</p>
-                        <p class="mt-4 text-2xl font-bold">{{ wrapped.busiestMonth.albums }} albums started that month.</p>
-                        <p class="mt-2 text-lg text-white/85">Calendar? Never heard of it.</p>
+                        <p class="mt-4 text-2xl font-bold">{{ t(':count albums started that month.', { count: wrapped.busiestMonth.albums }) }}</p>
+                        <p class="mt-2 text-lg text-white/85">{{ t('Calendar? Never heard of it.') }}</p>
                     </template>
 
                     <!-- Crew -->
                     <template v-else-if="current === 'crew'">
-                        <p class="text-xl font-semibold text-white/80">Your crew</p>
+                        <p class="text-xl font-semibold text-white/80">{{ t('Your crew') }}</p>
                         <p class="mt-1 text-2xl font-bold">{{ crewLine }}</p>
                         <ol class="mt-6 space-y-3">
                             <li v-for="(friend, i) in wrapped.friends" :key="friend.name" class="flex items-center gap-4 rounded-3xl bg-white/15 p-3 backdrop-blur">
@@ -345,7 +348,7 @@ async function shareImage() {
                                 <span v-else class="flex size-14 items-center justify-center rounded-full bg-white/25 text-xl font-black">{{ friend.name.charAt(0) }}</span>
                                 <span class="min-w-0 flex-1">
                                     <span class="block truncate text-xl font-extrabold">{{ friend.name }}</span>
-                                    <span class="text-white/85">{{ friend.trips }} {{ friend.trips === 1 ? 'album' : 'albums' }} together</span>
+                                    <span class="text-white/85">{{ tc(':count album together|:count albums together', friend.trips) }}</span>
                                 </span>
                             </li>
                         </ol>
@@ -354,18 +357,18 @@ async function shareImage() {
                     <!-- Comment -->
                     <template v-else-if="current === 'comment'">
                         <template v-if="wrapped.comments.best">
-                            <p class="text-xl font-semibold text-white/80">Your most liked comment</p>
+                            <p class="text-xl font-semibold text-white/80">{{ t('Your most liked comment') }}</p>
                             <blockquote class="mt-4 text-3xl leading-snug font-extrabold">“{{ wrapped.comments.best.text }}”</blockquote>
                             <p class="mt-4 flex items-center gap-2 text-lg text-white/85">
                                 <Heart class="size-5 fill-rose-500 text-rose-500" /> {{ wrapped.comments.best.likes }}
-                                {{ wrapped.comments.best.likes === 1 ? 'like' : 'likes' }} · on "{{ wrapped.comments.best.on }}"
+                                {{ tc('like|likes', wrapped.comments.best.likes) }} · {{ t('on ":title"', { title: wrapped.comments.best.on }) }}
                             </p>
                         </template>
                         <template v-else>
-                            <p class="text-xl font-semibold text-white/80">You wrote</p>
+                            <p class="text-xl font-semibold text-white/80">{{ t('You wrote') }}</p>
                             <p class="text-[7rem] leading-none font-black">{{ wrapped.comments.written }}</p>
-                            <p class="text-3xl font-extrabold">{{ wrapped.comments.written === 1 ? 'comment' : 'comments' }}</p>
-                            <p class="mt-4 text-lg text-white/85">Next year, aim for some likes. Now they exist. 😉</p>
+                            <p class="text-3xl font-extrabold">{{ wrapped.comments.written === 1 ? t('comment') : t('comments') }}</p>
+                            <p class="mt-4 text-lg text-white/85">{{ t('Next year, aim for some likes. Now they exist. 😉') }}</p>
                         </template>
                     </template>
 
@@ -374,25 +377,25 @@ async function shareImage() {
                         <p class="text-sm font-bold tracking-widest text-white/75 uppercase">{{ wrapped.name }}'s</p>
                         <p class="text-7xl leading-none font-black">{{ wrapped.year }}</p>
                         <div class="mt-5 grid grid-cols-2 gap-2">
-                            <div class="rounded-2xl bg-white/12 p-3"><p class="text-3xl font-black">{{ wrapped.albumCount }}</p><p class="text-sm text-white/80">albums</p></div>
-                            <div class="rounded-2xl bg-white/12 p-3"><p class="text-3xl font-black">{{ wrapped.daysAway }}</p><p class="text-sm text-white/80">days away</p></div>
-                            <div class="rounded-2xl bg-white/12 p-3"><p class="text-3xl font-black">{{ number.format(wrapped.km) }}</p><p class="text-sm text-white/80">km travelled</p></div>
-                            <div class="rounded-2xl bg-white/12 p-3"><p class="text-3xl font-black">{{ wrapped.countries.length }}</p><p class="text-sm text-white/80">{{ wrapped.countries.length === 1 ? 'country' : 'countries' }}</p></div>
+                            <div class="rounded-2xl bg-white/12 p-3"><p class="text-3xl font-black">{{ wrapped.albumCount }}</p><p class="text-sm text-white/80">{{ t('albums') }}</p></div>
+                            <div class="rounded-2xl bg-white/12 p-3"><p class="text-3xl font-black">{{ wrapped.daysAway }}</p><p class="text-sm text-white/80">{{ t('days away') }}</p></div>
+                            <div class="rounded-2xl bg-white/12 p-3"><p class="text-3xl font-black">{{ number.format(wrapped.km) }}</p><p class="text-sm text-white/80">{{ t('km travelled') }}</p></div>
+                            <div class="rounded-2xl bg-white/12 p-3"><p class="text-3xl font-black">{{ wrapped.countries.length }}</p><p class="text-sm text-white/80">{{ wrapped.countries.length === 1 ? t('country') : t('countries') }}</p></div>
                         </div>
                         <p class="mt-4 text-3xl">{{ wrapped.countries.map((c) => c.flag ?? '🏳️').join(' ') }}</p>
-                        <p v-if="wrapped.friends.length" class="mt-3 text-sm text-white/80">Top crew: <strong class="text-white">{{ wrapped.friends.map((f) => f.name).join(' · ') }}</strong></p>
+                        <p v-if="wrapped.friends.length" class="mt-3 text-sm text-white/80">{{ t('Top crew:') }} <strong class="text-white">{{ wrapped.friends.map((f) => f.name).join(' · ') }}</strong></p>
 
                         <div class="mt-6 flex flex-wrap gap-2">
                             <button v-if="canShare" type="button" class="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 font-bold text-slate-900" @click="shareImage">
-                                <Share2 class="size-5" /> Share
+                                <Share2 class="size-5" /> {{ t('Share') }}
                             </button>
                             <button type="button" class="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-white/15 px-4 py-3 font-bold ring-1 ring-white/30 disabled:opacity-60" :disabled="saving" @click="saveImage">
-                                <Download class="size-5" /> Save image
+                                <Download class="size-5" /> {{ t('Save image') }}
                             </button>
                         </div>
                         <div class="mt-3 flex flex-wrap items-center gap-2 text-sm">
                             <button type="button" class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 font-semibold text-white/85 hover:bg-white/15" @click="go(0)">
-                                <RotateCcw class="size-4" /> Watch again
+                                <RotateCcw class="size-4" /> {{ t('Watch again') }}
                             </button>
                             <Link
                                 v-for="other in years.filter((y) => y !== wrapped.year)"

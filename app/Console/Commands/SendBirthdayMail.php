@@ -110,7 +110,7 @@ class SendBirthdayMail extends Command
             // Carbon 3 returns a signed float: count from the birthday to today and keep whole years
             $age = (int) Carbon::parse($user->birthday)->diffInYears($today);
 
-            Mail::to($user->email)
+            Mail::to($user)
                 ->send(new BirthdayReminderMail(
                     $user,
                     $key,

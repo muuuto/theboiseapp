@@ -2,6 +2,7 @@
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
 import L from '../leaflet.js';
+import { t } from '../i18n.js';
 import 'leaflet.markercluster';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
@@ -58,7 +59,7 @@ function popup(marker) {
 
     if (marker.suggested) {
         const note = document.createElement('em');
-        note.textContent = 'Approximate location';
+        note.textContent = t('Approximate location');
         link.append(note);
     }
     return link;

@@ -11,8 +11,8 @@ class Settings
 {
     public const MEMBERS_CAN_POST_ALBUMS = 'members_can_post_albums';
 
-    // "Only albums I posted" for who hasn't chosen
-    public const ONLY_OWN_ALBUMS_DEFAULT = 'only_own_albums_default';
+    // The forum post linked at the top of the home page (news, changelog), or null
+    public const PINNED_POST = 'pinned_post';
 
     private static ?array $cache = null;
 

@@ -8,29 +8,29 @@ defineProps({ groups: Array, totals: Object });
 </script>
 
 <template>
-    <Head title="Expenses" />
+    <Head :title="t('Expenses')" />
 
     <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center">
         <div>
-            <h1 class="text-3xl font-extrabold tracking-tight">Expenses</h1>
-            <p class="text-sm text-slate-500 dark:text-slate-400">Split trips and bills, then settle up.</p>
+            <h1 class="text-3xl font-extrabold tracking-tight">{{ t('Expenses') }}</h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400">{{ t('Split trips and bills, then settle up.') }}</p>
         </div>
         <Link
             href="/expenses/create"
             class="inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark sm:ml-auto sm:py-2"
         >
-            <Plus class="size-4" /> New group
+            <Plus class="size-4" /> {{ t('New group') }}
         </Link>
     </div>
 
     <!-- Overall: what you get back and what you owe, in every group -->
     <div v-if="groups.length" class="mb-6 grid grid-cols-2 gap-3 sm:max-w-md">
         <div class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
-            <p class="text-xs font-semibold tracking-wide text-slate-500 uppercase">You get back</p>
+            <p class="text-xs font-semibold tracking-wide text-slate-500 uppercase">{{ t('You get back') }}</p>
             <p class="mt-1 text-2xl font-extrabold text-teal-600 dark:text-teal-400">{{ money(totals.owed) }}</p>
         </div>
         <div class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
-            <p class="text-xs font-semibold tracking-wide text-slate-500 uppercase">You owe</p>
+            <p class="text-xs font-semibold tracking-wide text-slate-500 uppercase">{{ t('You owe') }}</p>
             <p class="mt-1 text-2xl font-extrabold text-orange-600 dark:text-orange-400">{{ money(totals.owe) }}</p>
         </div>
     </div>
@@ -54,7 +54,7 @@ defineProps({ groups: Array, totals: Object });
                     <p v-if="group.album" class="mt-0.5 flex items-center gap-1 truncate text-xs text-slate-500">
                         <Images class="size-3.5 shrink-0" /> <span class="truncate">{{ group.album.title }}</span>
                     </p>
-                    <p v-if="group.lastActivityAt" class="mt-0.5 text-xs text-slate-500">Updated {{ ago(group.lastActivityAt) }}</p>
+                    <p v-if="group.lastActivityAt" class="mt-0.5 text-xs text-slate-500">{{ t('Updated :when', { when: ago(group.lastActivityAt) }) }}</p>
                 </div>
             </div>
 
@@ -72,15 +72,15 @@ defineProps({ groups: Array, totals: Object });
                 </div>
                 <p class="text-right text-sm">
                     <template v-if="group.myBalance > 0">
-                        <span class="block text-xs text-slate-500">you get back</span>
+                        <span class="block text-xs text-slate-500">{{ t('you get back') }}</span>
                         <strong class="text-teal-600 dark:text-teal-400">{{ money(group.myBalance) }}</strong>
                     </template>
                     <template v-else-if="group.myBalance < 0">
-                        <span class="block text-xs text-slate-500">you owe</span>
+                        <span class="block text-xs text-slate-500">{{ t('you owe') }}</span>
                         <strong class="text-orange-600 dark:text-orange-400">{{ money(-group.myBalance) }}</strong>
                     </template>
                     <span v-else class="inline-flex items-center gap-1 text-slate-500">
-                        <CircleCheck class="size-4" /> {{ group.settled ? 'all settled' : "you're even" }}
+                        <CircleCheck class="size-4" /> {{ group.settled ? t('all settled') : "you're even" }}
                     </span>
                 </p>
             </div>
@@ -89,12 +89,12 @@ defineProps({ groups: Array, totals: Object });
 
     <div v-else class="mx-auto mt-10 max-w-md rounded-3xl bg-white p-8 text-center shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
         <Wallet class="mx-auto size-10 text-teal-600" />
-        <h2 class="mt-3 text-lg font-bold">No groups yet</h2>
+        <h2 class="mt-3 text-lg font-bold">{{ t('No groups yet') }}</h2>
         <p class="mt-1 text-sm text-slate-500">
-            Make a group for a trip or the house, add who paid what, and TheBoise tells everyone who owes whom.
+            {{ t('Make a group for a trip or the house, add who paid what, and TheBoise tells everyone who owes whom.') }}
         </p>
         <Link href="/expenses/create" class="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-dark">
-            <Plus class="size-4" /> Create the first group
+            <Plus class="size-4" /> {{ t('Create the first group') }}
         </Link>
     </div>
 </template>

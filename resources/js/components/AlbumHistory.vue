@@ -10,7 +10,7 @@ defineProps({
 </script>
 
 <template>
-    <p v-if="!events.length" class="text-sm text-slate-500">Nothing yet.</p>
+    <p v-if="!events.length" class="text-sm text-slate-500">{{ t('Nothing yet.') }}</p>
     <ol class="space-y-3">
         <li v-for="event in events" :key="event.id" class="border-l-2 border-slate-200 pl-3 text-sm dark:border-slate-700">
             <p>

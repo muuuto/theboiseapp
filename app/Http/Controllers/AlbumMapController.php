@@ -49,7 +49,7 @@ class AlbumMapController extends Controller
     {
         $count = ListingPlace::where('source', 'suggested')->update(['source' => 'manual']);
 
-        return back()->with('message', "{$count} locations confirmed");
+        return back()->with('message', __(':count locations confirmed', ['count' => $count]));
     }
 
     // Wrong guess: remove that pin (the album keeps its other places, if any)

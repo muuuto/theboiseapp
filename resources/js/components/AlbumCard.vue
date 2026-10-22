@@ -2,15 +2,16 @@
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { CalendarDays, MapPin } from 'lucide-vue-next';
+import { formatDate } from '../time.js';
 
 // eager: the first cards are visible right away, load them immediately instead of lazily
 const props = defineProps({ album: Object, eager: Boolean });
 defineEmits(['tag']);
 
-const formatter = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+const long = { day: 'numeric', month: 'long', year: 'numeric' };
 const dates = computed(() => {
-    const from = formatter.format(new Date(props.album.dateFrom));
-    const to = formatter.format(new Date(props.album.dateTo));
+    const from = formatDate(props.album.dateFrom, long);
+    const to = formatDate(props.album.dateTo, long);
     return from === to ? from : `${from} – ${to}`;
 });
 </script>
@@ -26,7 +27,7 @@ const dates = computed(() => {
                     class="size-full object-cover transition duration-300 group-hover:scale-105"
                 />
                 <span v-if="album.isNew" class="absolute top-3 left-3 rounded-full bg-brand px-2.5 py-1 text-xs font-bold text-white shadow">
-                    New
+                    {{ t('New') }}
                 </span>
             </div>
 

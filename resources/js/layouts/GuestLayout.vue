@@ -1,5 +1,6 @@
 <script setup>
 import FlashMessage from '../components/FlashMessage.vue';
+import LanguageSwitch from '../components/LanguageSwitch.vue';
 
 // Pages for people not logged in (login, passwords, invites): a centered card, no sidebar
 defineProps({ wide: Boolean });
@@ -17,6 +18,7 @@ defineProps({ wide: Boolean });
         >
             <slot />
         </div>
+        <LanguageSwitch class="mt-6" />
         <FlashMessage />
     </div>
 </template>

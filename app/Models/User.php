@@ -6,6 +6,7 @@ use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Comment;
@@ -13,7 +14,7 @@ use App\Support\Settings;
 use Carbon\Carbon;
 use App\Models\Category;
 
-class User extends Authenticatable
+class User extends Authenticatable implements HasLocalePreference
 {
     use HasApiTokens, HasFactory, Notifiable;
 
@@ -102,6 +103,12 @@ class User extends Authenticatable
     public function pushSubscriptions(): HasMany
     {
         return $this->hasMany(PushSubscription::class);
+    }
+
+    // Emails and notifications sent to them (Mail::to($user), password reset) use their language
+    public function preferredLocale(): string
+    {
+        return \App\Support\Locale::of($this);
     }
 
     // Trips the user is going on (planned or done)

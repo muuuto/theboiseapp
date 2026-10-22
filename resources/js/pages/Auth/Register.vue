@@ -11,10 +11,10 @@ const form = useForm({ invite: props.token, name: '', email: '', password: '', p
 </script>
 
 <template>
-    <Head title="Create your account" />
+    <Head :title="t('Create your account')" />
 
-    <h1 class="text-2xl font-bold">You've been invited 🎉</h1>
-    <p class="mt-1 text-sm text-slate-500">Create your account on TheBoise</p>
+    <h1 class="text-2xl font-bold">{{ t("You've been invited 🎉") }}</h1>
+    <p class="mt-1 text-sm text-slate-500">{{ t('Create your account on TheBoise') }}</p>
 
     <p v-if="form.errors.invite" class="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300">{{ form.errors.invite }}</p>
 
@@ -28,11 +28,11 @@ const form = useForm({ invite: props.token, name: '', email: '', password: '', p
             class="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 font-semibold text-white transition hover:bg-brand-dark disabled:opacity-50"
             :disabled="form.processing"
         >
-            <Loader2 v-if="form.processing" class="size-5 animate-spin" /> Create account
+            <Loader2 v-if="form.processing" class="size-5 animate-spin" /> {{ t('Create account') }}
         </button>
     </form>
 
     <p class="mt-6 text-center text-sm text-slate-500">
-        Already have an account? <Link href="/login" class="font-medium text-brand hover:underline">Login</Link>
+        {{ t('Already have an account?') }} <Link href="/login" class="font-medium text-brand hover:underline">{{ t('Login') }}</Link>
     </p>
 </template>

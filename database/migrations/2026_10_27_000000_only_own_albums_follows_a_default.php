@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-// "Only albums I posted": empty = not chosen, follows the default set on the maintenance page.
+// "All albums | My albums": empty = not chosen (all albums).
 // It was on/off for everyone: the "off" ones become "not chosen" (whoever switched it on keeps it)
 return new class extends Migration
 {

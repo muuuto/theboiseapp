@@ -177,23 +177,18 @@ class AlbumPostingTest extends TestCase
         $this->actingAs(User::factory()->create())->get('/')->assertInertia(fn ($page) => $page->where('ownFilter.available', false));
     }
 
-    public function test_only_mine_follows_the_default_until_someone_chooses(): void
+    public function test_my_albums_choice_on_the_account_page(): void
     {
-        $admin = User::factory()->admin()->create();
-        [$undecided, $decided] = User::factory()->count(2)->create();
-        foreach ([$undecided, $decided] as $user) {
-            Listing::factory()->create(['user_id' => $user->id])->users()->attach($user);
-        }
-        $this->actingAs($decided)->put('/account/album-filter', ['on' => false]);
+        $user = User::factory()->create();
+        Listing::factory()->create(['user_id' => $user->id])->users()->attach($user);
 
-        $this->actingAs($undecided)->post('/admin/maintenance/only-own-default', ['on' => true])->assertForbidden();
-        $this->actingAs($admin)->post('/admin/maintenance/only-own-default', ['on' => true])->assertSessionHas('message');
-        Settings::forget();
-
-        // Who never chose: on, like the default; who chose off: keeps off
-        $this->actingAs($undecided)->get('/')->assertInertia(fn ($page) => $page->where('ownFilter.on', true));
-        $this->actingAs($decided)->get('/')->assertInertia(fn ($page) => $page->where('ownFilter.on', false));
-        $this->actingAs($admin)->get('/admin/maintenance')->assertInertia(fn ($page) => $page->where('albumPosting.onlyOwnDefault', true));
+        // Without a choice: all albums
+        $this->actingAs($user)->get('/account')->assertInertia(fn ($page) => $page->where('ownFilter.available', true)->where('ownFilter.on', false));
+        $this->actingAs($user)->put('/account/album-filter', ['on' => true]);
+        $this->actingAs($user)->get('/account')->assertInertia(fn ($page) => $page->where('ownFilter.on', true));
+        $this->actingAs($user)->get('/')->assertInertia(fn ($page) => $page->where('ownFilter.on', true));
+        // Who never posted an album doesn't get it
+        $this->actingAs(User::factory()->create())->get('/account')->assertInertia(fn ($page) => $page->where('ownFilter.available', false));
     }
 
     public function test_admins_open_any_album_read_only_and_see_its_history(): void

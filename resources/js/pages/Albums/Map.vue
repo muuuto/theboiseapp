@@ -18,22 +18,22 @@ const suggestedCount = computed(() => props.places.filter((place) => place.sugge
 </script>
 
 <template>
-    <Head title="Map" />
+    <Head :title="t('Map')" />
 
     <div class="mb-4 flex flex-wrap items-end gap-2">
         <div>
-            <h1 class="text-2xl font-bold">Your albums on the map</h1>
+            <h1 class="text-2xl font-bold">{{ t('Your albums on the map') }}</h1>
             <p class="text-sm text-slate-500 dark:text-slate-400">
-                {{ albumCount }} {{ albumCount === 1 ? 'album' : 'albums' }} in {{ places.length }} {{ places.length === 1 ? 'place' : 'places' }}
-                <template v-if="withoutPlaces"> · {{ withoutPlaces }} without a place yet</template>
+                {{ tc(':count album|:count albums', albumCount) }} {{ t('in') }} {{ tc(':count place|:count places', places.length) }}
+                <template v-if="withoutPlaces"> · {{ t(':count without a place yet', { count: withoutPlaces }) }}</template>
             </p>
         </div>
-        <OwnAlbumsToggle v-if="ownFilter.available" :on="ownFilter.on" compact class="sm:ml-auto" />
+        <OwnAlbumsToggle v-if="ownFilter.available" :on="ownFilter.on" class="sm:ml-auto" />
         <a v-if="isAdmin && suggestedCount" href="/admin/locations" :class="!ownFilter.available && 'ml-auto'" class="inline-flex items-center gap-1.5 rounded-xl bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-200 dark:bg-amber-950 dark:text-amber-300">
-            <Info class="size-4" /> {{ suggestedCount }} guessed locations to review
+            <Info class="size-4" /> {{ t(':count guessed locations to review', { count: suggestedCount }) }}
         </a>
     </div>
 
     <LeafletMap :markers="places" class="h-[calc(100vh-13rem)] min-h-96" />
-    <p v-if="suggestedCount" class="mt-2 text-xs text-slate-500">Grey pins are approximate: guessed from the location text.</p>
+    <p v-if="suggestedCount" class="mt-2 text-xs text-slate-500">{{ t('Grey pins are approximate: guessed from the location text.') }}</p>
 </template>

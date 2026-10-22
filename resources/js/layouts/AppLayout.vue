@@ -109,7 +109,7 @@ const idleClass = 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:t
                 </Link>
                 <button class="rounded-lg p-1 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden" @click="drawerOpen = false">
                     <X class="size-5" />
-                    <span class="sr-only">Close menu</span>
+                    <span class="sr-only">{{ t('Close menu') }}</span>
                 </button>
             </div>
 
@@ -122,12 +122,12 @@ const idleClass = 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:t
                     :class="[itemClass, isActive(item.href) ? 'bg-brand/10 text-brand' : idleClass, collapsed && 'lg:justify-center']"
                 >
                     <component :is="item.icon" class="size-5 shrink-0" />
-                    <span :class="collapsed && 'lg:sr-only'">{{ item.label }}</span>
-                    <span v-if="collapsed" class="sidebar-tooltip">{{ item.label }}</span>
+                    <span :class="collapsed && 'lg:sr-only'">{{ t(item.label) }}</span>
+                    <span v-if="collapsed" class="sidebar-tooltip">{{ t(item.label) }}</span>
                 </component>
 
                 <template v-if="user?.isAdmin">
-                    <p class="px-3 pt-6 pb-2 text-xs font-semibold uppercase tracking-wider text-slate-400" :class="collapsed && 'lg:hidden'">Admin</p>
+                    <p class="px-3 pt-6 pb-2 text-xs font-semibold uppercase tracking-wider text-slate-400" :class="collapsed && 'lg:hidden'">{{ t('Admin') }}</p>
                     <hr v-if="collapsed" class="mx-2 my-4 hidden border-slate-200 dark:border-slate-800 lg:block" />
                     <component
                         :is="item.inertia ? Link : 'a'"
@@ -137,8 +137,8 @@ const idleClass = 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:t
                         :class="[itemClass, isActive(item.href) ? 'bg-brand/10 text-brand' : idleClass, collapsed && 'lg:justify-center']"
                     >
                         <component :is="item.icon" class="size-5 shrink-0" />
-                        <span :class="collapsed && 'lg:sr-only'">{{ item.label }}</span>
-                        <span v-if="collapsed" class="sidebar-tooltip">{{ item.label }}</span>
+                        <span :class="collapsed && 'lg:sr-only'">{{ t(item.label) }}</span>
+                        <span v-if="collapsed" class="sidebar-tooltip">{{ t(item.label) }}</span>
                     </component>
                 </template>
             </nav>
@@ -147,12 +147,12 @@ const idleClass = 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:t
                 <button
                     class="w-full max-lg:hidden"
                     :class="[itemClass, idleClass, collapsed && 'lg:justify-center']"
-                    :aria-label="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+                    :aria-label="collapsed ? t('Expand sidebar') : t('Collapse sidebar')"
                     @click="toggleCollapsed"
                 >
                     <component :is="collapsed ? PanelLeftOpen : PanelLeftClose" class="size-5 shrink-0" />
-                    <span :class="collapsed && 'lg:sr-only'">Collapse</span>
-                    <span v-if="collapsed" class="sidebar-tooltip">Expand</span>
+                    <span :class="collapsed && 'lg:sr-only'">{{ t('Collapse') }}</span>
+                    <span v-if="collapsed" class="sidebar-tooltip">{{ t('Expand') }}</span>
                 </button>
                 <button
                     class="w-full hover:text-brand"
@@ -160,8 +160,8 @@ const idleClass = 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:t
                     @click="logout"
                 >
                     <LogOut class="size-5 shrink-0" />
-                    <span :class="collapsed && 'lg:sr-only'">Logout</span>
-                    <span v-if="collapsed" class="sidebar-tooltip">Logout</span>
+                    <span :class="collapsed && 'lg:sr-only'">{{ t('Logout') }}</span>
+                    <span v-if="collapsed" class="sidebar-tooltip">{{ t('Logout') }}</span>
                 </button>
             </div>
         </aside>
@@ -171,17 +171,17 @@ const idleClass = 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:t
             <header class="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-slate-200 bg-white/80 px-4 backdrop-blur dark:border-slate-800 dark:bg-slate-900/80 sm:px-6">
                 <button class="rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 lg:hidden" @click="drawerOpen = true">
                     <Menu class="size-5" />
-                    <span class="sr-only">Open menu</span>
+                    <span class="sr-only">{{ t('Open menu') }}</span>
                 </button>
                 <Link href="/" class="lg:hidden">
-                    <img src="/images/logo.png" alt="TheBoise" class="h-8 w-auto" />
+                    <img src="/images/logo.png" :alt="t('TheBoise')" class="h-8 w-auto" />
                 </Link>
 
                 <div class="ml-auto flex items-center gap-1">
                     <NotificationsBell />
                     <ThemeToggle />
                     <Link href="/account" class="ml-2 flex items-center gap-2 rounded-full py-1 pr-1 pl-3 hover:bg-slate-100 dark:hover:bg-slate-800">
-                        <span class="hidden text-sm font-semibold text-accent sm:inline">Hi {{ user.name }}</span>
+                        <span class="hidden text-sm font-semibold text-accent sm:inline">{{ t('Hi :name', { name: user.name }) }}</span>
                         <img v-if="user.avatar" :src="user.avatar" alt="" class="size-8 rounded-full object-cover" />
                         <span v-else class="flex size-8 items-center justify-center rounded-full bg-accent text-sm font-bold text-white">
                             {{ user.name.charAt(0).toUpperCase() }}

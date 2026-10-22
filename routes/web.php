@@ -87,6 +87,9 @@ Route::middleware(['auth', 'not-demo'])->prefix('push')->group(function () {
     Route::put('/settings', [App\Http\Controllers\PushController::class, 'settings']);
 });
 
+// Language: English or Italian (also before logging in)
+Route::put('/locale', [UserController::class, 'locale']);
+
 // Theme: light, dark or follow the device
 Route::put('/account/theme', [UserController::class, 'theme'])->middleware(['auth', 'not-demo']);
 
@@ -106,7 +109,7 @@ Route::get('/zeccaGay', function() {
     $broken = rand(1, 100) > 98;
 
     return Inertia\Inertia::render('Zecca', [
-        'answer' => $broken ? "no, but the site might have some technical problem, wanna try again?" : $answers[array_rand($answers)],
+        'answer' => __($broken ? "no, but the site might have some technical problem, wanna try again?" : $answers[array_rand($answers)]),
         'broken' => $broken,
     ]);
 });
@@ -228,6 +231,10 @@ Route::get('/forum/{category}/{post}', [PostController::class, 'show'])->middlew
 // Show Create Form
 Route::post('/forum/{category}/{post}/comment', [PostController::class, 'comment'])->middleware(['auth', 'not-demo'])->name('forum.posts.comment');
 
+// Pin a post at the top of the home page (admins)
+Route::post('/forum/{category}/{post}/pin', [PostController::class, 'pin'])->middleware(['auth', 'not-demo']);
+Route::delete('/forum/{category}/{post}/pin', [PostController::class, 'pin'])->middleware(['auth', 'not-demo']);
+
 // Send Post
 Route::post('/forum/{category}/{post}/notify', [PostController::class, 'notify'])->middleware(['auth', 'not-demo'])->name('forum.posts.notify');
 
@@ -276,7 +283,6 @@ Route::middleware(['auth', 'can:admin'])->prefix('admin/maintenance')->group(fun
     Route::get('/', [MaintenanceController::class, 'index']);
     Route::post('/test-email', [MaintenanceController::class, 'testEmail']);
     Route::post('/album-posting', [MaintenanceController::class, 'albumPostingMode']);
-    Route::post('/only-own-default', [MaintenanceController::class, 'onlyOwnDefault']);
     Route::put('/decorations', [MaintenanceController::class, 'saveDecorations']);
     Route::put('/album-posting/everyone', [MaintenanceController::class, 'albumPostingEveryone']);
     Route::put('/album-posting/{user}', [MaintenanceController::class, 'albumPostingPermission']);

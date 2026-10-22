@@ -26,7 +26,7 @@ class ExpensePaymentController extends Controller
         ]);
         $amount = ExpenseMath::parse($data['amount']);
         if (! $amount) {
-            throw ValidationException::withMessages(['amount' => 'Write an amount in euro, like 12.50']);
+            throw ValidationException::withMessages(['amount' => __('Write an amount in euro, like 12.50')]);
         }
 
         $payment = $group->payments()->create([

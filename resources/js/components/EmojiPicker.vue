@@ -4,6 +4,9 @@ import { Smile } from 'lucide-vue-next';
 import 'emoji-picker-element';
 // Emoji data bundled with the site (by default the picker downloads it from a CDN)
 import emojiData from 'emoji-picker-element-data/en/emojibase/data.json?url';
+import emojiDataIt from 'emoji-picker-element-data/it/cldr/data.json?url';
+import pickerIt from 'emoji-picker-element/i18n/it.js';
+import { locale } from '../i18n.js';
 
 const emit = defineEmits(['pick']);
 // "top" above the button (comment box), "bottom" below it (editor toolbar). On phones: centered at the bottom
@@ -15,7 +18,14 @@ let picker;
 
 onMounted(() => {
     picker = document.createElement('emoji-picker');
-    picker.dataSource = emojiData;
+    // Italian: search ("cuore") and labels in Italian
+    if (locale.value === 'it') {
+        picker.locale = 'it';
+        picker.dataSource = emojiDataIt;
+        picker.i18n = pickerIt;
+    } else {
+        picker.dataSource = emojiData;
+    }
     picker.addEventListener('emoji-click', (event) => {
         emit('pick', event.detail.unicode);
         open.value = false;
@@ -44,7 +54,7 @@ onBeforeUnmount(() => document.removeEventListener('click', closeOnOutsideClick)
             @click="open = !open"
         >
             <Smile class="size-5" />
-            <span class="sr-only">Add an emoji</span>
+            <span class="sr-only">{{ t('Add an emoji') }}</span>
         </button>
         <div
             v-show="open"

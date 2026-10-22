@@ -50,9 +50,9 @@ class LikeController extends Controller
                 $liked = new CommentLiked($user, $comment);
                 $author->notify($liked);
                 $data = $liked->toArray($author);
-                Notify::push($author, 'like', [
-                    'title' => $user->name . ' liked your comment',
-                    'body' => $data['title'] ? 'On ' . $data['title'] : 'Tap to see it.',
+                Notify::push($author, 'like', fn () => [
+                    'title' => __(':name liked your comment', ['name' => $user->name]),
+                    'body' => $data['title'] ? __('On :title', ['title' => $data['title']]) : __('Tap to see it.'),
                     'url' => $data['url'],
                     'tag' => 'like-' . $data['comment_type'] . '-' . $comment->id,
                 ]);

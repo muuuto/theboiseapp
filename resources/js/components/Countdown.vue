@@ -28,13 +28,13 @@ const two = (value) => String(value).padStart(2, '0');
 
 <template>
     <span v-if="size === 'small'" class="tabular-nums">
-        <template v-if="parts.days > 1">in {{ parts.days }} days</template>
-        <template v-else-if="parts.days === 1">tomorrow</template>
-        <template v-else-if="!parts.over">in {{ parts.hours }}h {{ two(parts.minutes) }}m</template>
-        <template v-else>now</template>
+        <template v-if="parts.days > 1">{{ t('in :count days', { count: parts.days }) }}</template>
+        <template v-else-if="parts.days === 1">{{ t('tomorrow') }}</template>
+        <template v-else-if="!parts.over">{{ t('in :hoursh :minutesm', { hours: parts.hours, minutes: two(parts.minutes) }) }}</template>
+        <template v-else>{{ t('now') }}</template>
     </span>
-    <div v-else class="grid grid-cols-4 gap-2 text-center" role="timer" :aria-label="`${parts.days} days ${parts.hours} hours to go`">
-        <div v-for="[value, label] in [[parts.days, parts.days === 1 ? 'day' : 'days'], [two(parts.hours), 'hours'], [two(parts.minutes), 'min'], [two(parts.seconds), 'sec']]" :key="label" class="rounded-2xl bg-white/15 px-1 py-3 backdrop-blur">
+    <div v-else class="grid grid-cols-4 gap-2 text-center" role="timer" :aria-label="t(':days days :hours hours to go', { days: parts.days, hours: parts.hours })">
+        <div v-for="[value, label] in [[parts.days, parts.days === 1 ? t('day') : t('days')], [two(parts.hours), t('hours')], [two(parts.minutes), t('min')], [two(parts.seconds), t('sec')]]" :key="label" class="rounded-2xl bg-white/15 px-1 py-3 backdrop-blur">
             <span class="block text-3xl font-black tabular-nums sm:text-4xl">{{ value }}</span>
             <span class="text-xs font-semibold tracking-wide text-white/80 uppercase">{{ label }}</span>
         </div>

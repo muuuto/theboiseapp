@@ -25,17 +25,17 @@ class SendWrapped extends Command
 
         foreach ($users as $user) {
             $wrapped = Wrapped::for($user, $year);
-            Notify::push($user, 'wrapped', [
-                'title' => "Your {$year} Wrapped is ready 🎁",
-                'body' => "{$wrapped['albumCount']} albums, {$wrapped['daysAway']} days away, " . number_format($wrapped['km']) . ' km. Tap to see it all.',
+            Notify::push($user, 'wrapped', fn () => [
+                'title' => __('Your :year Wrapped is ready 🎁', ['year' => $year]),
+                'body' => __(':albums albums, :days days away, :km km. Tap to see it all.', ['albums' => $wrapped['albumCount'], 'days' => $wrapped['daysAway'], 'km' => number_format($wrapped['km'], 0, ',', '.')]),
                 'url' => "/wrapped/{$year}",
                 'tag' => "wrapped-{$year}",
             ]);
             if (Notify::wants($user, 'wrapped', 'email')) {
-                Mail::send('mails.wrapped', ['name' => $user->name, 'wrapped' => $wrapped, 'link' => url("/wrapped/{$year}")], fn ($message) => $message
+                \App\Support\Locale::for($user, fn () => Mail::send('mails.wrapped', ['name' => $user->name, 'wrapped' => $wrapped, 'link' => url("/wrapped/{$year}")], fn ($message) => $message
                     ->to($user->email, $user->name)
-                    ->subject("Your {$year} on TheBoise 🎁")
-                    ->from('info@theboise.it', 'TheBoise'));
+                    ->subject(__('Your :year on TheBoise 🎁', ['year' => $year]))
+                    ->from('info@theboise.it', 'TheBoise')));
             }
         }
 

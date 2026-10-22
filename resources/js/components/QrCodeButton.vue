@@ -115,37 +115,37 @@ const actionClass = 'inline-flex flex-1 items-center justify-center gap-1.5 roun
         class="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-sm font-semibold shadow-sm ring-1 ring-slate-200 hover:ring-slate-300 dark:bg-slate-800 dark:ring-slate-700"
         @click="show"
     >
-        <QrCode class="size-4" /> QR code
+        <QrCode class="size-4" /> {{ t('QR code') }}
     </button>
 
     <Teleport to="body">
         <div v-if="open" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" @click.self="close">
-            <div role="dialog" aria-modal="true" aria-label="QR code" class="w-full max-w-sm rounded-3xl bg-white p-5 shadow-xl dark:bg-slate-900">
+            <div role="dialog" aria-modal="true" :aria-label="t('QR code')" class="w-full max-w-sm rounded-3xl bg-white p-5 shadow-xl dark:bg-slate-900">
                 <div class="mb-3 flex items-center gap-2">
-                    <h2 class="text-lg font-bold">QR code</h2>
+                    <h2 class="text-lg font-bold">{{ t('QR code') }}</h2>
                     <button type="button" class="ml-auto rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800" @click="close">
-                        <X class="size-5" /><span class="sr-only">Close</span>
+                        <X class="size-5" /><span class="sr-only">{{ t('Close') }}</span>
                     </button>
                 </div>
 
                 <!-- Always on white, also in dark mode: phone cameras read dark on light best -->
                 <div class="overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200 dark:ring-slate-700">
-                    <img v-if="image" :src="image" :alt="`QR code of ${title}`" class="w-full" />
+                    <img v-if="image" :src="image" :alt="t('QR code of :title', { title })" class="w-full" />
                     <div v-else class="aspect-square animate-pulse bg-slate-100" />
                 </div>
                 <p class="mt-3 text-center text-xs text-slate-500">
-                    Scanning it opens this page. People need a TheBoise account that can see it.
+                    {{ t('Scanning it opens this page. People need a TheBoise account that can see it.') }}
                 </p>
 
                 <div class="mt-4 flex flex-wrap gap-2">
                     <a v-if="image" :href="image" :download="fileName()" :class="actionClass" class="bg-brand text-white hover:bg-brand-dark">
-                        <Download class="size-4" /> Download
+                        <Download class="size-4" /> {{ t('Download') }}
                     </a>
                     <button v-if="canShareFile && image" type="button" :class="actionClass" class="bg-slate-900 text-white hover:bg-black dark:bg-white dark:text-slate-900" @click="share">
-                        <Share2 class="size-4" /> Share
+                        <Share2 class="size-4" /> {{ t('Share') }}
                     </button>
                     <button type="button" :class="actionClass" class="ring-1 ring-slate-200 hover:bg-slate-50 dark:ring-slate-700 dark:hover:bg-slate-800" @click="copyLink">
-                        <component :is="copied ? Check : Copy" class="size-4" /> {{ copied ? 'Copied!' : 'Copy link' }}
+                        <component :is="copied ? Check : Copy" class="size-4" /> {{ copied ? t('Copied!') : t('Copy link') }}
                     </button>
                 </div>
             </div>

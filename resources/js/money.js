@@ -1,7 +1,8 @@
 // Money of shared expenses: always cents (integers) in the data, euro only
-const euro = new Intl.NumberFormat('en-IE', { style: 'currency', currency: 'EUR' });
+import { locale } from './i18n.js';
 
-export const money = (cents) => euro.format(cents / 100);
+// "€12.50" in English, "12,50 €" in Italian
+export const money = (cents) => new Intl.NumberFormat(locale.value === 'it' ? 'it-IT' : 'en-IE', { style: 'currency', currency: 'EUR' }).format(cents / 100);
 
 // "12,50" or "12.5" → 1250; null if it isn't an amount (same rules as the server)
 export function parseEuros(text) {

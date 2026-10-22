@@ -44,31 +44,39 @@ class Notify
     {
         return collect(self::TYPES)->map(fn ($type, $key) => [
             'key' => $key,
-            'label' => $type['label'],
+            'label' => __($type['label']),
             'email' => $type['email'] === null ? null : self::wants($user, $key, 'email'),
             'push' => self::wants($user, $key, 'push'),
         ])->values()->all();
     }
 
     // Phone notification to these people (those who want this type), after the page is answered so
-    // nobody waits for Apple or Google. $message: title, body, url, tag (same tag = replaces), image
-    public static function push(User|iterable $users, string $type, array $message): void
+    // nobody waits for Apple or Google. $message: title, body, url, tag (same tag = replaces), image;
+    // a function returning it is called in each person's language
+    public static function push(User|iterable $users, string $type, array|callable $message): void
     {
         if (! (self::$ready ??= Schema::hasTable('push_subscriptions'))) {
             return;
         }
 
-        $ids = collect($users instanceof User ? [$users] : $users)
-            ->filter(fn (User $user) => self::wants($user, $type, 'push'))
-            ->pluck('id');
-        if ($ids->isEmpty()) {
+        $people = collect($users instanceof User ? [$users] : $users)
+            ->filter(fn (User $user) => self::wants($user, $type, 'push'));
+        if ($people->isEmpty()) {
             return;
         }
 
-        $send = function () use ($ids, $message) {
-            $subscriptions = PushSubscription::whereIn('user_id', $ids)->get();
-            if ($subscriptions->isNotEmpty()) {
-                app(PushSender::class)->send($subscriptions, $message + ['url' => '/']);
+        // One message per language
+        $messages = $people->groupBy(fn (User $user) => Locale::of($user))->map(fn ($group) => [
+            'ids' => $group->pluck('id'),
+            'message' => is_callable($message) ? Locale::for($group->first(), $message) : $message,
+        ]);
+
+        $send = function () use ($messages) {
+            foreach ($messages as $batch) {
+                $subscriptions = PushSubscription::whereIn('user_id', $batch['ids'])->get();
+                if ($subscriptions->isNotEmpty()) {
+                    app(PushSender::class)->send($subscriptions, $batch['message'] + ['url' => '/']);
+                }
             }
         };
 

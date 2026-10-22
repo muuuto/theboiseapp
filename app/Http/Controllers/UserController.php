@@ -52,6 +52,10 @@ class UserController extends Controller
                 'email' => $formFields['email'],
                 'password' => bcrypt($formFields['password']),
             ]);
+            // The language picked on the registration page becomes theirs
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'locale')) {
+                $user->update(['locale' => app()->getLocale()]);
+            }
 
             $invite->update(['used_at' => now(), 'used_by' => $user->id]);
 
@@ -59,7 +63,7 @@ class UserController extends Controller
         });
 
         if (! $user) {
-            return back()->withErrors(['invite' => 'This invite link is not valid anymore, ask for a new one.'])->onlyInput('name', 'email');
+            return back()->withErrors(['invite' => __('This invite link is not valid anymore, ask for a new one.')])->onlyInput('name', 'email');
         }
 
          // email data
@@ -69,19 +73,19 @@ class UserController extends Controller
             'note' => Invite::where('used_by', $user->id)->value('note'),
         );
     
-        // send email to user with the template
+        // Welcome in the language chosen on the registration page
         Mail::send('/mails/welcome_email', $email_data, function ($message) use ($email_data) {
             $message->to($email_data['email'], $email_data['name'])
-                ->subject('Welcome to theboise.it')
+                ->subject(__('Welcome to theboise.it'))
                 ->from('info@theboise.it', 'TheBoise');
         });
-        
-        // send email to user with the template
-        Mail::send('/mails/user_registered', $email_data, function ($message) {
+
+        // And the admin hears about it, in their language
+        \App\Support\Locale::for(User::firstWhere('email', 'matteo.gavoni@gmail.com'), fn () => Mail::send('/mails/user_registered', $email_data, function ($message) {
             $message->to('matteo.gavoni@gmail.com', 'Admin')
-                ->subject('New user - theboise.it')
+                ->subject(__('New user - theboise.it'))
                 ->from('info@theboise.it', 'TheBoise');
-        });
+        }));
 
         // Login
         auth()->login($user);
@@ -127,7 +131,7 @@ class UserController extends Controller
             return redirect()->intended('/')->with('message', 'You are now logged in!');
         }
 
-        return back()->withErrors(['email' => 'Invalid Credentials'])->onlyInput('email');
+        return back()->withErrors(['email' => __('Wrong email or password.')])->onlyInput('email');
     }
 
     // Secret link for the CV: logs straight into the read-only demo account
@@ -146,6 +150,17 @@ class UserController extends Controller
     }
 
     // Light, dark or follow the device (null)
+    // English or Italian: saved on the account (or, before logging in, for this visit)
+    public function locale(Request $request) {
+        $data = $request->validate(['locale' => 'required|in:' . implode(',', array_keys(\App\Support\Locale::AVAILABLE))]);
+        $request->session()->put('locale', $data['locale']);
+        if ($request->user() && ! $request->user()->is_demo && \Illuminate\Support\Facades\Schema::hasColumn('users', 'locale')) {
+            $request->user()->update(['locale' => $data['locale']]);
+        }
+
+        return back();
+    }
+
     public function theme(Request $request) {
         $request->validate(['theme' => 'required|in:system,light,dark']);
 
@@ -201,7 +216,7 @@ class UserController extends Controller
         );
      
         return $status === Password::PASSWORD_RESET
-                    ? redirect()->route('login')->with('status', 'Your password has been changed: you can log in.')
+                    ? redirect()->route('login')->with('status', __('Your password has been changed: you can log in.'))
                     : back()->withErrors(['email' => __($status)]);
     }
 

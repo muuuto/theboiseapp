@@ -6,7 +6,8 @@ import {
 } from 'lucide-vue-next';
 import LeafletMap from '../../components/LeafletMap.vue';
 import CommentBox from '../../components/CommentBox.vue';
-import { ago, fullDate } from '../../time.js';
+import { ago, formatDate, fullDate } from '../../time.js';
+import { t } from '../../i18n.js';
 import LikeButton from '../../components/LikeButton.vue';
 import QrCodeButton from '../../components/QrCodeButton.vue';
 import AlbumHistory from '../../components/AlbumHistory.vue';
@@ -20,10 +21,10 @@ const props = defineProps({
     trip: { type: Object, default: null }, // the trip plan it was made from
 });
 
-const longDate = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+const longDate = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
 const dates = computed(() => {
-    const from = longDate.format(new Date(props.album.dateFrom));
-    const to = longDate.format(new Date(props.album.dateTo));
+    const from = formatDate(props.album.dateFrom, longDate);
+    const to = formatDate(props.album.dateTo, longDate);
     return from === to ? [from] : [from, to];
 });
 
@@ -58,7 +59,7 @@ async function copyAlbumLink() {
 }
 
 function destroy() {
-    if (window.confirm(`Delete the album "${props.album.title}"? This can't be undone.`)) {
+    if (window.confirm(t('Delete the album ":title"? This can\'t be undone.', { title: props.album.title }))) {
         router.delete(`/listings/${props.album.id}`);
     }
 }
@@ -80,7 +81,7 @@ onMounted(() => {
 
     <div class="mb-4 flex flex-wrap items-center gap-2">
         <Link href="/" class="inline-flex items-center gap-1.5 rounded-xl px-2 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-200/60 dark:text-slate-300 dark:hover:bg-slate-800">
-            <ArrowLeft class="size-4" /> Albums
+            <ArrowLeft class="size-4" /> {{ t('Albums') }}
         </Link>
         <div class="ml-auto flex flex-wrap gap-2">
             <QrCodeButton :path="`/listings/${album.id}`" :title="album.title" />
@@ -89,14 +90,14 @@ onMounted(() => {
                 :href="`/listings/${album.id}/edit`"
                 class="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-sm font-semibold shadow-sm ring-1 ring-slate-200 hover:ring-slate-300 dark:bg-slate-800 dark:ring-slate-700"
             >
-                <Pencil class="size-4" /> Edit
+                <Pencil class="size-4" /> {{ t('Edit') }}
             </Link>
             <button
                 v-if="can.delete"
                 class="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-slate-200 hover:bg-red-50 dark:bg-slate-800 dark:ring-slate-700 dark:hover:bg-red-950/40"
                 @click="destroy"
             >
-                <Trash2 class="size-4" /> Delete
+                <Trash2 class="size-4" /> {{ t('Delete') }}
             </button>
         </div>
     </div>
@@ -111,7 +112,7 @@ onMounted(() => {
 
             <div>
                 <h1 class="text-3xl font-extrabold tracking-tight sm:text-4xl">{{ album.title }}</h1>
-                <p v-if="album.postedBy" class="mt-1 text-sm text-slate-500">Posted by {{ album.postedBy }}</p>
+                <p v-if="album.postedBy" class="mt-1 text-sm text-slate-500">{{ t('Posted by :name', { name: album.postedBy }) }}</p>
                 <ul class="mt-3 flex flex-wrap gap-1.5">
                     <li v-for="tag in album.tags" :key="tag">
                         <Link
@@ -129,12 +130,12 @@ onMounted(() => {
 
             <!-- Admins only (the count is 0 for everyone else): people never know their version is different -->
             <p v-if="can.adminView" class="flex items-center gap-2 rounded-2xl bg-sky-50 px-3 py-2 text-sm text-sky-800 dark:bg-sky-950/40 dark:text-sky-300">
-                <ShieldCheck class="size-4 shrink-0" /> Admin view: you're not in this album, so you can look but not comment.
+                <ShieldCheck class="size-4 shrink-0" /> {{ t("Admin view: you're not in this album, so you can look but not comment.") }}
             </p>
 
             <p v-if="album.personalizedCount" class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300">
                 <UserCog class="size-3.5" />
-                Admin: {{ album.personalizedCount }} {{ album.personalizedCount === 1 ? 'person sees' : 'people see' }} a different link or description
+                {{ tc('Admin: :count person sees a different link or description|Admin: :count people see a different link or description', album.personalizedCount) }}
             </p>
 
             <section v-if="album.description" class="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
@@ -142,12 +143,12 @@ onMounted(() => {
             </section>
 
             <section v-if="videos.length" class="space-y-3">
-                <h2 class="text-lg font-bold">Videos</h2>
+                <h2 class="text-lg font-bold">{{ t('Videos') }}</h2>
                 <template v-for="(video, index) in videos" :key="video.url">
                     <div v-if="video.youtube" class="aspect-video overflow-hidden rounded-2xl bg-black shadow-sm">
                         <iframe
                             :src="`https://www.youtube-nocookie.com/embed/${video.youtube}`"
-                            :title="`Video ${index + 1}`"
+                            :title="t('Video :number', { number: index + 1 })"
                             class="size-full"
                             allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                             loading="lazy"
@@ -155,7 +156,7 @@ onMounted(() => {
                         />
                     </div>
                     <a v-else :href="video.url" target="_blank" rel="noopener" class="flex items-center gap-2 rounded-2xl bg-red-600 px-4 py-3 font-semibold text-white hover:bg-red-700">
-                        <PlayCircle class="size-5" /> Video {{ index + 1 }}
+                        <PlayCircle class="size-5" /> {{ t('Video :number', { number: index + 1 }) }}
                     </a>
                 </template>
             </section>
@@ -185,21 +186,21 @@ onMounted(() => {
                     rel="noopener"
                     class="flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 font-semibold text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
                 >
-                    <ExternalLink class="size-4" /> Open the photos
+                    <ExternalLink class="size-4" /> {{ t('Open the photos') }}
                 </a>
                 <button
                     class="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-slate-600 ring-1 ring-slate-200 transition hover:bg-slate-50 dark:text-slate-300 dark:ring-slate-700 dark:hover:bg-slate-800"
                     @click="copyAlbumLink"
                 >
                     <component :is="copied ? Check : Copy" class="size-4" />
-                    {{ copied ? 'Copied!' : 'Copy the photos link' }}
+                    {{ copied ? t('Copied!') : t('Copy the photos link') }}
                 </button>
                 <Link
                     v-if="trip"
                     :href="`/trips/${trip.id}`"
                     class="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-sky-700 ring-1 ring-slate-200 transition hover:bg-sky-50 dark:text-sky-400 dark:ring-slate-700 dark:hover:bg-slate-800"
                 >
-                    <Plane class="size-4" /> The trip plan
+                    <Plane class="size-4" /> {{ t('The trip plan') }}
                 </Link>
                 <Link
                     v-for="expenseGroup in expenseGroups"
@@ -207,13 +208,13 @@ onMounted(() => {
                     :href="`/expenses/${expenseGroup.id}`"
                     class="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-teal-700 ring-1 ring-slate-200 transition hover:bg-teal-50 dark:text-teal-400 dark:ring-slate-700 dark:hover:bg-slate-800"
                 >
-                    <Wallet class="size-4" /> Expenses: {{ expenseGroup.name }}
+                    <Wallet class="size-4" /> {{ t('Expenses: :name', { name: expenseGroup.name }) }}
                 </Link>
             </div>
 
             <div class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
                 <h2 class="mb-3 flex items-center gap-2 font-bold">
-                    <Users class="size-5 text-accent" /> People <span class="text-sm font-medium text-slate-500">{{ album.people.length }}</span>
+                    <Users class="size-5 text-accent" /> {{ t('People') }} <span class="text-sm font-medium text-slate-500">{{ album.people.length }}</span>
                 </h2>
                 <ul class="grid grid-cols-2 gap-2">
                     <li v-for="person in album.people" :key="person.id" class="flex min-w-0 items-center gap-2">
@@ -229,7 +230,7 @@ onMounted(() => {
             <!-- Admins only (the list is empty for everyone else) -->
             <details v-if="history.length" class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
                 <summary class="flex cursor-pointer items-center gap-2 font-bold">
-                    <History class="size-5 text-accent" /> History <span class="text-sm font-medium text-slate-500">admins only</span>
+                    <History class="size-5 text-accent" /> {{ t('History') }} <span class="text-sm font-medium text-slate-500">{{ t('admins only') }}</span>
                 </summary>
                 <div class="mt-3"><AlbumHistory :events="history" /></div>
             </details>
@@ -238,17 +239,17 @@ onMounted(() => {
         <!-- Comments -->
         <section class="min-w-0 space-y-4 lg:col-start-1">
             <h2 class="text-lg font-bold">
-                Comments <span class="text-sm font-medium text-slate-500">{{ comments.length }}</span>
+                {{ t('Comments') }} <span class="text-sm font-medium text-slate-500">{{ comments.length }}</span>
             </h2>
 
             <CommentBox
                 v-if="can.comment"
                 url="/listings/comments"
                 :extra="{ listing_id: album.id }"
-                placeholder="Write a comment... my favorite photo is"
+                :placeholder="t('Write a comment... my favorite photo is')"
             />
 
-            <p v-if="!comments.length" class="text-sm text-slate-500">No comments yet{{ can.comment ? ', be the first' : '' }}.</p>
+            <p v-if="!comments.length" class="text-sm text-slate-500">{{ can.comment ? t('No comments yet, be the first.') : t('No comments yet.') }}</p>
 
             <article
                 v-for="comment in comments"

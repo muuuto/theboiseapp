@@ -28,7 +28,7 @@ class SendListingReminderEmails extends Command
                 return;
             }
 
-            Mail::to($user->email)
+            Mail::to($user)
                 ->send(new ListingReminderMail($user, $listings));
         });
 

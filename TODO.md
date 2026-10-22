@@ -309,12 +309,29 @@ Steps (one release each):
     and weeks before, Preview links. No motion for who asked their device for less.
     **To deploy** (quick release, no migration): push, cPanel Git deploy, **Clear caches**.
     Halloween is already within its 2 weeks: it shows right away.
-17. **"Only mine" default and position**: ✅ Done locally. `/admin/maintenance` → *Members posting
+17. **"All albums | My albums" default and position**: ✅ Done locally. `/admin/maintenance` → *Members posting
     albums* → "Only albums I posted on by default" (for who hasn't chosen; who flips the switch
     keeps their choice), and **Allow everyone** / **No one** buttons above the list of people.
-    On the album list and the map the switch ("Only mine") sits next to the
+    On the album list and the map the choice ("All albums | My albums", was "Only mine") sits next to the
     title instead of its own row. **To deploy** (quick release, one migration): push, cPanel Git
     deploy, **Backup + run migrations**.
+18. **Italian**: ✅ Done locally, 225 tests passing. English stays the default; *English | Italiano*
+    on the login pages and on Account → *Preferences*, saved on the account (the registration
+    page's choice becomes the new person's). Everything is translated (961 texts in
+    `lang/it.json`, plus `lang/it/` for form errors, login and password reset): pages, messages,
+    emails and phone notifications in each recipient's own language, dates and money the Italian
+    way. People's own writing (albums, comments, posts) stays as written. A test fails if a text
+    has no Italian. To add a text: write it in English with `t('...')` in the pages or `__('...')`
+    on the server, and its Italian in `lang/it.json`.
+19. **Account → Preferences**: theme, language, and "Album list and map: All albums | My albums"
+    (for who posted albums; without a choice: all albums). The default switch on the maintenance
+    page is gone.
+20. **Pinned post on the home page**: admins open a forum post → *Pin on the home page* (one at a
+    time, *Unpin from home* to remove it). Everyone who can see the post gets a slim "📌 title →"
+    link at the top of the home page, with ✕ to close it (until another post is pinned). Never
+    for the demo account. Perfect for the announcement.
+    **To deploy 17–20** (quick release, two migrations): push, cPanel Git deploy, then
+    `/admin/maintenance` → **Backup + run migrations**. Then post the announcement and pin it.
 15. **Announcement post** (done, written in the chat): write for Matteo an announcement of all these changes, to
     publish as a new post in the forum (what's new, in the site's tone: redesign, maps, likes,
     emails, QR codes, expenses, the app and notifications...).

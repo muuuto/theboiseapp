@@ -56,7 +56,7 @@ function onKeydown(event) {
             v-model="form.comment"
             rows="2"
             maxlength="5000"
-            :placeholder="placeholder"
+            :placeholder="t(placeholder)"
             class="block w-full resize-none border-0 bg-transparent px-1 focus:outline-none"
             @input="resize"
             @keydown="onKeydown"
@@ -69,7 +69,7 @@ function onKeydown(event) {
                 class="inline-flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-dark disabled:opacity-40"
                 :disabled="form.processing || !form.comment.trim()"
             >
-                <SendHorizontal class="size-4" /> Send
+                <SendHorizontal class="size-4" /> {{ t('Send') }}
             </button>
         </div>
     </form>

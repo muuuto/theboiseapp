@@ -58,7 +58,7 @@ class MaintenanceController extends Controller
                 'name' => basename($file),
                 'size' => round(filesize($file) / 1024),
             ], $backups),
-            'mailTemplates' => MailSamples::TEMPLATES,
+            'mailTemplates' => array_map(fn ($label) => __($label), MailSamples::TEMPLATES),
             'albumPosting' => $this->albumPosting(),
             'decorations' => $this->decorations(),
             'phpVersion' => PHP_VERSION,
@@ -117,7 +117,6 @@ class MaintenanceController extends Controller
 
         return [
             'enabled' => (bool) Settings::get(Settings::MEMBERS_CAN_POST_ALBUMS, false),
-            'onlyOwnDefault' => (bool) Settings::get(Settings::ONLY_OWN_ALBUMS_DEFAULT, false),
             'people' => User::where('is_demo', false)->orderBy('name')->get()->map(fn (User $user) => [
                 'id' => $user->id,
                 'name' => $user->name,
@@ -137,15 +136,6 @@ class MaintenanceController extends Controller
         AlbumEvent::record($data['enabled'] ? 'posting_on' : 'posting_off');
 
         return back()->with('message', $data['enabled'] ? 'Members can post albums (the ones you allow)' : 'Only admins can post albums');
-    }
-
-    // "Only albums I posted" for who hasn't chosen (who has keeps their choice)
-    public function onlyOwnDefault(Request $request)
-    {
-        $data = $request->validate(['on' => 'required|boolean']);
-        Settings::set(Settings::ONLY_OWN_ALBUMS_DEFAULT, (bool) $data['on']);
-
-        return back()->with('message', $data['on'] ? '"Only albums I posted" is on by default' : '"Only albums I posted" is off by default');
     }
 
     // Everyone (not admins, who always can, nor the demo account) allowed or not, in one click
@@ -225,10 +215,10 @@ class MaintenanceController extends Controller
         } catch (\Throwable $e) {
             Log::error('Test email failed', ['template' => $data['template'], 'error' => $e->getMessage()]);
 
-            return back()->withErrors(['template' => 'The email could not be sent: ' . $e->getMessage()]);
+            return back()->withErrors(['template' => __('The email could not be sent: :error', ['error' => $e->getMessage()])]);
         }
 
-        return back()->with('message', 'Test email "' . MailSamples::TEMPLATES[$data['template']] . '" sent to ' . $admin->email);
+        return back()->with('message', __('Test email ":name" sent to :email', ['name' => __(MailSamples::TEMPLATES[$data['template']]), 'email' => $admin->email]));
     }
 
     public function download(string $file)

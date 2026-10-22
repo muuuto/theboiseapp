@@ -1,15 +1,15 @@
 @extends('mails.layouts.base')
 
-@section('preheader', $name . ' joined theboise.it')
+@section('preheader', __(':name joined theboise.it', ['name' => $name]))
 
 @section('content')
-    <p style="font-size: 22px; font-weight: bold; margin: 0 0 12px;">Hello there admin 👋</p>
+    <p style="font-size: 22px; font-weight: bold; margin: 0 0 12px;">{{ __('Hello there admin 👋') }}</p>
 
-    <p>There is a new user: <strong>{{ $name }}</strong>, {{ $email }}.</p>
+    <p>{!! __('There is a new user: :name, :email.', ['name' => '<strong>' . e($name) . '</strong>', 'email' => e($email)]) !!}</p>
 
     @if ($note)
-        <p>Invite: {{ $note }}</p>
+        <p>{{ __('Invite: :note', ['note' => $note]) }}</p>
     @endif
 
-    <p style="margin-bottom: 0;"><strong>theboise.it team</strong></p>
+    <p style="margin-bottom: 0;"><strong>{{ __('theboise.it team') }}</strong></p>
 @endsection
