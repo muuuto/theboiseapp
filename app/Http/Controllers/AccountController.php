@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Schema;
 use App\Models\Slogan;
 use App\Models\User;
 use App\Support\AlbumCover;
@@ -100,5 +101,16 @@ class AccountController extends Controller
         ])]);
 
         return redirect('/account')->with('message', 'Wallet updated!');
+    }
+
+    // "Only albums I posted" on the album list and the map (before its migration it isn't offered)
+    public function albumFilter(Request $request)
+    {
+        $data = $request->validate(['on' => 'required|boolean']);
+        if (Schema::hasColumn('users', 'only_own_albums')) {
+            $request->user()->update(['only_own_albums' => $data['on']]);
+        }
+
+        return back();
     }
 }

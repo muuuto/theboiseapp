@@ -11,6 +11,10 @@ const props = defineProps({
     album: Object, // null when creating
     users: Array,
     knownTags: Array,
+    // Admins only: different link/description for someone (the others never see this section)
+    canPersonalize: Boolean,
+    // Not admins: the poster is always in their own album
+    alwaysIn: { type: Number, default: null },
 });
 
 const editing = computed(() => !!props.album);
@@ -26,7 +30,7 @@ const form = useForm({
     tags: props.album?.tags.filter((tag) => tag !== 'Youtube') ?? [],
     description: props.album?.description ?? '',
     videoLinks: props.album?.videoLinks.length ? [...props.album.videoLinks] : [],
-    people: props.album?.people ?? [],
+    people: props.album?.people ?? (props.alwaysIn ? [props.alwaysIn] : []),
     // Own photos link and/or description for some of the people (empty = the general one)
     personal: props.album?.personal.map((version) => ({ ...version })) ?? [],
     cover: null,
@@ -150,11 +154,12 @@ const labelClass = 'mb-1.5 block text-sm font-semibold';
 
             <section class="space-y-2">
                 <span :class="labelClass">People in the album</span>
+                <p v-if="alwaysIn" class="text-xs text-slate-500">You're always in the albums you post.</p>
                 <PeoplePicker v-model="form.people" :users="users" />
                 <p v-if="form.errors.people" class="text-sm text-red-600">{{ form.errors.people }}</p>
             </section>
 
-            <section class="space-y-3">
+            <section v-if="canPersonalize" class="space-y-3">
                 <div>
                     <span :class="labelClass">Different version for someone <span class="font-normal text-slate-500">(optional)</span></span>
                     <p class="text-xs text-slate-500">

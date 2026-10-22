@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
 use App\Models\Comment;
 use App\Models\ListingUser;
+use App\Models\AlbumEvent;
+use App\Support\AlbumHistory;
 use App\Support\AlbumCover;
 use App\Support\Media;
 use App\Support\SafeHtml;
@@ -25,8 +27,10 @@ class ListingController extends Controller
         $user = auth()->user();
         $filters = request()->only(['tag', 'search']);
 
+        $ownFilter = self::ownFilter($user);
         $albums = $user->listing()
             ->withPivot('seen')
+            ->when($ownFilter['on'], fn ($query) => $query->where('listings.user_id', $user->id))
             ->filter($filters)
             ->orderBy('dateFrom', 'desc')
             ->paginate(24)
@@ -54,6 +58,7 @@ class ListingController extends Controller
         return Inertia::render('Albums/Index', [
             'albums' => $albums,
             'slogan' => $slogan,
+            'ownFilter' => $ownFilter,
             'filters' => [
                 'search' => $filters['search'] ?? '',
                 'tag' => $filters['tag'] ?? '',
@@ -66,18 +71,17 @@ class ListingController extends Controller
     {
         $user = auth()->user();
 
+        // People in the album; admins can open any album to check it (read only, they're not added)
         $membership = $listing->listingUser()->where('user_id', $user->id)->first();
-        if (is_null($membership)) {
-            abort(403, 'Unauthorized Action');
-        }
+        abort_if(is_null($membership) && $user->isAdmin != 1, 403, 'Unauthorized Action');
 
-        if (! $membership->seen) {
+        if ($membership && ! $membership->seen) {
             ListingUser::where('user_id', $user->id)
                 ->where('listing_id', $listing->id)
                 ->update(['seen' => true]);
         }
 
-        $listing->load(['users', 'places', 'comments.user', 'comments.likes.user']);
+        $listing->load(['users', 'places', 'comments.user', 'comments.likes.user', 'user']);
 
         // Expense groups of this trip I'm in (the table doesn't exist until its migration runs)
         $expenseGroups = Schema::hasTable('expense_groups') && ! auth()->user()->is_demo
@@ -98,13 +102,14 @@ class ListingController extends Controller
                 'tags' => $this->tags($listing->tags),
                 // The viewer's own link/description when the admin set one, otherwise the general ones.
                 // Nothing tells them it's personal: everyone must think they see what everyone else sees
-                'description' => SafeHtml::clean($membership->custom_description ?: $listing->description),
-                'albumLink' => $membership->custom_album_link ?: $listing->albumLink,
+                'description' => SafeHtml::clean($membership?->custom_description ?: $listing->description),
+                'albumLink' => $membership?->custom_album_link ?: $listing->albumLink,
                 // Only for admins: how many people see a different version
                 'personalizedCount' => $user->isAdmin == 1 && ListingUser::hasPersonalVersions()
                     ? $listing->listingUser()->where(fn ($query) => $query->whereNotNull('custom_album_link')->orWhereNotNull('custom_description'))->count()
                     : 0,
                 'videoLinks' => $this->videoLinks($listing->videoLinks),
+                'postedBy' => $listing->user?->name,
                 'people' => $listing->users->map(fn (User $person) => [
                     'id' => $person->id,
                     'name' => $person->name,
@@ -120,16 +125,22 @@ class ListingController extends Controller
                 'likes' => $comment->likeSummary($user),
             ])->values(),
             'can' => [
-                'comment' => ! $user->is_demo,
-                'manage' => $user->isAdmin == 1,
+                'comment' => ! $user->is_demo && $membership,
+                'adminView' => is_null($membership),
+                'edit' => $user->canEditAlbum($listing),
+                'delete' => $user->isAdmin == 1,
             ],
+            // Admins: what happened to this album
+            'history' => $user->isAdmin == 1 && Schema::hasTable('album_events')
+                ? AlbumEvent::with('user')->where('listing_id', $listing->id)->latest('id')->limit(30)->get()->map(fn ($event) => AlbumHistory::describe($event))
+                : [],
         ]);
     }
 
     // Show Create Form
     public function create()
     {
-        abort_unless(auth()->user()->isAdmin == 1, 403, 'Unauthorized Action');
+        abort_unless(auth()->user()->canPostAlbums(), 403, 'Unauthorized Action');
 
         return Inertia::render('Albums/Form', $this->formProps(null));
     }
@@ -137,24 +148,30 @@ class ListingController extends Controller
     // Store Listing Data
     public function store(Request $request)
     {
-        abort_unless(auth()->user()->isAdmin == 1, 403, 'Unauthorized Action');
+        $poster = auth()->user();
+        abort_unless($poster->canPostAlbums(), 403, 'Unauthorized Action');
 
         $formFields = $this->validateAlbum($request);
-        $formFields['user_id'] = auth()->id();
+        $people = $this->people($request, $poster);
+        $formFields['user_id'] = $poster->id;
         $formFields['logo'] = $request->hasFile('cover') ? AlbumCover::store($request->file('cover')) : null;
 
         $listing = Listing::create($formFields);
-        $listing->users()->attach($request->people);
+        $listing->users()->attach($people);
         $this->savePlaces($listing, $request->input('places', []));
-        $this->savePersonalVersions($listing, $request->input('personal', []));
+        if ($poster->isAdmin == 1) {
+            $this->savePersonalVersions($listing, $request->input('personal', []));
+        }
+        AlbumEvent::record('created', $listing, ['people' => User::findMany($people)->pluck('name')->sort()->values()->all()]);
 
-        // send email to the people in the album
-        foreach (User::findMany($request->people) as $user) {
+        // Email the people in the album (not who posted it)
+        foreach (User::findMany($people)->where('id', '!=', $poster->id) as $user) {
             $email_data = array(
                 'name' => $user['name'],
                 'email' => $user['email'],
                 'albumTitle' => $listing->title,
                 'listing' => $listing,
+                'postedBy' => $poster->name,
             );
             Mail::send('/mails/new_album', $email_data, function ($message) use ($email_data) {
                 $message->to($email_data['email'], $email_data['name'])
@@ -163,23 +180,39 @@ class ListingController extends Controller
             });
         }
 
+        // Someone who isn't an admin posted it: the admins not in the album hear about it too
+        if ($poster->isAdmin != 1) {
+            $admins = User::where('isAdmin', 1)->where('is_demo', false)->whereNotIn('id', $people)->get();
+            foreach ($admins as $admin) {
+                Mail::send('/mails/album_posted', ['name' => $admin->name, 'postedBy' => $poster->name, 'listing' => $listing, 'peopleCount' => count($people)], function ($message) use ($admin, $listing, $poster) {
+                    $message->to($admin->email, $admin->name)
+                        ->subject($poster->name . ' posted the album ' . $listing->title . ' - theboise.it')
+                        ->from('info@theboise.it', 'TheBoise');
+                });
+            }
+        }
+
         return redirect('/listings/' . $listing->id)->with('message', 'Album created successfully!');
     }
 
     // Show Edit Form
     public function edit(Listing $listing)
     {
-        abort_unless(auth()->user()->isAdmin == 1, 403, 'Unauthorized Action');
+        abort_unless(auth()->user()->canEditAlbum($listing), 403, 'Unauthorized Action');
 
         return Inertia::render('Albums/Form', $this->formProps($listing));
     }
 
-    // Update Listing Data (admins, like the edit form)
+    // Update Listing Data (admins, and who posted it while they can still post)
     public function update(Request $request, Listing $listing)
     {
-        abort_unless(auth()->user()->isAdmin == 1, 403, 'Unauthorized Action');
+        $editor = auth()->user();
+        abort_unless($editor->canEditAlbum($listing), 403, 'Unauthorized Action');
 
         $formFields = $this->validateAlbum($request);
+        $people = $this->people($request, $editor, $listing);
+        $before = AlbumHistory::snapshot($listing);
+        $peopleBefore = $listing->users()->pluck('users.id');
 
         if ($request->hasFile('cover')) {
             if ($listing->logo) {
@@ -188,10 +221,20 @@ class ListingController extends Controller
             $formFields['logo'] = AlbumCover::store($request->file('cover'));
         }
 
-        $listing->users()->sync($request->people);
+        $listing->users()->sync($people);
         $listing->update($formFields);
         $this->savePlaces($listing, $request->input('places', []));
-        $this->savePersonalVersions($listing, $request->input('personal', []));
+        // Only admins set the personal versions: an edit by the poster keeps them as they are
+        if ($editor->isAdmin == 1) {
+            $this->savePersonalVersions($listing, $request->input('personal', []));
+        }
+
+        $changes = AlbumHistory::changes($before, AlbumHistory::snapshot($listing->fresh()));
+        $added = User::findMany(collect($people)->diff($peopleBefore))->pluck('name')->sort()->values()->all();
+        $removed = User::findMany($peopleBefore->diff($people))->pluck('name')->sort()->values()->all();
+        if ($changes || $added || $removed) {
+            AlbumEvent::record('updated', $listing, array_filter(['changes' => $changes, 'added' => $added, 'removed' => $removed]));
+        }
 
         return redirect('/listings/' . $listing->id)->with('message', 'Album updated successfully!');
     }
@@ -204,6 +247,7 @@ class ListingController extends Controller
         if ($listing->logo && Storage::disk('public')->exists($listing->logo)) {
             Storage::disk('public')->delete($listing->logo);
         }
+        AlbumEvent::record('deleted', $listing);
         $listing->delete();
 
         return redirect('/')->with('message', 'Album deleted');
@@ -259,6 +303,33 @@ class ListingController extends Controller
         return back()->with('message', 'Comment added!');
     }
 
+    // "Only albums I posted": offered to who posted at least one album (and saved on their account)
+    public static function ownFilter(User $user): array
+    {
+        $available = ! $user->is_demo && Listing::where('user_id', $user->id)->exists();
+
+        return ['available' => $available, 'on' => $available && (bool) $user->only_own_albums];
+    }
+
+    // Who's in the album: the poster always is (unless an admin), the demo account only by an admin
+    // (when the poster edits, the demo account stays if an admin had added it)
+    private function people(Request $request, User $editor, ?Listing $listing = null): array
+    {
+        $people = collect($request->input('people', []))->map(fn ($id) => (int) $id);
+        if ($editor->isAdmin == 1) {
+            return $people->unique()->values()->all();
+        }
+
+        $demo = User::where('is_demo', true)->pluck('id');
+        $people = $people->diff($demo);
+        if ($listing) {
+            $people = $people->merge($listing->users()->whereIn('users.id', $demo)->pluck('users.id'));
+        }
+        $owner = $listing ? $listing->user_id : $editor->id;
+
+        return $people->push($owner)->unique()->values()->all();
+    }
+
     private function validateAlbum(Request $request): array
     {
         $data = $request->validate([
@@ -305,7 +376,11 @@ class ListingController extends Controller
 
     private function formProps(?Listing $listing): array
     {
+        $isAdmin = auth()->user()->isAdmin == 1;
+
         return [
+            'canPersonalize' => $isAdmin,
+            'alwaysIn' => $isAdmin ? null : ($listing?->user_id ?? auth()->id()),
             'album' => $listing ? [
                 'id' => $listing->id,
                 'title' => $listing->title,
@@ -318,7 +393,8 @@ class ListingController extends Controller
                 'description' => SafeHtml::clean($listing->description),
                 'videoLinks' => $this->videoLinks($listing->videoLinks),
                 'people' => $listing->users()->pluck('users.id'),
-                'personal' => ! ListingUser::hasPersonalVersions() ? [] : $listing->listingUser()
+                // Admins only: anything given to the page reaches the browser, even if not shown
+                'personal' => ! $isAdmin || ! ListingUser::hasPersonalVersions() ? [] : $listing->listingUser()
                     ->where(fn ($query) => $query->whereNotNull('custom_album_link')->orWhereNotNull('custom_description'))
                     ->get()
                     ->map(fn ($row) => [
@@ -328,8 +404,8 @@ class ListingController extends Controller
                     ]),
                 'cover' => Media::url($listing->logo),
             ] : null,
-            // Everyone, the demo account too: adding it to an album is how recruiters get to see it
-            'users' => User::orderBy('name')->get()
+            // Everyone, the demo account too (for admins: adding it to an album is how recruiters get to see it)
+            'users' => User::orderBy('name')->when(! $isAdmin, fn ($query) => $query->where('is_demo', false))->get()
                 ->map(fn (User $user) => ['id' => $user->id, 'name' => $user->name, 'avatar' => Media::url($user->profilePicture), 'isDemo' => (bool) $user->is_demo]),
             // Every tag already used, most used first, to suggest them while typing
             'knownTags' => Listing::pluck('tags')

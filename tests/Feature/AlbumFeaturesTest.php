@@ -46,7 +46,8 @@ class AlbumFeaturesTest extends TestCase
                 ->where('comments.0.likes.liked', true)
                 ->where('comments.0.likes.names', ['Anna'])
                 ->where('can.comment', true)
-                ->where('can.manage', false));
+                ->where('can.edit', false)
+                ->where('can.delete', false));
     }
 
     public function test_only_people_in_the_album_can_comment(): void

@@ -2,9 +2,10 @@
 import { computed, ref } from 'vue';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import {
-    Brush, Check, CheckCircle2, Copy, Crop, Database, Download, Mail, MapPin, MapPinned, Play, UserPlus, XCircle,
+    Brush, Check, CheckCircle2, Copy, Crop, Database, Download, History, ImagePlus, Mail, MapPin, MapPinned, Play, UserPlus, XCircle,
 } from 'lucide-vue-next';
 import { fullDate } from '../../time.js';
+import AlbumHistory from '../../components/AlbumHistory.vue';
 
 const props = defineProps({
     invites: Array, // null until the invites migration runs
@@ -15,6 +16,7 @@ const props = defineProps({
     laravelVersion: String,
     checks: Object,
     mailTemplates: Object,
+    albumPosting: Object, // null until its migration runs
 });
 
 const page = usePage();
@@ -47,6 +49,19 @@ async function copyInvite() {
 const testEmail = useForm({ template: 'new_album' });
 function sendTestEmail() {
     testEmail.post('/admin/maintenance/test-email', { preserveScroll: true });
+}
+
+// Members posting albums
+function setPostingMode(enabled) {
+    const question = enabled
+        ? 'Let the people switched on below post albums?'
+        : 'Only admins will post albums. Members keep their albums but can no longer edit them. Continue?';
+    if (window.confirm(question)) {
+        router.post('/admin/maintenance/album-posting', { enabled }, { preserveScroll: true });
+    }
+}
+function setCanPost(person, canPost) {
+    router.put(`/admin/maintenance/album-posting/${person.id}`, { canPost }, { preserveScroll: true });
 }
 
 const cardClass = 'rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800';
@@ -176,6 +191,73 @@ const buttonClass = 'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-
                 </button>
             </form>
             <p v-if="testEmail.errors.template" class="text-sm text-red-600">{{ testEmail.errors.template }}</p>
+        </section>
+
+        <!-- Members posting albums -->
+        <section :class="cardClass" class="space-y-4 lg:col-span-2">
+            <div class="flex flex-wrap items-start gap-3">
+                <div class="min-w-60 flex-1">
+                    <h2 class="flex items-center gap-2 text-lg font-bold"><ImagePlus class="size-5 text-accent" /> Members posting albums</h2>
+                    <p class="mt-1 text-sm text-slate-500">
+                        When on, the people switched on below can post albums, tag anyone, and edit the albums they posted.
+                        Only admins delete albums and give someone a different link or description. Everything is in the history.
+                    </p>
+                </div>
+                <template v-if="albumPosting">
+                    <button
+                        type="button"
+                        role="switch"
+                        :aria-checked="albumPosting.enabled"
+                        class="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold ring-1 transition"
+                        :class="albumPosting.enabled ? 'bg-teal-50 text-teal-800 ring-teal-200 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-900' : 'ring-slate-200 dark:ring-slate-700'"
+                        @click="setPostingMode(!albumPosting.enabled)"
+                    >
+                        <span class="relative inline-flex h-5 w-9 shrink-0 rounded-full transition" :class="albumPosting.enabled ? 'bg-accent' : 'bg-slate-300 dark:bg-slate-600'">
+                            <span class="absolute top-0.5 size-4 rounded-full bg-white shadow transition-all" :class="albumPosting.enabled ? 'left-4.5' : 'left-0.5'" />
+                        </span>
+                        {{ albumPosting.enabled ? 'On' : 'Off: only admins post' }}
+                    </button>
+                </template>
+            </div>
+
+            <p v-if="!albumPosting" class="text-sm text-slate-500">Run the pending migrations to enable it.</p>
+            <div v-else class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <div>
+                    <h3 class="mb-2 text-sm font-semibold">Who can post</h3>
+                    <p v-if="!albumPosting.enabled" class="mb-2 rounded-xl bg-slate-100 px-3 py-2 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                        Switched off: these choices are kept and apply when you switch it on.
+                    </p>
+                    <ul class="max-h-96 divide-y divide-slate-100 overflow-y-auto pr-1 dark:divide-slate-800">
+                        <li v-for="person in albumPosting.people" :key="person.id" class="flex items-center gap-3 py-2">
+                            <img v-if="person.avatar" :src="person.avatar" alt="" class="size-8 shrink-0 rounded-full object-cover" />
+                            <span v-else class="flex size-8 shrink-0 items-center justify-center rounded-full bg-slate-200 text-xs font-bold dark:bg-slate-700">{{ person.name.charAt(0).toUpperCase() }}</span>
+                            <span class="min-w-0 flex-1">
+                                <span class="block truncate text-sm font-medium">{{ person.name }}</span>
+                                <span v-if="person.albumsPosted" class="text-xs text-slate-500">{{ person.albumsPosted }} {{ person.albumsPosted === 1 ? 'album' : 'albums' }} posted</span>
+                            </span>
+                            <span v-if="person.isAdmin" class="shrink-0 text-xs text-slate-500">admin, always</span>
+                            <button
+                                v-else
+                                type="button"
+                                role="switch"
+                                :aria-checked="person.canPost"
+                                :aria-label="`${person.name} can post albums`"
+                                class="relative inline-flex h-6 w-11 shrink-0 rounded-full transition"
+                                :class="person.canPost ? (albumPosting.enabled ? 'bg-accent' : 'bg-teal-300 dark:bg-teal-800') : 'bg-slate-300 dark:bg-slate-600'"
+                                @click="setCanPost(person, !person.canPost)"
+                            >
+                                <span class="absolute top-0.5 size-5 rounded-full bg-white shadow transition-all" :class="person.canPost ? 'left-5.5' : 'left-0.5'" />
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="mb-2 flex items-center gap-1.5 text-sm font-semibold"><History class="size-4" /> Album history</h3>
+                    <div class="max-h-96 overflow-y-auto pr-1">
+                        <AlbumHistory :events="albumPosting.history" show-links />
+                    </div>
+                </div>
+            </div>
         </section>
 
         <!-- One-time album jobs -->

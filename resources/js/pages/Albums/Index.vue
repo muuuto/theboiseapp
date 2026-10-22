@@ -4,12 +4,14 @@ import { Head, router, usePage } from '@inertiajs/vue3';
 import { Plus, Quote, Search, X } from 'lucide-vue-next';
 import AlbumCard from '../../components/AlbumCard.vue';
 import Pagination from '../../components/Pagination.vue';
+import OwnAlbumsToggle from '../../components/OwnAlbumsToggle.vue';
 import { heroPatterns, randomHeroPattern } from '../../heroPatterns.js';
 
 const props = defineProps({
     albums: Object,
     slogan: Object,
     filters: Object,
+    ownFilter: { type: Object, default: () => ({ available: false, on: false }) },
 });
 
 const user = computed(() => usePage().props.auth.user);
@@ -75,6 +77,7 @@ function resetFilters() {
                 {{ albums.total }} {{ albums.total === 1 ? 'album' : 'albums' }}
                 <template v-if="filters.tag"> tagged <strong>{{ filters.tag }}</strong></template>
                 <template v-if="filters.search"> matching <strong>"{{ filters.search }}"</strong></template>
+                <template v-if="ownFilter.on"> posted by you</template>
             </p>
         </div>
 
@@ -88,7 +91,7 @@ function resetFilters() {
                 <Quote class="size-4" /> Post slogan
             </a>
             <a
-                v-if="user.isAdmin"
+                v-if="user.canPostAlbums"
                 href="/listings/create"
                 class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-brand px-4 py-2.5 sm:flex-none sm:py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark"
             >
@@ -109,6 +112,10 @@ function resetFilters() {
             Search
         </button>
     </form>
+
+    <div v-if="ownFilter.available" class="mt-3">
+        <OwnAlbumsToggle :on="ownFilter.on" />
+    </div>
 
     <div v-if="hasFilters" class="mt-3">
         <button class="inline-flex items-center gap-1 rounded-full bg-slate-200 px-3 py-1 text-sm font-medium hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700" @click="resetFilters">

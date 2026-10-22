@@ -38,6 +38,10 @@ const navigation = computed(() => {
         items.push({ label: 'Forum', href: '/forum', icon: MessagesSquare, inertia: true });
         items.push({ label: 'Expenses', href: '/expenses', icon: Wallet, inertia: true });
     }
+    // Admins have it in their section
+    if (user.value?.canPostAlbums && !user.value?.isAdmin) {
+        items.push({ label: 'Post album', href: '/listings/create', icon: PlusCircle, inertia: true });
+    }
     items.push({ label: 'Account', href: '/account', icon: User, inertia: true });
     return items;
 });

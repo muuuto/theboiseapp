@@ -14,5 +14,8 @@ abstract class TestCase extends BaseTestCase
 
         // Pages must render without the built frontend (public/build)
         $this->withoutVite();
+
+        // Site switches are kept in memory for the request: each test starts from the database
+        \App\Support\Settings::forget();
     }
 }

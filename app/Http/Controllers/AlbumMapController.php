@@ -12,9 +12,14 @@ class AlbumMapController extends Controller
     // The places of the user's albums on one map (an album in two places has two pins)
     public function index()
     {
-        $albums = auth()->user()->listing()->with('places')->get();
+        $user = auth()->user();
+        $ownFilter = ListingController::ownFilter($user);
+        $albums = $user->listing()->with('places')
+            ->when($ownFilter['on'], fn ($query) => $query->where('listings.user_id', $user->id))
+            ->get();
 
         return Inertia::render('Albums/Map', [
+            'ownFilter' => $ownFilter,
             'places' => $albums->flatMap(fn (Listing $listing) => $listing->places->map(fn ($place) => $this->marker($listing, $place)))->values(),
             'withoutPlaces' => $albums->filter(fn (Listing $listing) => $listing->places->isEmpty())->count(),
         ]);

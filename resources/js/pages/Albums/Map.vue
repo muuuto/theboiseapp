@@ -3,11 +3,13 @@ import { computed } from 'vue';
 import { Head, usePage } from '@inertiajs/vue3';
 import { Info } from 'lucide-vue-next';
 import LeafletMap from '../../components/LeafletMap.vue';
+import OwnAlbumsToggle from '../../components/OwnAlbumsToggle.vue';
 
 // places: one pin per place (an album in two places has two pins)
 const props = defineProps({
     places: Array,
     withoutPlaces: Number,
+    ownFilter: { type: Object, default: () => ({ available: false, on: false }) },
 });
 
 const isAdmin = computed(() => usePage().props.auth.user.isAdmin);
@@ -26,7 +28,8 @@ const suggestedCount = computed(() => props.places.filter((place) => place.sugge
                 <template v-if="withoutPlaces"> · {{ withoutPlaces }} without a place yet</template>
             </p>
         </div>
-        <a v-if="isAdmin && suggestedCount" href="/admin/locations" class="ml-auto inline-flex items-center gap-1.5 rounded-xl bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-200 dark:bg-amber-950 dark:text-amber-300">
+        <OwnAlbumsToggle v-if="ownFilter.available" :on="ownFilter.on" class="sm:ml-auto" />
+        <a v-if="isAdmin && suggestedCount" href="/admin/locations" :class="!ownFilter.available && 'ml-auto'" class="inline-flex items-center gap-1.5 rounded-xl bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-200 dark:bg-amber-950 dark:text-amber-300">
             <Info class="size-4" /> {{ suggestedCount }} guessed locations to review
         </a>
     </div>

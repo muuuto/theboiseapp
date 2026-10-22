@@ -9,6 +9,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Comment;
+use App\Support\Settings;
 use App\Models\Category;
 
 class User extends Authenticatable
@@ -52,6 +53,24 @@ class User extends Authenticatable
     public function listing(): BelongsToMany
     {
         return $this->belongsToMany(Listing::class, 'listing_user');
+    }
+
+    // Admins always; the others only while the admins allow it (the site switch and their own
+    // switch on the maintenance page); never the demo account
+    public function canPostAlbums(): bool
+    {
+        if ($this->is_demo) {
+            return false;
+        }
+
+        return $this->isAdmin == 1
+            || ($this->can_post_albums && Settings::get(Settings::MEMBERS_CAN_POST_ALBUMS, false));
+    }
+
+    // Admins every album; the others the albums they posted, while they can still post
+    public function canEditAlbum(Listing $listing): bool
+    {
+        return $this->isAdmin == 1 || ($listing->user_id == $this->id && $this->canPostAlbums());
     }
 
     // Shared expenses groups the user is in

@@ -5,7 +5,7 @@
 @section('content')
     <p style="font-size: 22px; font-weight: bold; margin: 0 0 12px;">Hello there {{ $name }} 👋</p>
 
-    <p>A new album is available inside THEBOISE. Have a look and leave a comment!</p>
+    <p>{{ isset($postedBy) ? $postedBy . ' posted' : 'There is' }} a new album inside THEBOISE. Have a look and leave a comment!</p>
 
     @include('mails.partials.album', ['listing' => $listing, 'note' => 'New album', 'label' => 'Visit the album'])
 

@@ -222,35 +222,26 @@ Steps (one release each):
    - **email notifications**: when someone adds an expense that includes you (who paid, total,
      your share) and when someone records a payment to you. In the new email design
    - no receipt photos (not wanted for now)
-8. **Other people can post albums** (wanted, to design together before building). Until now only
-   admins post albums (all 194 albums locally have `user_id` = 1, so "who posted it" is already
-   known for every album, nothing to fill in).
-   - **Permission per person, toggled by admins**: a "Can post albums" switch for each user (new
-     page or section in `/admin/maintenance`, e.g. *People*). Off for everyone by default; admins
-     always can; the demo account never can.
-   - **Traced**: every album keeps who posted it (`listings.user_id`), plus a history of what
-     happens to albums: created, edited (which fields), people added/removed, deleted, permission
-     given/removed, with who and when. Admins see it (per album and as a list). Deleting an album
-     by a non-admin should be recoverable (soft delete, admins can restore).
-   - **What a poster can do**: create albums, tag anyone (admin included), edit and delete only the
-     albums they posted; admins can still edit/delete every album. The poster is always in their
-     own album. The tagged people get the "New album" email as today ("Zecca posted a new album").
-   - **Album list toggle** "Only albums I posted": on → the list hides the albums posted by
-     others where you're tagged; off → every album you're in, whoever posted it (like today).
-     The choice is remembered (saved on the account, like the theme), shown only to people who
-     have posted at least one album.
-   - Questions to decide:
-     - [ ] Can posters also set the per-person versions (different link/description for someone),
-           or only admins? (they'd then know about that feature)
-     - [ ] When the permission is removed: can they still edit/delete the albums they already
-           posted, or only admins from then on?
-     - [ ] Does the toggle also apply to the map, the "On this day" memories in the bell and the
-           anniversary/reminder emails, or only the album list?
-     - [ ] Can someone tagged in an album remove themselves from it ("not my album")? Should the
-           poster/admin be told?
-     - [ ] Should albums by non-admins need an admin's approval before the tagged people see them,
-           or are they visible right away (with the history to check afterwards)?
-     - [ ] Show "Posted by Zecca" on the album page to everyone, or only to admins?
+8. **Other people can post albums**: ✅ Done locally, 183 tests passing. **Off until you switch it
+   on**: `/admin/maintenance` → *Members posting albums* → the site switch, plus a switch for each
+   person (kept even while the site switch is off).
+   - Allowed people get "Post album" in the menu, tag anyone (not the demo account), and edit the
+     albums they posted. They're always in their own albums. Only admins delete albums and set the
+     per-person versions (posters never see that section, and an edit by them keeps the versions).
+   - Without the permission (or with the site switch off) they can't edit their albums any more;
+     the albums stay.
+   - "Posted by Zecca" on every album page. New album emails say who posted it (the poster gets
+     none); admins not in the album get a heads-up email. Admins can open any album (read only,
+     "Admin view", no comments) to check it.
+   - **History** (admins only): created, edited (each field before → after), people added/removed,
+     deleted, permission given/removed, site switch on/off. On the album page and on the
+     maintenance page.
+   - **"Only albums I posted"** toggle on the album list and the map, remembered on the account,
+     shown to whoever posted at least one album. Memories and reminder emails still include everything.
+   **To deploy** (quick release, one migration):
+   - [ ] Push, cPanel Git deploy, then `/admin/maintenance` → **Backup + run migrations**
+     (before it, everything works as today; rehearsed locally)
+   - [ ] When you decide: switch it on and allow one person to try it
 9. **QR codes and forum order**: ✅ Done locally, 152 tests passing.
    - **QR code** button on every album and forum post (everyone): the code has the logo in the
      middle and the title under it, to download, share (phones) or copy the link. Scanning opens

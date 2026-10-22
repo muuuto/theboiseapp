@@ -15,6 +15,7 @@ class MailSamples
 {
     public const TEMPLATES = [
         'new_album' => 'New album',
+        'album_posted' => 'Album posted by a member (to the admins)',
         'new_comment' => 'New comment on an album',
         'anniversary_reminder' => 'On this day (memories)',
         'listing_reminder' => 'Albums not opened yet',
@@ -50,7 +51,8 @@ class MailSamples
         }
 
         [$subject, $data] = match ($template) {
-            'new_album' => ['New album ' . $album->title . ' added to theboise.it', ['name' => $user->name, 'albumTitle' => $album->title, 'listing' => $album]],
+            'new_album' => ['New album ' . $album->title . ' added to theboise.it', ['name' => $user->name, 'albumTitle' => $album->title, 'listing' => $album, 'postedBy' => 'Zecca']],
+            'album_posted' => ['Zecca posted the album ' . $album->title . ' - theboise.it', ['name' => $user->name, 'postedBy' => 'Zecca', 'listing' => $album, 'peopleCount' => 6]],
             'new_comment' => ['New comment added to album ' . $album->title . ' inside theboise.it', ['name' => $user->name, 'commentOfUser' => 'Zecca', 'comment' => $comment, 'albumTitle' => $album->title, 'albumLink' => url('/listings/' . $album->id)]],
             'new_comment_post' => ['New comment added to post Pizza night - theboise.it', ['name' => $user->name, 'commentOfUser' => 'Zecca', 'comment' => "I'm in!\nBringing the beer", 'postTitle' => 'Pizza night', 'postLink' => url('/forum')]],
             'notify_post' => ['Check out this new post inside forum: Pizza night - theboise.it', ['name' => $user->name, 'postTitle' => 'Pizza night', 'postLink' => url('/forum')]],

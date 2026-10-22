@@ -3,6 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Invite;
+use App\Models\AlbumEvent;
+use App\Models\Listing;
+use App\Models\User;
+use App\Support\AlbumHistory;
+use App\Support\Settings;
+use App\Support\Media;
 use App\Support\MailSamples;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -52,6 +58,7 @@ class MaintenanceController extends Controller
                 'size' => round(filesize($file) / 1024),
             ], $backups),
             'mailTemplates' => MailSamples::TEMPLATES,
+            'albumPosting' => $this->albumPosting(),
             'phpVersion' => PHP_VERSION,
             'phpBinary' => PHP_BINARY,
             'laravelVersion' => app()->version(),
@@ -93,6 +100,52 @@ class MaintenanceController extends Controller
         Log::info('Maintenance action "' . $action . '" run by ' . auth()->user()->name, ['output' => $output]);
 
         return redirect('/admin/maintenance')->with('output', $output);
+    }
+
+    // Members posting albums: the site switch, who's allowed, and the album history.
+    // null until its migration runs
+    private function albumPosting(): ?array
+    {
+        if (! Schema::hasTable('album_events') || ! Schema::hasColumn('users', 'can_post_albums')) {
+            return null;
+        }
+
+        $posted = Listing::selectRaw('user_id, count(*) as total')->groupBy('user_id')->pluck('total', 'user_id');
+
+        return [
+            'enabled' => (bool) Settings::get(Settings::MEMBERS_CAN_POST_ALBUMS, false),
+            'people' => User::where('is_demo', false)->orderBy('name')->get()->map(fn (User $user) => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'avatar' => Media::url($user->profilePicture),
+                'isAdmin' => $user->isAdmin == 1,
+                'canPost' => (bool) $user->can_post_albums,
+                'albumsPosted' => $posted[$user->id] ?? 0,
+            ]),
+            'history' => AlbumEvent::with('user')->latest('id')->limit(40)->get()->map(fn ($event) => AlbumHistory::describe($event)),
+        ];
+    }
+
+    public function albumPostingMode(Request $request)
+    {
+        $data = $request->validate(['enabled' => 'required|boolean']);
+        Settings::set(Settings::MEMBERS_CAN_POST_ALBUMS, (bool) $data['enabled']);
+        AlbumEvent::record($data['enabled'] ? 'posting_on' : 'posting_off');
+
+        return back()->with('message', $data['enabled'] ? 'Members can post albums (the ones you allow)' : 'Only admins can post albums');
+    }
+
+    public function albumPostingPermission(Request $request, User $user)
+    {
+        $data = $request->validate(['canPost' => 'required|boolean']);
+        abort_if($user->is_demo, 422, 'The demo account never posts albums');
+
+        if ((bool) $user->can_post_albums !== (bool) $data['canPost']) {
+            $user->update(['can_post_albums' => $data['canPost']]);
+            AlbumEvent::record($data['canPost'] ? 'permission_granted' : 'permission_revoked', null, ['user' => $user->name]);
+        }
+
+        return back();
     }
 
     // Sends one email with sample data to the admin, to see how it looks

@@ -75,6 +75,9 @@ Route::get('/login', [UserController::class, 'login'])->name('login')->middlewar
 // Demo account for recruiters: secret link in the CV, read-only (see DEMO_LOGIN_SECRET)
 Route::get('/demo/{secret}', [UserController::class, 'demo'])->middleware(['guest', 'throttle:10,1']);
 
+// "Only albums I posted" on the album list and the map
+Route::put('/account/album-filter', [AccountController::class, 'albumFilter'])->middleware(['auth', 'not-demo']);
+
 // Theme: light, dark or follow the device
 Route::put('/account/theme', [UserController::class, 'theme'])->middleware(['auth', 'not-demo']);
 
@@ -239,6 +242,8 @@ Route::middleware(['auth', 'not-demo'])->prefix('expenses')->scopeBindings()->gr
 Route::middleware(['auth', 'can:admin'])->prefix('admin/maintenance')->group(function () {
     Route::get('/', [MaintenanceController::class, 'index']);
     Route::post('/test-email', [MaintenanceController::class, 'testEmail']);
+    Route::post('/album-posting', [MaintenanceController::class, 'albumPostingMode']);
+    Route::put('/album-posting/{user}', [MaintenanceController::class, 'albumPostingPermission']);
     Route::post('/{action}', [MaintenanceController::class, 'run']);
     Route::get('/backups/{file}', [MaintenanceController::class, 'download']);
 });

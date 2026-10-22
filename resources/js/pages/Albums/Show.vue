@@ -2,19 +2,21 @@
 import { computed, nextTick, onMounted, ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import {
-    ArrowLeft, CalendarDays, Check, Copy, ExternalLink, MapPin, Pencil, PlayCircle, Trash2, UserCog, Users, Wallet,
+    ArrowLeft, CalendarDays, Check, Copy, ExternalLink, History, MapPin, Pencil, PlayCircle, ShieldCheck, Trash2, UserCog, Users, Wallet,
 } from 'lucide-vue-next';
 import LeafletMap from '../../components/LeafletMap.vue';
 import CommentBox from '../../components/CommentBox.vue';
 import { ago, fullDate } from '../../time.js';
 import LikeButton from '../../components/LikeButton.vue';
 import QrCodeButton from '../../components/QrCodeButton.vue';
+import AlbumHistory from '../../components/AlbumHistory.vue';
 
 const props = defineProps({
     album: Object,
     comments: Array,
     can: Object,
     expenseGroups: { type: Array, default: () => [] },
+    history: { type: Array, default: () => [] }, // admins only
 });
 
 const longDate = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
@@ -82,14 +84,14 @@ onMounted(() => {
         <div class="ml-auto flex flex-wrap gap-2">
             <QrCodeButton :path="`/listings/${album.id}`" :title="album.title" />
             <Link
-                v-if="can.manage"
+                v-if="can.edit"
                 :href="`/listings/${album.id}/edit`"
                 class="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-sm font-semibold shadow-sm ring-1 ring-slate-200 hover:ring-slate-300 dark:bg-slate-800 dark:ring-slate-700"
             >
                 <Pencil class="size-4" /> Edit
             </Link>
             <button
-                v-if="can.manage"
+                v-if="can.delete"
                 class="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-slate-200 hover:bg-red-50 dark:bg-slate-800 dark:ring-slate-700 dark:hover:bg-red-950/40"
                 @click="destroy"
             >
@@ -108,6 +110,7 @@ onMounted(() => {
 
             <div>
                 <h1 class="text-3xl font-extrabold tracking-tight sm:text-4xl">{{ album.title }}</h1>
+                <p v-if="album.postedBy" class="mt-1 text-sm text-slate-500">Posted by {{ album.postedBy }}</p>
                 <ul class="mt-3 flex flex-wrap gap-1.5">
                     <li v-for="tag in album.tags" :key="tag">
                         <Link
@@ -124,6 +127,10 @@ onMounted(() => {
             </div>
 
             <!-- Admins only (the count is 0 for everyone else): people never know their version is different -->
+            <p v-if="can.adminView" class="flex items-center gap-2 rounded-2xl bg-sky-50 px-3 py-2 text-sm text-sky-800 dark:bg-sky-950/40 dark:text-sky-300">
+                <ShieldCheck class="size-4 shrink-0" /> Admin view: you're not in this album, so you can look but not comment.
+            </p>
+
             <p v-if="album.personalizedCount" class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300">
                 <UserCog class="size-3.5" />
                 Admin: {{ album.personalizedCount }} {{ album.personalizedCount === 1 ? 'person sees' : 'people see' }} a different link or description
@@ -210,6 +217,14 @@ onMounted(() => {
                     </li>
                 </ul>
             </div>
+
+            <!-- Admins only (the list is empty for everyone else) -->
+            <details v-if="history.length" class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
+                <summary class="flex cursor-pointer items-center gap-2 font-bold">
+                    <History class="size-5 text-accent" /> History <span class="text-sm font-medium text-slate-500">admins only</span>
+                </summary>
+                <div class="mt-3"><AlbumHistory :events="history" /></div>
+            </details>
         </aside>
 
         <!-- Comments -->
