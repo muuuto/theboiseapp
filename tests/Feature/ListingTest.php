@@ -78,6 +78,7 @@ class ListingTest extends TestCase
             'tags' => ['summer'],
             'description' => 'Holidays',
             'people' => $friends->pluck('id')->all(),
+            'cover' => $this->fakeCover(),
         ]);
 
         $listing = Listing::where('title', 'Summer 2026')->firstOrFail();

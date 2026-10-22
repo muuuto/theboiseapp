@@ -28,6 +28,8 @@ class ListingFactory extends Factory
             'location' => $this->faker->city(),
             'albumLink' => $this->faker->url(),
             'description' => $this->faker->paragraph(),
+            // Every album has a preview (the file itself isn't needed in tests)
+            'logo' => 'logos/sample.webp',
         ];
     }
 }

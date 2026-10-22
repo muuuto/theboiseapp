@@ -17,6 +17,15 @@ abstract class TestCase extends BaseTestCase
 
         // Site switches are kept in memory for the request: each test starts from the database
         \App\Support\Settings::forget();
+
+        // Uploaded photos never land in the real storage folder
+        \Illuminate\Support\Facades\Storage::fake('public');
+    }
+
+    // A small photo to upload, e.g. an album's cover (required)
+    protected function fakeCover(): \Illuminate\Http\UploadedFile
+    {
+        return \Illuminate\Http\UploadedFile::fake()->image('cover.jpg', 400, 300);
     }
 
     // In an album from two months ago: "active", so the automatic notifications reach them

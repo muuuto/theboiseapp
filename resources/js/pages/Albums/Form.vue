@@ -230,7 +230,7 @@ const labelClass = 'mb-1.5 block text-sm font-semibold';
         <!-- Right column: cover and location -->
         <div class="space-y-6">
             <section class="space-y-3 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
-                <span :class="labelClass">{{ t('Cover photo') }}</span>
+                <span :class="labelClass">{{ t('Cover photo') }}<RequiredMark v-if="!album?.cover" /></span>
                 <label class="block cursor-pointer overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200 transition hover:ring-accent dark:bg-slate-800 dark:ring-slate-700">
                     <img v-if="coverPreview" :src="coverPreview" alt="" class="max-h-72 w-full object-contain" />
                     <span v-else class="flex h-40 flex-col items-center justify-center gap-2 text-sm text-slate-500">

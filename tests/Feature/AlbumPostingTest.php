@@ -269,6 +269,7 @@ class AlbumPostingTest extends TestCase
             'tags' => ['beach'],
             'description' => '<p>Holidays</p>',
             'people' => $people,
+            'cover' => $this->fakeCover(),
         ], $overrides);
     }
 

@@ -241,7 +241,7 @@ class ListingController extends Controller
         $editor = auth()->user();
         abort_unless($editor->canEditAlbum($listing), 403, 'Unauthorized Action');
 
-        $formFields = $this->validateAlbum($request);
+        $formFields = $this->validateAlbum($request, $listing);
         $people = $this->people($request, $editor, $listing);
         $before = AlbumHistory::snapshot($listing);
         $peopleBefore = $listing->users()->pluck('users.id');
@@ -428,7 +428,7 @@ class ListingController extends Controller
         return $people->push($owner)->unique()->values()->all();
     }
 
-    private function validateAlbum(Request $request): array
+    private function validateAlbum(Request $request, ?Listing $listing = null): array
     {
         $data = $request->validate([
             'title' => 'required|string|max:255',
@@ -451,7 +451,8 @@ class ListingController extends Controller
             'personal.*.userId' => ['required', 'integer', 'distinct', Rule::in($request->input('people', []))],
             'personal.*.albumLink' => 'nullable|url|max:255',
             'personal.*.description' => 'nullable|string',
-            'cover' => 'nullable|image|max:20480',
+            // Every album has a preview: required when creating, and when editing one that has none
+            'cover' => [$listing?->logo ? 'nullable' : 'required', 'image', 'max:20480'],
         ]);
 
         $tags = collect($data['tags'])->map(fn ($tag) => trim(str_replace(',', ' ', $tag)))->filter();

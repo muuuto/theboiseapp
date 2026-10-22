@@ -125,7 +125,7 @@ class PushNotificationsTest extends TestCase
 
         $this->actingAs($admin)->post('/listings', [
             'title' => 'Sicilia 2026', 'dateFrom' => '2026-08-01', 'dateTo' => '2026-08-08', 'location' => 'Palermo',
-            'albumLink' => 'https://www.amazon.it/photos/share/abc', 'tags' => ['beach'], 'description' => '<p>x</p>',
+            'albumLink' => 'https://www.amazon.it/photos/share/abc', 'tags' => ['beach'], 'description' => '<p>x</p>', 'cover' => $this->fakeCover(),
             'people' => [$admin->id, $anna->id, $quiet->id, $phoneOnly->id],
         ])->assertSessionHasNoErrors();
 

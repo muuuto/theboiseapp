@@ -300,6 +300,24 @@ class AlbumFeaturesTest extends TestCase
             ->assertSessionHas('output', fn ($output) => str_contains($output, 'album previews'));
     }
 
+    public function test_every_album_needs_a_cover(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        // New album: required
+        $this->actingAs($admin)->post('/listings', $this->albumFields(['people' => [$admin->id], 'cover' => null]))->assertSessionHasErrors('cover');
+        $this->assertSame(0, Listing::count());
+
+        // Editing one that has a cover: no need to upload it again
+        $album = Listing::factory()->create();
+        $album->users()->attach($admin);
+        $this->actingAs($admin)->put("/listings/{$album->id}", $this->albumFields(['people' => [$admin->id], 'cover' => null]))->assertSessionHasNoErrors();
+
+        // Editing one without: required
+        $bare = Listing::factory()->create(['logo' => null]);
+        $this->actingAs($admin)->put("/listings/{$bare->id}", $this->albumFields(['people' => [$admin->id], 'cover' => null]))->assertSessionHasErrors('cover');
+    }
+
     private function albumFields(array $overrides = []): array
     {
         return array_merge([
@@ -310,6 +328,7 @@ class AlbumFeaturesTest extends TestCase
             'albumLink' => 'https://www.amazon.com/photos/shared/abc',
             'tags' => ['beach'],
             'description' => '<p>Holidays</p>',
+            'cover' => $this->fakeCover(),
         ], $overrides);
     }
 }
