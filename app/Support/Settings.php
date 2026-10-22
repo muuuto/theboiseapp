@@ -11,6 +11,9 @@ class Settings
 {
     public const MEMBERS_CAN_POST_ALBUMS = 'members_can_post_albums';
 
+    // "Only albums I posted" for who hasn't chosen
+    public const ONLY_OWN_ALBUMS_DEFAULT = 'only_own_albums_default';
+
     private static ?array $cache = null;
 
     public static function get(string $key, mixed $default = null): mixed

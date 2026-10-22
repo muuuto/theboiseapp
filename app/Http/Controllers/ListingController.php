@@ -379,12 +379,14 @@ class ListingController extends Controller
         return $year && $user->listing()->whereYear('dateFrom', $year)->exists() ? $year : null;
     }
 
-    // "Only albums I posted": offered to who posted at least one album (and saved on their account)
+    // "Only albums I posted": offered to who posted at least one album. Their choice is saved on the
+    // account; without one, the default set on the maintenance page
     public static function ownFilter(User $user): array
     {
         $available = ! $user->is_demo && Listing::where('user_id', $user->id)->exists();
+        $on = $user->only_own_albums ?? \App\Support\Settings::get(\App\Support\Settings::ONLY_OWN_ALBUMS_DEFAULT, false);
 
-        return ['available' => $available, 'on' => $available && (bool) $user->only_own_albums];
+        return ['available' => $available, 'on' => $available && (bool) $on];
     }
 
     // Who's in the album: the poster always is (unless an admin), the demo account only by an admin

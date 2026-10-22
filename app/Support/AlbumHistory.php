@@ -70,6 +70,8 @@ class AlbumHistory
             'deleted' => "{$who} deleted {$album}",
             'permission_granted' => "{$who} allowed " . ($details['user'] ?? 'someone') . ' to post albums',
             'permission_revoked' => "{$who} stopped " . ($details['user'] ?? 'someone') . ' from posting albums',
+            'permission_everyone' => "{$who} allowed everyone to post albums",
+            'permission_no_one' => "{$who} stopped everyone (but admins) from posting albums",
             'posting_on' => "{$who} switched on album posting for members",
             'posting_off' => "{$who} switched off album posting for members",
             default => "{$who}: {$event->action}",

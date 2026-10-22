@@ -309,6 +309,12 @@ Steps (one release each):
     and weeks before, Preview links. No motion for who asked their device for less.
     **To deploy** (quick release, no migration): push, cPanel Git deploy, **Clear caches**.
     Halloween is already within its 2 weeks: it shows right away.
+17. **"Only mine" default and position**: ✅ Done locally. `/admin/maintenance` → *Members posting
+    albums* → "Only albums I posted on by default" (for who hasn't chosen; who flips the switch
+    keeps their choice), and **Allow everyone** / **No one** buttons above the list of people.
+    On the album list and the map the switch ("Only mine") sits next to the
+    title instead of its own row. **To deploy** (quick release, one migration): push, cPanel Git
+    deploy, **Backup + run migrations**.
 15. **Announcement post** (done, written in the chat): write for Matteo an announcement of all these changes, to
     publish as a new post in the forum (what's new, in the site's tone: redesign, maps, likes,
     emails, QR codes, expenses, the app and notifications...).

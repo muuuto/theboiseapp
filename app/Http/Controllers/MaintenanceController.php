@@ -117,6 +117,7 @@ class MaintenanceController extends Controller
 
         return [
             'enabled' => (bool) Settings::get(Settings::MEMBERS_CAN_POST_ALBUMS, false),
+            'onlyOwnDefault' => (bool) Settings::get(Settings::ONLY_OWN_ALBUMS_DEFAULT, false),
             'people' => User::where('is_demo', false)->orderBy('name')->get()->map(fn (User $user) => [
                 'id' => $user->id,
                 'name' => $user->name,
@@ -136,6 +137,29 @@ class MaintenanceController extends Controller
         AlbumEvent::record($data['enabled'] ? 'posting_on' : 'posting_off');
 
         return back()->with('message', $data['enabled'] ? 'Members can post albums (the ones you allow)' : 'Only admins can post albums');
+    }
+
+    // "Only albums I posted" for who hasn't chosen (who has keeps their choice)
+    public function onlyOwnDefault(Request $request)
+    {
+        $data = $request->validate(['on' => 'required|boolean']);
+        Settings::set(Settings::ONLY_OWN_ALBUMS_DEFAULT, (bool) $data['on']);
+
+        return back()->with('message', $data['on'] ? '"Only albums I posted" is on by default' : '"Only albums I posted" is off by default');
+    }
+
+    // Everyone (not admins, who always can, nor the demo account) allowed or not, in one click
+    public function albumPostingEveryone(Request $request)
+    {
+        $data = $request->validate(['canPost' => 'required|boolean']);
+        // isAdmin is often empty (not 0) for non-admins: "!= 1" alone would skip them
+        $changed = User::where('is_demo', false)
+            ->where(fn ($query) => $query->where('isAdmin', '!=', 1)->orWhereNull('isAdmin'))
+            ->where(fn ($query) => $query->where('can_post_albums', ! $data['canPost'])->orWhereNull('can_post_albums'))
+            ->update(['can_post_albums' => $data['canPost']]);
+        AlbumEvent::record($data['canPost'] ? 'permission_everyone' : 'permission_no_one', null, ['count' => $changed]);
+
+        return back()->with('message', $data['canPost'] ? 'Everyone can post albums' : 'Only admins can post albums');
     }
 
     public function albumPostingPermission(Request $request, User $user)

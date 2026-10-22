@@ -177,6 +177,25 @@ class AlbumPostingTest extends TestCase
         $this->actingAs(User::factory()->create())->get('/')->assertInertia(fn ($page) => $page->where('ownFilter.available', false));
     }
 
+    public function test_only_mine_follows_the_default_until_someone_chooses(): void
+    {
+        $admin = User::factory()->admin()->create();
+        [$undecided, $decided] = User::factory()->count(2)->create();
+        foreach ([$undecided, $decided] as $user) {
+            Listing::factory()->create(['user_id' => $user->id])->users()->attach($user);
+        }
+        $this->actingAs($decided)->put('/account/album-filter', ['on' => false]);
+
+        $this->actingAs($undecided)->post('/admin/maintenance/only-own-default', ['on' => true])->assertForbidden();
+        $this->actingAs($admin)->post('/admin/maintenance/only-own-default', ['on' => true])->assertSessionHas('message');
+        Settings::forget();
+
+        // Who never chose: on, like the default; who chose off: keeps off
+        $this->actingAs($undecided)->get('/')->assertInertia(fn ($page) => $page->where('ownFilter.on', true));
+        $this->actingAs($decided)->get('/')->assertInertia(fn ($page) => $page->where('ownFilter.on', false));
+        $this->actingAs($admin)->get('/admin/maintenance')->assertInertia(fn ($page) => $page->where('albumPosting.onlyOwnDefault', true));
+    }
+
     public function test_admins_open_any_album_read_only_and_see_its_history(): void
     {
         $admin = User::factory()->admin()->create();
@@ -213,6 +232,25 @@ class AlbumPostingTest extends TestCase
                 ->where('albumPosting.enabled', true)
                 ->where('albumPosting.history.0.summary', 'Muto allowed Zecca to post albums')
                 ->where('albumPosting.history.1.summary', 'Muto switched on album posting for members'));
+    }
+
+    public function test_allow_everyone_and_no_one(): void
+    {
+        $admin = User::factory()->admin()->create(['name' => 'Muto']);
+        [$anna, $zecca] = User::factory()->count(2)->create();
+        $demo = User::factory()->create(['is_demo' => true]);
+
+        $this->actingAs($anna)->put('/admin/maintenance/album-posting/everyone', ['canPost' => true])->assertForbidden();
+        $this->actingAs($admin)->put('/admin/maintenance/album-posting/everyone', ['canPost' => true])->assertSessionHas('message', 'Everyone can post albums');
+
+        $this->assertTrue((bool) $anna->fresh()->can_post_albums);
+        $this->assertTrue((bool) $zecca->fresh()->can_post_albums);
+        $this->assertFalse((bool) $demo->fresh()->can_post_albums);
+        $this->assertSame('Muto allowed everyone to post albums', \App\Support\AlbumHistory::describe(AlbumEvent::latest('id')->first())['summary']);
+
+        $this->actingAs($admin)->put('/admin/maintenance/album-posting/everyone', ['canPost' => false]);
+        $this->assertFalse((bool) $anna->fresh()->can_post_albums);
+        $this->assertFalse((bool) $zecca->fresh()->can_post_albums);
     }
 
     private function postingOn(): void

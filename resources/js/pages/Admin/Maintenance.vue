@@ -61,6 +61,17 @@ function setPostingMode(enabled) {
         router.post('/admin/maintenance/album-posting', { enabled }, { preserveScroll: true });
     }
 }
+function setOnlyOwnDefault(on) {
+    router.post('/admin/maintenance/only-own-default', { on }, { preserveScroll: true });
+}
+function setEveryone(canPost) {
+    const question = canPost
+        ? 'Allow everyone to post albums? (Admins always can; the demo account never.)'
+        : 'Stop everyone from posting albums? Only admins will. Their albums stay.';
+    if (window.confirm(question)) {
+        router.put('/admin/maintenance/album-posting/everyone', { canPost }, { preserveScroll: true });
+    }
+}
 function setCanPost(person, canPost) {
     router.put(`/admin/maintenance/album-posting/${person.id}`, { canPost }, { preserveScroll: true });
 }
@@ -234,9 +245,32 @@ const buttonClass = 'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-
             </div>
 
             <p v-if="!albumPosting" class="text-sm text-slate-500">Run the pending migrations to enable it.</p>
-            <div v-else class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div v-if="albumPosting" class="flex flex-wrap items-center gap-3 rounded-2xl bg-slate-50 p-3 text-sm dark:bg-slate-800/60">
+                <button
+                    type="button"
+                    role="switch"
+                    :aria-checked="albumPosting.onlyOwnDefault"
+                    aria-label="Only albums I posted: on by default"
+                    class="relative inline-flex h-6 w-11 shrink-0 rounded-full transition"
+                    :class="albumPosting.onlyOwnDefault ? 'bg-accent' : 'bg-slate-300 dark:bg-slate-600'"
+                    @click="setOnlyOwnDefault(!albumPosting.onlyOwnDefault)"
+                >
+                    <span class="absolute top-0.5 size-5 rounded-full bg-white shadow transition-all" :class="albumPosting.onlyOwnDefault ? 'left-5.5' : 'left-0.5'" />
+                </button>
+                <span class="min-w-48 flex-1">
+                    <strong>"Only albums I posted" on by default</strong>
+                    <span class="block text-xs text-slate-500">For who hasn't chosen yet. Whoever flips the switch on the album list keeps their choice.</span>
+                </span>
+            </div>
+            <div v-if="albumPosting" class="grid grid-cols-1 gap-6 lg:grid-cols-2">
                 <div>
-                    <h3 class="mb-2 text-sm font-semibold">Who can post</h3>
+                    <div class="mb-2 flex flex-wrap items-center gap-2">
+                        <h3 class="text-sm font-semibold">Who can post</h3>
+                        <span class="ml-auto flex gap-1.5">
+                            <button type="button" class="rounded-lg px-2.5 py-1 text-xs font-semibold text-accent ring-1 ring-slate-200 hover:bg-teal-50 dark:ring-slate-700 dark:hover:bg-slate-800" @click="setEveryone(true)">Allow everyone</button>
+                            <button type="button" class="rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200 hover:bg-slate-100 dark:text-slate-300 dark:ring-slate-700 dark:hover:bg-slate-800" @click="setEveryone(false)">No one</button>
+                        </span>
+                    </div>
                     <p v-if="!albumPosting.enabled" class="mb-2 rounded-xl bg-slate-100 px-3 py-2 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                         Switched off: these choices are kept and apply when you switch it on.
                     </p>

@@ -88,14 +88,18 @@ function resetFilters() {
 
     <!-- Title, search and actions -->
     <div class="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
-        <div>
-            <h2 class="text-2xl font-bold">Your albums</h2>
-            <p class="text-sm text-slate-500 dark:text-slate-400">
-                {{ albums.total }} {{ albums.total === 1 ? 'album' : 'albums' }}
-                <template v-if="filters.tag"> tagged <strong>{{ filters.tag }}</strong></template>
-                <template v-if="filters.search"> matching <strong>"{{ filters.search }}"</strong></template>
-                <template v-if="ownFilter.on"> posted by you</template>
-            </p>
+        <!-- Title, with the "Only mine" switch on its right (no row of its own) -->
+        <div class="flex items-center gap-3">
+            <div class="min-w-0">
+                <h2 class="text-2xl font-bold">Your albums</h2>
+                <p class="text-sm text-slate-500 dark:text-slate-400">
+                    {{ albums.total }} {{ albums.total === 1 ? 'album' : 'albums' }}
+                    <template v-if="filters.tag"> tagged <strong>{{ filters.tag }}</strong></template>
+                    <template v-if="filters.search"> matching <strong>"{{ filters.search }}"</strong></template>
+                    <template v-if="ownFilter.on"> posted by you</template>
+                </p>
+            </div>
+            <OwnAlbumsToggle v-if="ownFilter.available" :on="ownFilter.on" compact class="ml-auto sm:ml-2" />
         </div>
 
         <!-- Phones: a full-width row above the title. Larger screens: next to the title, on the right -->
@@ -129,10 +133,6 @@ function resetFilters() {
             Search
         </button>
     </form>
-
-    <div v-if="ownFilter.available" class="mt-3">
-        <OwnAlbumsToggle :on="ownFilter.on" />
-    </div>
 
     <div v-if="hasFilters" class="mt-3">
         <button class="inline-flex items-center gap-1 rounded-full bg-slate-200 px-3 py-1 text-sm font-medium hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700" @click="resetFilters">

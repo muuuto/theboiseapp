@@ -276,7 +276,9 @@ Route::middleware(['auth', 'can:admin'])->prefix('admin/maintenance')->group(fun
     Route::get('/', [MaintenanceController::class, 'index']);
     Route::post('/test-email', [MaintenanceController::class, 'testEmail']);
     Route::post('/album-posting', [MaintenanceController::class, 'albumPostingMode']);
+    Route::post('/only-own-default', [MaintenanceController::class, 'onlyOwnDefault']);
     Route::put('/decorations', [MaintenanceController::class, 'saveDecorations']);
+    Route::put('/album-posting/everyone', [MaintenanceController::class, 'albumPostingEveryone']);
     Route::put('/album-posting/{user}', [MaintenanceController::class, 'albumPostingPermission']);
     Route::post('/{action}', [MaintenanceController::class, 'run']);
     Route::get('/backups/{file}', [MaintenanceController::class, 'download']);
