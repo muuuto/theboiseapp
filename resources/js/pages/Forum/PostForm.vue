@@ -3,6 +3,8 @@ import { computed, ref } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, FileText, ImagePlus, Loader2, Paperclip, X } from 'lucide-vue-next';
 import RichTextEditor from '../../components/RichTextEditor.vue';
+import RequiredMark from '../../components/RequiredMark.vue';
+import RequiredNote from '../../components/RequiredNote.vue';
 import TagsInput from '../../components/TagsInput.vue';
 import PeoplePicker from '../../components/PeoplePicker.vue';
 
@@ -80,24 +82,24 @@ const labelClass = 'mb-1.5 block text-sm font-semibold';
         <div class="min-w-0 space-y-6">
             <section class="space-y-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
                 <div>
-                    <label for="title" :class="labelClass">{{ t('Title') }}</label>
+                    <label for="title" :class="labelClass">{{ t('Title') }}<RequiredMark /></label>
                     <input id="title" v-model="form.title" type="text" :class="inputClass" />
                     <p v-if="form.errors.title" class="mt-1 text-sm text-red-600">{{ form.errors.title }}</p>
                 </div>
                 <div>
-                    <label for="description" :class="labelClass">{{ t('Short description') }}</label>
+                    <label for="description" :class="labelClass">{{ t('Short description') }}<RequiredMark /></label>
                     <textarea id="description" v-model="form.description" rows="2" class="w-full rounded-xl border-0 bg-white px-3 py-2 ring-1 ring-slate-200 focus:ring-2 focus:ring-accent focus:outline-none dark:bg-slate-900 dark:ring-slate-700" />
                     <p v-if="form.errors.description" class="mt-1 text-sm text-red-600">{{ form.errors.description }}</p>
                 </div>
                 <div>
-                    <span :class="labelClass">{{ t('Tags') }}</span>
+                    <span :class="labelClass">{{ t('Tags') }}<RequiredMark /></span>
                     <TagsInput v-model="form.tags" />
                     <p v-if="form.errors.tags" class="mt-1 text-sm text-red-600">{{ form.errors.tags }}</p>
                 </div>
             </section>
 
             <section class="space-y-2">
-                <span :class="labelClass">{{ t('Content') }}</span>
+                <span :class="labelClass">{{ t('Content') }}<RequiredMark /></span>
                 <RichTextEditor v-model="form.content" />
                 <p v-if="form.errors.content" class="text-sm text-red-600">{{ form.errors.content }}</p>
             </section>
@@ -156,6 +158,7 @@ const labelClass = 'mb-1.5 block text-sm font-semibold';
                 </div>
             </section>
 
+            <RequiredNote class="text-center" />
             <button
                 type="submit"
                 class="flex w-full items-center justify-center gap-2 rounded-2xl bg-forum px-4 py-3 font-semibold text-white shadow-sm transition hover:bg-green-700 disabled:opacity-50"

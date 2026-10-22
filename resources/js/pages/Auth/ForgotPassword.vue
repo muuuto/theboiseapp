@@ -3,6 +3,7 @@ import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import { ArrowLeft, Loader2 } from 'lucide-vue-next';
 import GuestLayout from '../../layouts/GuestLayout.vue';
 import FormField from '../../components/FormField.vue';
+import RequiredNote from '../../components/RequiredNote.vue';
 
 defineOptions({ layout: GuestLayout });
 
@@ -21,7 +22,8 @@ const form = useForm({ email: '' });
     </p>
 
     <form class="mt-6 space-y-4" @submit.prevent="form.post('/forgot-password')">
-        <FormField v-model="form.email" label="Email" type="email" autocomplete="email" :error="form.errors.email" />
+        <FormField v-model="form.email" required label="Email" type="email" autocomplete="email" :error="form.errors.email" />
+        <RequiredNote />
         <button
             type="submit"
             class="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 font-semibold text-white transition hover:bg-brand-dark disabled:opacity-50"

@@ -3,6 +3,8 @@ import { computed, ref } from 'vue';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { Cake, Camera, ImagePlus, KeyRound, Loader2, Monitor, Moon, Sun, Wallet } from 'lucide-vue-next';
 import FormField from '../../components/FormField.vue';
+import RequiredNote from '../../components/RequiredNote.vue';
+import RequiredMark from '../../components/RequiredMark.vue';
 import AppNotifications from '../../components/AppNotifications.vue';
 import LanguageSwitch from '../../components/LanguageSwitch.vue';
 import OwnAlbumsToggle from '../../components/OwnAlbumsToggle.vue';
@@ -91,9 +93,10 @@ const buttonClass = 'inline-flex items-center justify-center gap-2 rounded-xl bg
             <p v-if="profile.errors.profilePicture" class="text-sm text-red-600">{{ profile.errors.profilePicture }}</p>
 
             <fieldset :disabled="readOnly" class="space-y-4">
-                <FormField v-model="profile.name" label="Name" autocomplete="nickname" :error="profile.errors.name" />
+                <FormField v-model="profile.name" required label="Name" autocomplete="nickname" :error="profile.errors.name" />
                 <FormField v-model="profile.birthday" type="date" label="Birthday" hint="For the birthday email 🎂" :error="profile.errors.birthday" />
             </fieldset>
+            <RequiredNote v-if="!readOnly" />
             <button v-if="!readOnly" type="submit" :class="buttonClass" :disabled="profile.processing">
                 <Loader2 v-if="profile.processing" class="size-4 animate-spin" />
                 <Cake v-else class="size-4" /> {{ t('Save profile') }}
@@ -144,9 +147,10 @@ const buttonClass = 'inline-flex items-center justify-center gap-2 rounded-xl bg
             <!-- Password -->
             <form v-if="!readOnly" :class="cardClass" class="space-y-4" @submit.prevent="savePassword">
                 <h2 class="text-lg font-bold">{{ t('Change password') }}</h2>
-                <FormField v-model="password.current_password" type="password" label="Current password" autocomplete="current-password" :error="password.errors.current_password" />
-                <FormField v-model="password.password" type="password" label="New password" autocomplete="new-password" hint="At least 8 characters" :error="password.errors.password" />
-                <FormField v-model="password.password_confirmation" type="password" label="Repeat the new password" autocomplete="new-password" />
+                <FormField v-model="password.current_password" required type="password" label="Current password" autocomplete="current-password" :error="password.errors.current_password" />
+                <FormField v-model="password.password" required type="password" label="New password" autocomplete="new-password" hint="At least 8 characters" :error="password.errors.password" />
+                <FormField v-model="password.password_confirmation" required type="password" label="Repeat the new password" autocomplete="new-password" />
+                <RequiredNote v-if="!readOnly" />
                 <button type="submit" :class="buttonClass" :disabled="password.processing">
                     <Loader2 v-if="password.processing" class="size-4 animate-spin" />
                     <KeyRound v-else class="size-4" /> {{ t('Change password') }}
@@ -169,14 +173,15 @@ const buttonClass = 'inline-flex items-center justify-center gap-2 rounded-xl bg
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-[16rem_minmax(0,1fr)]">
                 <label class="block overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700" :class="!readOnly && 'cursor-pointer hover:ring-accent'">
                     <img v-if="walletPreview" :src="walletPreview" alt="" class="max-h-72 w-full object-contain" />
-                    <span v-else class="flex h-40 flex-col items-center justify-center gap-2 text-sm text-slate-500"><ImagePlus class="size-7" /> {{ readOnly ? t('No photo') : t('Choose a photo') }}</span>
+                    <span v-else class="flex h-40 flex-col items-center justify-center gap-2 text-sm text-slate-500"><ImagePlus class="size-7" /> <span>{{ readOnly ? t('No photo') : t('Choose a photo') }}<RequiredMark v-if="!readOnly" /></span></span>
                     <input v-if="!readOnly" type="file" accept="image/*" class="sr-only" @change="onWallet" />
                 </label>
                 <div class="space-y-4">
                     <fieldset :disabled="readOnly">
-                        <FormField v-model="wallet.mediaName" label="Name of the photo" :error="wallet.errors.mediaName" />
+                        <FormField v-model="wallet.mediaName" required label="Name of the photo" :error="wallet.errors.mediaName" />
                     </fieldset>
                     <p v-if="wallet.errors.addWallet" class="text-sm text-red-600">{{ wallet.errors.addWallet }}</p>
+                    <RequiredNote v-if="!readOnly" />
                     <button v-if="!readOnly" type="submit" :class="buttonClass" :disabled="wallet.processing || !wallet.addWallet">
                         <Loader2 v-if="wallet.processing" class="size-4 animate-spin" /> {{ t('Save to wallet') }}
                     </button>

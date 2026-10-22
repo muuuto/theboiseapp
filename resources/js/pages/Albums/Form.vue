@@ -3,6 +3,8 @@ import { computed, ref, watch } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, ImagePlus, Loader2, Plus, Search, Trash2, UserCog, X } from 'lucide-vue-next';
 import LeafletMap from '../../components/LeafletMap.vue';
+import RequiredMark from '../../components/RequiredMark.vue';
+import RequiredNote from '../../components/RequiredNote.vue';
 import RichTextEditor from '../../components/RichTextEditor.vue';
 import TagsInput from '../../components/TagsInput.vue';
 import PeoplePicker from '../../components/PeoplePicker.vue';
@@ -125,42 +127,42 @@ const labelClass = 'mb-1.5 block text-sm font-semibold';
         <div class="min-w-0 space-y-6">
             <section class="space-y-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
                 <div>
-                    <label for="title" :class="labelClass">{{ t('Title') }}</label>
+                    <label for="title" :class="labelClass">{{ t('Title') }}<RequiredMark /></label>
                     <input id="title" v-model="form.title" type="text" :placeholder="t('Example: Vacanzeyney in Toscania')" :class="inputClass" />
                     <p v-if="form.errors.title" class="mt-1 text-sm text-red-600">{{ form.errors.title }}</p>
                 </div>
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div>
-                        <label for="dateFrom" :class="labelClass">{{ t('From') }}</label>
+                        <label for="dateFrom" :class="labelClass">{{ t('From') }}<RequiredMark /></label>
                         <input id="dateFrom" v-model="form.dateFrom" type="date" :class="inputClass" />
                         <p v-if="form.errors.dateFrom" class="mt-1 text-sm text-red-600">{{ form.errors.dateFrom }}</p>
                     </div>
                     <div>
-                        <label for="dateTo" :class="labelClass">{{ t('To') }}</label>
+                        <label for="dateTo" :class="labelClass">{{ t('To') }}<RequiredMark /></label>
                         <input id="dateTo" v-model="form.dateTo" type="date" :min="form.dateFrom" :class="inputClass" />
                         <p v-if="form.errors.dateTo" class="mt-1 text-sm text-red-600">{{ form.errors.dateTo }}</p>
                     </div>
                 </div>
                 <div>
-                    <label for="albumLink" :class="labelClass">{{ t('Photos link (Amazon Photos)') }}</label>
+                    <label for="albumLink" :class="labelClass">{{ t('Photos link (Amazon Photos)') }}<RequiredMark /></label>
                     <input id="albumLink" v-model="form.albumLink" type="url" placeholder="https://www.amazon.com/photos/shared/..." :class="inputClass" />
                     <p v-if="form.errors.albumLink" class="mt-1 text-sm text-red-600">{{ form.errors.albumLink }}</p>
                 </div>
                 <div>
-                    <span :class="labelClass">{{ t('Tags') }}</span>
+                    <span :class="labelClass">{{ t('Tags') }}<RequiredMark /></span>
                     <TagsInput v-model="form.tags" :suggestions="knownTags" />
                     <p v-if="form.errors.tags" class="mt-1 text-sm text-red-600">{{ form.errors.tags }}</p>
                 </div>
             </section>
 
             <section class="space-y-2">
-                <span :class="labelClass">{{ t('Description') }}</span>
+                <span :class="labelClass">{{ t('Description') }}<RequiredMark /></span>
                 <RichTextEditor v-model="form.description" />
                 <p v-if="form.errors.description" class="text-sm text-red-600">{{ form.errors.description }}</p>
             </section>
 
             <section class="space-y-2">
-                <span :class="labelClass">{{ t('People in the album') }}</span>
+                <span :class="labelClass">{{ t('People in the album') }}<RequiredMark /></span>
                 <p v-if="alwaysIn" class="text-xs text-slate-500">{{ t("You're always in the albums you post.") }}</p>
                 <PeoplePicker v-model="form.people" :users="users" />
                 <p v-if="form.errors.people" class="text-sm text-red-600">{{ form.errors.people }}</p>
@@ -242,7 +244,7 @@ const labelClass = 'mb-1.5 block text-sm font-semibold';
 
             <section class="space-y-3 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
                 <div>
-                    <label for="location" :class="labelClass">{{ t('Location label') }}</label>
+                    <label for="location" :class="labelClass">{{ t('Location label') }}<RequiredMark /></label>
                     <input id="location" v-model="form.location" type="text" :placeholder="t('Example: Terrazzina theboise, Pineta BZ')" :class="inputClass" />
                     <p class="mt-1 text-xs text-slate-500">{{ t('Shown on the album, write it however you like.') }}</p>
                     <p v-if="form.errors.location" class="mt-1 text-sm text-red-600">{{ form.errors.location }}</p>
@@ -295,6 +297,7 @@ const labelClass = 'mb-1.5 block text-sm font-semibold';
                 <p v-for="(message, key) in form.errors" v-show="key.startsWith('places')" :key="key" class="text-sm text-red-600">{{ message }}</p>
             </section>
 
+            <RequiredNote class="text-center" />
             <button
                 type="submit"
                 class="flex w-full items-center justify-center gap-2 rounded-2xl bg-brand px-4 py-3 font-semibold text-white shadow-sm transition hover:bg-brand-dark disabled:opacity-50"

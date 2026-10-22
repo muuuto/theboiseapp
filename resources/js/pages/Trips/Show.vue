@@ -5,6 +5,7 @@ import {
     ArrowLeft, CalendarClock, Check, Crown, Hand, Images, ListChecks, MapPin, Pencil, Plus, Trash2, Users, Vote, Wallet,
 } from 'lucide-vue-next';
 import Countdown from '../../components/Countdown.vue';
+import RequiredMark from '../../components/RequiredMark.vue';
 import { t, tc } from '../../i18n.js';
 import { formatDate } from '../../time.js';
 
@@ -161,8 +162,8 @@ const inputClass = 'h-10 w-full rounded-xl border-0 bg-white px-3 text-sm ring-1
 
                 <template v-if="pollOpen">
                     <form v-if="addingOption" class="mt-3 flex flex-wrap items-end gap-2" @submit.prevent="addOption">
-                        <label class="block flex-1"><span class="mb-1 block text-xs font-semibold">{{ t('From') }}</span><input v-model="newOption.from" type="date" required :class="inputClass" /></label>
-                        <label class="block flex-1"><span class="mb-1 block text-xs font-semibold">{{ t('To') }}</span><input v-model="newOption.to" type="date" required :min="newOption.from" :class="inputClass" /></label>
+                        <label class="block flex-1"><span class="mb-1 block text-xs font-semibold">{{ t('From') }}<RequiredMark /></span><input v-model="newOption.from" type="date" required :class="inputClass" /></label>
+                        <label class="block flex-1"><span class="mb-1 block text-xs font-semibold">{{ t('To') }}<RequiredMark /></span><input v-model="newOption.to" type="date" required :min="newOption.from" :class="inputClass" /></label>
                         <button type="submit" class="h-10 rounded-xl bg-violet-600 px-4 text-sm font-semibold text-white hover:bg-violet-700" :disabled="newOption.processing">{{ t('Add') }}</button>
                     </form>
                     <button v-else type="button" class="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-violet-700 hover:underline dark:text-violet-300" @click="addingOption = true">

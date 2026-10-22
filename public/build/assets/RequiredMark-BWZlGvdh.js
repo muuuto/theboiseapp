@@ -1,0 +1,1 @@
+import{C as e,P as t}from"./createLucideIcon-5aL3r3Wm.js";import{t as n}from"./_plugin-vue_export-helper-BDNMzG2s.js";var r={},i=[`title`];function a(n,r){return t(),e(`span`,{class:`ml-0.5 font-bold text-red-600`,title:n.t(`Required`),"aria-hidden":`true`},`*`,8,i)}var o=n(r,[[`render`,a]]);export{o as t};

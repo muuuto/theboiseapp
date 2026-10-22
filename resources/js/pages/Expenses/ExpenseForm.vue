@@ -1,4 +1,6 @@
 <script setup>
+import RequiredMark from '../../components/RequiredMark.vue';
+import RequiredNote from '../../components/RequiredNote.vue';
 import { computed, reactive } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, Trash2 } from 'lucide-vue-next';
@@ -97,16 +99,17 @@ const smallInputClass = 'h-10 rounded-xl border-0 bg-white px-2 ring-1 ring-slat
     <h1 class="mb-6 text-3xl font-extrabold tracking-tight">{{ editing ? t('Edit expense') : t('Add expense') }}</h1>
 
     <form class="mx-auto max-w-2xl space-y-6" @submit.prevent="submit">
+        <RequiredNote class="-mb-3" />
         <section class="space-y-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
             <label class="block">
-                <span :class="labelClass">{{ t('What') }}</span>
+                <span :class="labelClass">{{ t('What') }}<RequiredMark /></span>
                 <input v-model="form.description" maxlength="255" required :placeholder="t('Example: Dinner at the beach')" :class="[inputClass, form.errors.description && 'ring-2 ring-red-500']" />
                 <span v-if="form.errors.description" class="mt-1 block text-sm text-red-600">{{ form.errors.description }}</span>
             </label>
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <label class="block">
-                    <span :class="labelClass">{{ t('Amount') }}</span>
+                    <span :class="labelClass">{{ t('Amount') }}<RequiredMark /></span>
                     <span class="relative block">
                         <span class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 font-semibold text-slate-500">€</span>
                         <input
@@ -120,13 +123,13 @@ const smallInputClass = 'h-10 rounded-xl border-0 bg-white px-2 ring-1 ring-slat
                     <span v-if="form.errors.amount" class="mt-1 block text-sm text-red-600">{{ form.errors.amount }}</span>
                 </label>
                 <label class="block">
-                    <span :class="labelClass">{{ t('Date') }}</span>
+                    <span :class="labelClass">{{ t('Date') }}<RequiredMark /></span>
                     <input v-model="form.spent_on" type="date" required :class="inputClass" />
                 </label>
             </div>
 
             <label class="block">
-                <span :class="labelClass">{{ t('Paid by') }}</span>
+                <span :class="labelClass">{{ t('Paid by') }}<RequiredMark /></span>
                 <select v-model="form.paid_by" :class="inputClass">
                     <option v-for="member in members" :key="member.id" :value="member.id">{{ member.id === me ? `${member.name} ${t('(you)')}` : member.name }}</option>
                 </select>
@@ -134,7 +137,7 @@ const smallInputClass = 'h-10 rounded-xl border-0 bg-white px-2 ring-1 ring-slat
         </section>
 
         <section class="space-y-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
-            <h2 class="font-bold">{{ t('Split') }}</h2>
+            <h2 class="font-bold">{{ t('Split') }}<RequiredMark /></h2>
             <div class="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800" role="tablist">
                 <button
                     v-for="type in types"

@@ -3,6 +3,7 @@ import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import { Loader2 } from 'lucide-vue-next';
 import GuestLayout from '../../layouts/GuestLayout.vue';
 import FormField from '../../components/FormField.vue';
+import RequiredNote from '../../components/RequiredNote.vue';
 
 defineOptions({ layout: GuestLayout });
 
@@ -23,8 +24,8 @@ function submit() {
     <p v-if="status" class="mt-4 rounded-xl bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-950/40 dark:text-green-300">{{ status }}</p>
 
     <form class="mt-6 space-y-4" @submit.prevent="submit">
-        <FormField v-model="form.email" label="Email" type="email" autocomplete="email" :error="form.errors.email" />
-        <FormField v-model="form.password" label="Password" type="password" autocomplete="current-password" :error="form.errors.password" />
+        <FormField v-model="form.email" required label="Email" type="email" autocomplete="email" :error="form.errors.email" />
+        <FormField v-model="form.password" required label="Password" type="password" autocomplete="current-password" :error="form.errors.password" />
 
         <div class="flex items-center justify-between text-sm">
             <label class="flex items-center gap-2">
@@ -33,6 +34,8 @@ function submit() {
             </label>
             <Link href="/forgot-password" class="font-medium text-brand hover:underline">{{ t('Forgot password?') }}</Link>
         </div>
+
+        <RequiredNote />
 
         <button
             type="submit"

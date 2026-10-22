@@ -3,6 +3,8 @@ import { computed } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, CalendarCheck, Plus, Trash2, Vote } from 'lucide-vue-next';
 import PeoplePicker from '../../components/PeoplePicker.vue';
+import RequiredMark from '../../components/RequiredMark.vue';
+import RequiredNote from '../../components/RequiredNote.vue';
 import { t } from '../../i18n.js';
 
 const props = defineProps({
@@ -50,9 +52,10 @@ const cardClass = 'space-y-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slat
     <h1 class="mb-6 text-3xl font-extrabold tracking-tight">{{ editing ? t('Edit trip') : t('Plan a trip') }}</h1>
 
     <form class="mx-auto max-w-2xl space-y-6" @submit.prevent="submit">
+        <RequiredNote class="-mb-3" />
         <section :class="cardClass">
             <label class="block">
-                <span :class="labelClass">{{ t('Name') }}</span>
+                <span :class="labelClass">{{ t('Name') }}<RequiredMark /></span>
                 <input v-model="form.title" maxlength="100" required :placeholder="t('Example: Sicilia 2027')" :class="[inputClass, form.errors.title && 'ring-2 ring-red-500']" />
                 <span v-if="form.errors.title" class="mt-1 block text-sm text-red-600">{{ form.errors.title }}</span>
             </label>
@@ -67,7 +70,7 @@ const cardClass = 'space-y-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slat
         </section>
 
         <section :class="cardClass">
-            <h2 class="font-bold">{{ t('When') }}</h2>
+            <h2 class="font-bold">{{ t('When') }}<RequiredMark /></h2>
             <div class="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800" role="tablist">
                 <button
                     v-for="[mode, label, icon] in [['fixed', 'We know the dates', CalendarCheck], ['poll', 'Let\'s vote', Vote]]"
@@ -84,8 +87,8 @@ const cardClass = 'space-y-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slat
             </div>
 
             <div v-if="form.dates === 'fixed'" class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <label class="block"><span :class="labelClass">{{ t('From') }}</span><input v-model="form.date_from" type="date" :class="inputClass" /></label>
-                <label class="block"><span :class="labelClass">{{ t('To') }}</span><input v-model="form.date_to" type="date" :min="form.date_from" :class="inputClass" /></label>
+                <label class="block"><span :class="labelClass">{{ t('From') }}<RequiredMark /></span><input v-model="form.date_from" type="date" :class="inputClass" /></label>
+                <label class="block"><span :class="labelClass">{{ t('To') }}<RequiredMark /></span><input v-model="form.date_to" type="date" :min="form.date_from" :class="inputClass" /></label>
                 <p v-if="form.errors.date_from || form.errors.date_to" class="text-sm text-red-600 sm:col-span-2">{{ form.errors.date_from || form.errors.date_to }}</p>
             </div>
 
@@ -97,8 +100,8 @@ const cardClass = 'space-y-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slat
             <div v-else class="space-y-2">
                 <p class="text-xs text-slate-500">{{ t('Give a few options: everyone ticks the ones that work for them, then you choose.') }}</p>
                 <div v-for="(option, index) in form.options" :key="index" class="flex items-end gap-2">
-                    <label class="block flex-1"><span class="mb-1 block text-xs font-semibold">{{ t('From') }}</span><input v-model="option.from" type="date" :class="inputClass" /></label>
-                    <label class="block flex-1"><span class="mb-1 block text-xs font-semibold">{{ t('To') }}</span><input v-model="option.to" type="date" :min="option.from" :class="inputClass" /></label>
+                    <label class="block flex-1"><span class="mb-1 block text-xs font-semibold">{{ t('From') }}<RequiredMark /></span><input v-model="option.from" type="date" :class="inputClass" /></label>
+                    <label class="block flex-1"><span class="mb-1 block text-xs font-semibold">{{ t('To') }}<RequiredMark /></span><input v-model="option.to" type="date" :min="option.from" :class="inputClass" /></label>
                     <button v-if="form.options.length > 2" type="button" class="mb-1.5 rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600" :title="t('Remove option')" @click="form.options.splice(index, 1)">
                         <Trash2 class="size-4" /><span class="sr-only">{{ t('Remove option') }}</span>
                     </button>

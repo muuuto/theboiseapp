@@ -3,6 +3,8 @@ import { computed } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, Trash2, UserPlus } from 'lucide-vue-next';
 import PeoplePicker from '../../components/PeoplePicker.vue';
+import RequiredMark from '../../components/RequiredMark.vue';
+import RequiredNote from '../../components/RequiredNote.vue';
 import { t } from '../../i18n.js';
 
 const props = defineProps({
@@ -66,6 +68,7 @@ const labelClass = 'mb-1.5 block text-sm font-semibold';
     <h1 class="mb-6 text-3xl font-extrabold tracking-tight">{{ editing ? t('Edit group') : t('New group') }}</h1>
 
     <form class="mx-auto max-w-2xl space-y-6" @submit.prevent="submit">
+        <RequiredNote class="-mb-3" />
         <section class="space-y-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
             <label class="block">
                 <span :class="labelClass">{{ t('Album (optional)') }}</span>
@@ -78,7 +81,7 @@ const labelClass = 'mb-1.5 block text-sm font-semibold';
             </label>
 
             <label class="block">
-                <span :class="labelClass">{{ t('Name') }}</span>
+                <span :class="labelClass">{{ t('Name') }}<RequiredMark /></span>
                 <input v-model="form.name" maxlength="100" required :placeholder="t('Example: Sicilia 2026, Casa')" :class="[inputClass, form.errors.name && 'ring-2 ring-red-500']" />
                 <span v-if="form.errors.name" class="mt-1 block text-sm text-red-600">{{ form.errors.name }}</span>
             </label>

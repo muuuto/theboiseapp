@@ -5,6 +5,8 @@ import {
     ArrowLeft, ArrowRight, Check, ChevronDown, CircleCheck, HandCoins, Images, Pencil, Plus, Receipt, Settings, Trash2, X,
 } from 'lucide-vue-next';
 import { money } from '../../money.js';
+import RequiredMark from '../../components/RequiredMark.vue';
+import RequiredNote from '../../components/RequiredNote.vue';
 import { t, tc } from '../../i18n.js';
 import { formatDate } from '../../time.js';
 
@@ -245,14 +247,14 @@ const inputClass = 'h-11 w-full rounded-xl border-0 bg-white px-3 ring-1 ring-sl
                 </div>
                 <div class="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-2">
                     <label class="block">
-                        <span class="mb-1.5 block text-sm font-semibold">{{ t('Who paid') }}</span>
+                        <span class="mb-1.5 block text-sm font-semibold">{{ t('Who paid') }}<RequiredMark /></span>
                         <select v-model="payment.from_user_id" :class="inputClass">
                             <option v-for="member in members" :key="member.id" :value="member.id">{{ member.id === me ? t('You') : member.name }}</option>
                         </select>
                     </label>
                     <ArrowRight class="mb-3 size-4 text-slate-400" />
                     <label class="block">
-                        <span class="mb-1.5 block text-sm font-semibold">{{ t('To') }}</span>
+                        <span class="mb-1.5 block text-sm font-semibold">{{ t('To') }}<RequiredMark /></span>
                         <select v-model="payment.to_user_id" :class="inputClass">
                             <option v-for="member in members" :key="member.id" :value="member.id">{{ member.id === me ? t('You') : member.name }}</option>
                         </select>
@@ -261,7 +263,7 @@ const inputClass = 'h-11 w-full rounded-xl border-0 bg-white px-3 ring-1 ring-sl
                 <p v-if="payment.errors.to_user_id" class="text-sm text-red-600">{{ t('Choose two different people.') }}</p>
                 <div class="grid grid-cols-2 gap-2">
                     <label class="block">
-                        <span class="mb-1.5 block text-sm font-semibold">{{ t('Amount') }}</span>
+                        <span class="mb-1.5 block text-sm font-semibold">{{ t('Amount') }}<RequiredMark /></span>
                         <span class="relative block">
                             <span class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 font-semibold text-slate-500">€</span>
                             <input v-model="payment.amount" inputmode="decimal" required placeholder="0.00" :class="[inputClass, 'pl-8 font-semibold']" />
@@ -273,6 +275,7 @@ const inputClass = 'h-11 w-full rounded-xl border-0 bg-white px-3 ring-1 ring-sl
                     </label>
                 </div>
                 <p v-if="payment.errors.amount" class="text-sm text-red-600">{{ payment.errors.amount }}</p>
+                <RequiredNote />
                 <button type="submit" class="w-full rounded-2xl bg-brand px-4 py-3 font-semibold text-white hover:bg-brand-dark disabled:opacity-50" :disabled="payment.processing">
                     {{ t('Record payment') }}
                 </button>

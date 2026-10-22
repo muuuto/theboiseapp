@@ -3,6 +3,7 @@ import { Head, useForm } from '@inertiajs/vue3';
 import { Loader2 } from 'lucide-vue-next';
 import GuestLayout from '../../layouts/GuestLayout.vue';
 import FormField from '../../components/FormField.vue';
+import RequiredNote from '../../components/RequiredNote.vue';
 
 defineOptions({ layout: GuestLayout });
 
@@ -16,9 +17,10 @@ const form = useForm({ token: props.token, email: props.email, password: '', pas
     <h1 class="text-2xl font-bold">{{ t('Choose a new password') }}</h1>
 
     <form class="mt-6 space-y-4" @submit.prevent="form.post('/reset-password', { onFinish: () => form.reset('password', 'password_confirmation') })">
-        <FormField v-model="form.email" label="Email" type="email" autocomplete="email" :error="form.errors.email" />
-        <FormField v-model="form.password" label="New password" type="password" autocomplete="new-password" hint="At least 8 characters" :error="form.errors.password" />
-        <FormField v-model="form.password_confirmation" label="Repeat the new password" type="password" autocomplete="new-password" />
+        <FormField v-model="form.email" required label="Email" type="email" autocomplete="email" :error="form.errors.email" />
+        <FormField v-model="form.password" required label="New password" type="password" autocomplete="new-password" hint="At least 8 characters" :error="form.errors.password" />
+        <FormField v-model="form.password_confirmation" required label="Repeat the new password" type="password" autocomplete="new-password" />
+        <RequiredNote />
         <button
             type="submit"
             class="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 font-semibold text-white transition hover:bg-brand-dark disabled:opacity-50"
