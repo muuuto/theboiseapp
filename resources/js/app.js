@@ -3,6 +3,10 @@ import '../css/app.css';
 import { createApp, h } from 'vue';
 import { createInertiaApp } from '@inertiajs/vue3';
 import AppLayout from './layouts/AppLayout.vue';
+import { registerServiceWorker } from './push.js';
+
+// The app on the phone: offline page and notifications (https only, or localhost)
+registerServiceWorker();
 
 createInertiaApp({
     title: (title) => (title ? `${title} | TheBoise` : 'TheBoise'),

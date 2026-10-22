@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Schema;
+use App\Support\Notify;
+use App\Support\VapidKeys;
 use App\Models\Slogan;
 use App\Models\User;
 use App\Support\AlbumCover;
@@ -28,6 +30,13 @@ class AccountController extends Controller
                 'birthday' => $user->birthday,
             ],
             'wallet' => $wallet ? ['name' => $wallet['name'], 'url' => Media::url($wallet['path'])] : null,
+            // Phone notifications (null until their migration runs; never for the demo account).
+            // Not "notifications": that's the bell, given to every page
+            'push' => ! $user->is_demo && Schema::hasTable('push_subscriptions') ? [
+                'publicKey' => VapidKeys::publicKey(),
+                'settings' => Notify::settings($user),
+                'devices' => PushController::devices(request()),
+            ] : null,
         ]);
     }
 

@@ -45,6 +45,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'notification_settings' => 'array',
     ];
 
     /**
@@ -71,6 +72,12 @@ class User extends Authenticatable
     public function canEditAlbum(Listing $listing): bool
     {
         return $this->isAdmin == 1 || ($listing->user_id == $this->id && $this->canPostAlbums());
+    }
+
+    // Devices where phone notifications are on
+    public function pushSubscriptions(): HasMany
+    {
+        return $this->hasMany(PushSubscription::class);
     }
 
     // Shared expenses groups the user is in

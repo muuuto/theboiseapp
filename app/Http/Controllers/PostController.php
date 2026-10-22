@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\Notify;
 use App\Support\ForumOrder;
 use App\Models\Category;
 use App\Models\Post;
@@ -181,9 +182,19 @@ class PostController extends Controller
             ->get()
             ->filter(fn ($recipient) => $post->isVisibleTo($recipient));
 
-        PostComment::create($formFields);
+        $comment = PostComment::create($formFields);
+
+        Notify::push($recipients, 'forum', [
+            'title' => auth()->user()->name . ' replied in ' . $post->title,
+            'body' => 'Tap to read it and answer.',
+            'url' => "/forum/{$category->id}/{$post->id}#comment-{$comment->id}",
+            'tag' => 'post-comments-' . $post->id,
+        ]);
 
         foreach ($recipients as $recipient) {
+            if (! Notify::wants($recipient, 'forum', 'email')) {
+                continue;
+            }
             $email_data = array(
                 'name' => $recipient->name,
                 'email' => $recipient->email,
@@ -226,7 +237,17 @@ class PostController extends Controller
         $allowedUsers = User::where('id', '!=', auth()->id())->get()
             ->filter(fn ($user) => $post->isVisibleTo($user));
 
+        Notify::push($allowedUsers, 'forum', [
+            'title' => auth()->user()->name . ' shared a post',
+            'body' => $post->title,
+            'url' => "/forum/{$category->id}/{$post->id}",
+            'tag' => 'post-' . $post->id,
+        ]);
+
         foreach ($allowedUsers as $user) {
+            if (! Notify::wants($user, 'forum', 'email')) {
+                continue;
+            }
             $email_data = array(
                 'name' => $user->name,
                 'email' => $user->email,

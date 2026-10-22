@@ -70,6 +70,7 @@ class MaintenanceController extends Controller
                 'zlib (backups)' => extension_loaded('zlib'),
                 'exif (photo rotation)' => extension_loaded('exif'),
                 'gd with webp (image upload)' => function_exists('imagewebp'),
+                'curl (phone notifications)' => extension_loaded('curl'),
             ],
         ]);
     }

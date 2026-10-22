@@ -13,6 +13,7 @@ use App\Models\Comment;
 use App\Models\ListingUser;
 use App\Models\AlbumEvent;
 use App\Support\AlbumHistory;
+use App\Support\Notify;
 use App\Support\AlbumCover;
 use App\Support\Media;
 use App\Support\SafeHtml;
@@ -164,8 +165,19 @@ class ListingController extends Controller
         }
         AlbumEvent::record('created', $listing, ['people' => User::findMany($people)->pluck('name')->sort()->values()->all()]);
 
-        // Email the people in the album (not who posted it)
-        foreach (User::findMany($people)->where('id', '!=', $poster->id) as $user) {
+        // Tell the people in the album (not who posted it): email and/or phone, as each prefers
+        $recipients = User::findMany($people)->where('id', '!=', $poster->id);
+        Notify::push($recipients, 'album', [
+            'title' => 'New album: ' . $listing->title,
+            'body' => $poster->name . ' posted it. Have a look!',
+            'url' => '/listings/' . $listing->id,
+            'tag' => 'album-' . $listing->id,
+            'image' => Media::url($listing->logo),
+        ]);
+        foreach ($recipients as $user) {
+            if (! Notify::wants($user, 'album', 'email')) {
+                continue;
+            }
             $email_data = array(
                 'name' => $user['name'],
                 'email' => $user['email'],
@@ -274,14 +286,22 @@ class ListingController extends Controller
 
         $html = '<p>' . nl2br(e(trim($formFields['comment'])), false) . '</p>';
 
-        Comment::create([
+        $comment = Comment::create([
             'listing_id' => $listing->id,
             'user_id' => $author->id,
             'comment' => $html,
         ]);
 
+        // Short on purpose: it can show on a locked screen
+        Notify::push($listing->users->where('id', '!=', $author->id), 'comment', [
+            'title' => $author->name . ' commented on ' . $listing->title,
+            'body' => 'Tap to read it and answer.',
+            'url' => "/listings/{$listing->id}#comment-{$comment->id}",
+            'tag' => 'album-comments-' . $listing->id,
+        ]);
+
         foreach ($listing->users as $user) {
-            if ($author->id == $user['id']) {
+            if ($author->id == $user['id'] || ! Notify::wants($user, 'comment', 'email')) {
                 continue;
             }
 

@@ -3,8 +3,9 @@ import { computed, ref } from 'vue';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { Cake, Camera, ImagePlus, KeyRound, Loader2, Monitor, Moon, Sun, Wallet } from 'lucide-vue-next';
 import FormField from '../../components/FormField.vue';
+import AppNotifications from '../../components/AppNotifications.vue';
 
-const props = defineProps({ profile: Object, wallet: Object });
+const props = defineProps({ profile: Object, wallet: Object, push: Object });
 
 const user = computed(() => usePage().props.auth.user);
 const readOnly = computed(() => user.value.isDemo);
@@ -131,6 +132,12 @@ const buttonClass = 'inline-flex items-center justify-center gap-2 rounded-xl bg
                 </button>
             </form>
         </div>
+
+        <!-- The app on the phone and notifications (not for the demo account; null before the migration) -->
+        <section v-if="push" :class="cardClass" class="lg:col-span-2">
+            <h2 class="mb-4 text-lg font-bold">App &amp; notifications</h2>
+            <AppNotifications v-bind="push" />
+        </section>
 
         <!-- Wallet -->
         <form :class="cardClass" class="space-y-4 lg:col-span-2" @submit.prevent="saveWallet">

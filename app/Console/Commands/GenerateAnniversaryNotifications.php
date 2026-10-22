@@ -8,6 +8,9 @@ use Carbon\Carbon;
 use App\Models\User;
 use App\Console\Mail\AnniversaryReminderMail;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
+use App\Support\Media;
+use App\Support\Notify;
 
 class GenerateAnniversaryNotifications extends Command
 {
@@ -41,7 +44,18 @@ class GenerateAnniversaryNotifications extends Command
                 });
 
                 if ($filteredListings->isNotEmpty()) {
-                    Mail::to($user->email)->send(new AnniversaryReminderMail($user, $filteredListings));
+                    $first = $filteredListings->first();
+                    $more = $filteredListings->count() - 1;
+                    Notify::push($user, 'memories', [
+                        'title' => 'On this day: ' . $first->title . ($more ? " and {$more} more" : ''),
+                        'body' => $first->diffInYears . ' ' . Str::plural('year', $first->diffInYears) . ' ago. Relive it!',
+                        'url' => '/listings/' . $first->id,
+                        'tag' => 'memories-' . now()->toDateString(),
+                        'image' => Media::url($first->logo),
+                    ]);
+                    if (Notify::wants($user, 'memories', 'email')) {
+                        Mail::to($user->email)->send(new AnniversaryReminderMail($user, $filteredListings));
+                    }
                 }
             }
         }

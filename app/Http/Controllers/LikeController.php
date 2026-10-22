@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\Notify;
 use App\Models\Comment;
 use App\Models\PostComment;
 use App\Notifications\CommentLiked;
@@ -46,7 +47,15 @@ class LikeController extends Controller
             $comment->likes()->create(['user_id' => $user->id]);
             // Tell the author (in the bell), not for your own comments or the demo account
             if ($author && $author->id !== $user->id && ! $author->is_demo) {
-                $author->notify(new CommentLiked($user, $comment));
+                $liked = new CommentLiked($user, $comment);
+                $author->notify($liked);
+                $data = $liked->toArray($author);
+                Notify::push($author, 'like', [
+                    'title' => $user->name . ' liked your comment',
+                    'body' => $data['title'] ? 'On ' . $data['title'] : 'Tap to see it.',
+                    'url' => $data['url'],
+                    'tag' => 'like-' . $data['comment_type'] . '-' . $comment->id,
+                ]);
             }
         }
 

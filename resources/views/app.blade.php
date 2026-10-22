@@ -13,6 +13,15 @@
             : 'TheBoise: a private library of photo albums and memories.' }}" />
         <link rel="icon" href="{{ asset('images/logo.png') }}" />
 
+        {{-- The app on the home screen: name, icon, colours (manifest for Android and computers, the rest for iPhone) --}}
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#0d9488" />
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-title" content="TheBoise" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
         {{-- Before anything is drawn, so dark mode doesn't flash white --}}
         <script>
             (function () {

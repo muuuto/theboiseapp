@@ -5,6 +5,7 @@ import { Images, LogOut, Map, Menu, MessagesSquare, Monitor, PanelLeftClose, Pan
 import NotificationsBell from '../components/NotificationsBell.vue';
 import ThemeToggle from '../components/ThemeToggle.vue';
 import FlashMessage from '../components/FlashMessage.vue';
+import { forgetDevice, syncDevice } from '../push.js';
 
 const page = usePage();
 const user = computed(() => page.props.auth.user);
@@ -57,14 +58,20 @@ function isActive(href) {
     return href === '/' ? url === '/' : url.startsWith(href);
 }
 
-function logout() {
+async function logout() {
+    // This device stops getting this account's notifications
+    await forgetDevice();
     router.post('/logout');
 }
 
 // Close the drawer when navigating or pressing Escape
 const removeListener = router.on('navigate', () => (drawerOpen.value = false));
 const onKeydown = (event) => event.key === 'Escape' && (drawerOpen.value = false);
-onMounted(() => window.addEventListener('keydown', onKeydown));
+onMounted(() => {
+    window.addEventListener('keydown', onKeydown);
+    // Phone notifications: the server gets this device's current address
+    if (!user.value?.isDemo) syncDevice();
+});
 onBeforeUnmount(() => {
     removeListener();
     window.removeEventListener('keydown', onKeydown);

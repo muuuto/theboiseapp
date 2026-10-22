@@ -254,6 +254,35 @@ Steps (one release each):
    - [ ] Push, cPanel Git deploy, then `/admin/maintenance` → **Backup + run migrations**
      (until then the forum works as today, without the Reorder button)
 
+10. **The app on the phone and phone notifications**: ✅ Done locally, 194 tests passing.
+   - "Add to Home Screen" makes TheBoise an app: its own TB icon (redrawn sharp from the logo),
+     full screen, a "No connection" page when offline. Account page → *App & notifications*:
+     install button (Android, computers) or the 3 steps for iPhone (Safari → Share → Add to Home
+     Screen; notifications on iPhone only inside the app, iOS 16.4+).
+   - Notifications on the phone for: new albums you're in, comments on them, forum replies and
+     shared posts, likes on your comments, shared expenses, "On this day" memories. Each person
+     chooses phone and/or email for each (account page); without a choice: emails as before and
+     phone notifications on the devices where they turned them on. Short texts (no comment text:
+     they can show on a locked screen). Logging out stops them on that device. Never the demo
+     account. "Send a test" on the account page.
+   - The keys that sign the notifications are made on the server the first time and kept in the
+     database: nothing to add to `.env`.
+   - Checked: delivery and encryption end to end with a stand-in push service, the notification
+     shown and opened by the app in a real browser, the offline page. Only the last step (Apple's
+     and Google's real services) can be tried on a real phone.
+   **To deploy: FULL release** (new package `minishlink/web-push`, see `deploy/DEPLOY.md` →
+   *Full release*). Before starting:
+   - [ ] If `public_html/vendor_old` from the last full release is still there, delete it first
+   - [ ] If the `/home/bptheboi/composer-ran` folder is still there, delete it (or the install
+     job won't run)
+   - [ ] Then the full release steps; at step 7 check **curl (phone notifications)** is green, and
+     **Backup + run migrations**
+   - [ ] On your phone: open theboise.it, add it to the home screen, open it from the icon,
+     Account → *Turn on notifications* → *Send a test*
+11. **Announcement post** (wanted): write for Matteo an announcement of all these changes, to
+    publish as a new post in the forum (what's new, in the site's tone: redesign, maps, likes,
+    emails, QR codes, expenses, the app and notifications...).
+
 ## Found later (to plan)
 
 - **Black bars in album previews (and in emails):** 60 of 202 album previews have black bars

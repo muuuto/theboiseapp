@@ -19,6 +19,17 @@ class ExpenseMails
                 continue;
             }
 
+            $yourShare = ExpenseMath::format($share->amount);
+            Notify::push($share->user, 'expenses', [
+                'title' => $expense->description . ': your share ' . $yourShare,
+                'body' => ($expense->creator?->name ?? 'Someone') . ' added it in ' . $expense->group->name,
+                'url' => '/expenses/' . $expense->group->id,
+                'tag' => 'expense-' . $expense->id,
+            ]);
+            if (! Notify::wants($share->user, 'expenses', 'email')) {
+                continue;
+            }
+
             self::send($share->user, 'mails.expense_added', 'New expense in ' . $expense->group->name . ': ' . $expense->description, [
                 'name' => $share->user->name,
                 'addedBy' => $expense->creator?->name ?? 'Someone',
@@ -43,6 +54,18 @@ class ExpenseMails
                 continue;
             }
             $received = $person->id == $payment->to_user_id;
+            $sentence = $received
+                ? ($payment->from?->name ?? 'Someone') . ' paid you'
+                : 'You paid ' . ($payment->to?->name ?? 'someone');
+            Notify::push($person, 'expenses', [
+                'title' => $sentence . ' ' . ExpenseMath::format($payment->amount),
+                'body' => 'Recorded by ' . ($payment->creator?->name ?? 'someone') . ' in ' . $payment->group->name,
+                'url' => '/expenses/' . $payment->group->id,
+                'tag' => 'payment-' . $payment->id,
+            ]);
+            if (! Notify::wants($person, 'expenses', 'email')) {
+                continue;
+            }
 
             self::send($person, 'mails.expense_payment', 'Payment recorded in ' . $payment->group->name, [
                 'name' => $person->name,

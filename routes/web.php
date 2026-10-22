@@ -78,6 +78,15 @@ Route::get('/demo/{secret}', [UserController::class, 'demo'])->middleware(['gues
 // "Only albums I posted" on the album list and the map
 Route::put('/account/album-filter', [AccountController::class, 'albumFilter'])->middleware(['auth', 'not-demo']);
 
+// Phone notifications: this device on/off, test, remove a device, what to receive
+Route::middleware(['auth', 'not-demo'])->prefix('push')->group(function () {
+    Route::post('/subscriptions', [App\Http\Controllers\PushController::class, 'store']);
+    Route::delete('/subscriptions', [App\Http\Controllers\PushController::class, 'destroy']);
+    Route::delete('/subscriptions/{subscription}', [App\Http\Controllers\PushController::class, 'forget']);
+    Route::post('/test', [App\Http\Controllers\PushController::class, 'test']);
+    Route::put('/settings', [App\Http\Controllers\PushController::class, 'settings']);
+});
+
 // Theme: light, dark or follow the device
 Route::put('/account/theme', [UserController::class, 'theme'])->middleware(['auth', 'not-demo']);
 
