@@ -29,7 +29,7 @@ class ListingController extends Controller
         $user = auth()->user();
         $filters = request()->only(['tag', 'search']);
 
-        $ownFilter = self::ownFilter($user);
+        $ownFilter = self::ownFilter($user, self::viewChoice());
         $albums = $user->listing()
             ->withPivot('seen')
             ->when($ownFilter['on'], fn ($query) => $query->where('listings.user_id', $user->id))
@@ -392,13 +392,21 @@ class ListingController extends Controller
         return $year && $user->listing()->whereYear('dateFrom', $year)->exists() ? $year : null;
     }
 
-    // "All albums | My albums": offered to who posted at least one album, saved on the account
-    // (album list, map, account page). Without a choice: all albums
-    public static function ownFilter(User $user): array
+    // "All albums | My albums": offered to who posted at least one album. The default is saved on the
+    // account (Preferences); the switch on the album list and the map only changes the current view
+    // (?mine=1/0, not in the address bar: a reload goes back to the default)
+    public static function ownFilter(User $user, ?bool $view = null): array
     {
         $available = ! $user->is_demo && Listing::where('user_id', $user->id)->exists();
+        $default = (bool) $user->only_own_albums;
 
-        return ['available' => $available, 'on' => $available && (bool) $user->only_own_albums];
+        return ['available' => $available, 'default' => $available && $default, 'on' => $available && ($view ?? $default)];
+    }
+
+    // The view asked by the switch, if any
+    public static function viewChoice(): ?bool
+    {
+        return request()->has('mine') ? request()->boolean('mine') : null;
     }
 
     // Who's in the album: the poster always is (unless an admin), the demo account only by an admin

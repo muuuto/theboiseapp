@@ -12,7 +12,7 @@ const props = defineProps({
     albums: Object,
     slogan: Object,
     filters: Object,
-    ownFilter: { type: Object, default: () => ({ available: false, on: false }) },
+    ownFilter: { type: Object, default: () => ({ available: false, on: false, default: false }) },
     wrappedBanner: { type: Number, default: null }, // December/January: the year to open
     decoration: { type: Object, default: null }, // holiday or birthday: things falling, and a badge
     pinned: { type: Object, default: null }, // a forum post the admins put at the top (news, changelog)
@@ -42,18 +42,21 @@ const pattern = heroPatterns.find((candidate) => candidate.name === requested) ?
 const search = ref(props.filters.search);
 const hasFilters = computed(() => props.filters.search || props.filters.tag);
 
+// "All albums | My albums" changed from the default just for now: searching keeps it
+const view = () => (props.ownFilter.on !== props.ownFilter.default ? { mine: props.ownFilter.on ? 1 : 0 } : {});
+
 function submitSearch() {
-    router.get('/', search.value ? { search: search.value } : {}, { preserveState: true });
+    router.get('/', { ...(search.value ? { search: search.value } : {}), ...view() }, { preserveState: true });
 }
 
 function filterByTag(tag) {
     search.value = '';
-    router.get('/', { tag });
+    router.get('/', { tag, ...view() });
 }
 
 function resetFilters() {
     search.value = '';
-    router.get('/');
+    router.get('/', view());
 }
 </script>
 
@@ -127,7 +130,7 @@ function resetFilters() {
                     <template v-if="ownFilter.on"> {{ t('posted by you') }}</template>
                 </p>
             </div>
-            <OwnAlbumsToggle v-if="ownFilter.available" :on="ownFilter.on" class="ml-auto sm:ml-2" />
+            <OwnAlbumsToggle v-if="ownFilter.available" :on="ownFilter.on" :default="ownFilter.default" class="ml-auto sm:ml-2" />
         </div>
 
         <!-- Phones: a full-width row above the title. Larger screens: next to the title, on the right -->

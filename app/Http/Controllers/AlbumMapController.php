@@ -13,7 +13,7 @@ class AlbumMapController extends Controller
     public function index()
     {
         $user = auth()->user();
-        $ownFilter = ListingController::ownFilter($user);
+        $ownFilter = ListingController::ownFilter($user, ListingController::viewChoice());
         $albums = $user->listing()->with('places')
             ->when($ownFilter['on'], fn ($query) => $query->where('listings.user_id', $user->id))
             ->get();

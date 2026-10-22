@@ -1,16 +1,33 @@
 <script setup>
 import { ref } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { router, usePage } from '@inertiajs/vue3';
 
-// "All albums | My albums": My albums hides the albums others posted (where you're tagged).
-// Saved on the account, the album list and the map follow it
-const props = defineProps({ on: Boolean });
+// "All albums | My albums" (My albums: only the ones you posted).
+// On the account page (saves) it's the default, saved on the account. On the album list and the map
+// it only changes what you see now: the address doesn't change, so a reload goes back to the default
+const props = defineProps({
+    on: Boolean,
+    default: Boolean, // the account's choice
+    saves: { type: Boolean, default: false },
+});
 const saving = ref(false);
+const page = usePage();
 
 function choose(mine) {
     if (mine === props.on || saving.value) return;
     saving.value = true;
-    router.put('/account/album-filter', { on: mine }, { preserveScroll: true, onFinish: () => (saving.value = false) });
+    const done = { preserveScroll: true, onFinish: () => (saving.value = false) };
+    if (props.saves) {
+        router.put('/account/album-filter', { on: mine }, done);
+        return;
+    }
+    // Same page with the search and tag kept, from the first page; "mine" only when it differs
+    // from the default. A clean address stays as it is (a reload goes back to the default); one
+    // that already has a page or a choice (?page=2&mine=0) is updated, so it never says otherwise
+    const url = new URL(page.url, window.location.origin);
+    const query = Object.fromEntries([...url.searchParams].filter(([key]) => !['page', 'mine'].includes(key)));
+    const keepAddress = !url.searchParams.has('page') && !url.searchParams.has('mine');
+    router.get(url.pathname, mine === props.default ? query : { ...query, mine: mine ? 1 : 0 }, { ...done, preserveState: true, preserveUrl: keepAddress });
 }
 
 const options = [

@@ -324,8 +324,9 @@ Steps (one release each):
     has no Italian. To add a text: write it in English with `t('...')` in the pages or `__('...')`
     on the server, and its Italian in `lang/it.json`.
 19. **Account → Preferences**: theme, language, and "Album list and map: All albums | My albums"
-    (for who posted albums; without a choice: all albums). The default switch on the maintenance
-    page is gone.
+    (for who posted albums; without a choice: all albums). That's the default: the switch on the
+    album list and the map only changes the current view (searching keeps it), a reload goes back
+    to the default. The default switch on the maintenance page is gone.
 20. **Pinned post on the home page**: admins open a forum post → *Pin on the home page* (one at a
     time, *Unpin from home* to remove it). Everyone who can see the post gets a slim "📌 title →"
     link at the top of the home page, with ✕ to close it (until another post is pinned). Never

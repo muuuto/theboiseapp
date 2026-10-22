@@ -137,7 +137,7 @@ const buttonClass = 'inline-flex items-center justify-center gap-2 rounded-xl bg
                         <span class="block text-sm font-semibold">{{ t('Album list and map') }}</span>
                         <span class="text-xs text-slate-500">{{ t('Every album you\'re in, or only the ones you posted') }}</span>
                     </span>
-                    <OwnAlbumsToggle :on="ownFilter.on" />
+                    <OwnAlbumsToggle :on="ownFilter.on" saves />
                 </div>
             </section>
 

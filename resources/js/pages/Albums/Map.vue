@@ -28,7 +28,7 @@ const suggestedCount = computed(() => props.places.filter((place) => place.sugge
                 <template v-if="withoutPlaces"> · {{ t(':count without a place yet', { count: withoutPlaces }) }}</template>
             </p>
         </div>
-        <OwnAlbumsToggle v-if="ownFilter.available" :on="ownFilter.on" class="sm:ml-auto" />
+        <OwnAlbumsToggle v-if="ownFilter.available" :on="ownFilter.on" :default="ownFilter.default" class="sm:ml-auto" />
         <a v-if="isAdmin && suggestedCount" href="/admin/locations" :class="!ownFilter.available && 'ml-auto'" class="inline-flex items-center gap-1.5 rounded-xl bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-200 dark:bg-amber-950 dark:text-amber-300">
             <Info class="size-4" /> {{ t(':count guessed locations to review', { count: suggestedCount }) }}
         </a>

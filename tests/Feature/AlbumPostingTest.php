@@ -187,6 +187,11 @@ class AlbumPostingTest extends TestCase
         $this->actingAs($user)->put('/account/album-filter', ['on' => true]);
         $this->actingAs($user)->get('/account')->assertInertia(fn ($page) => $page->where('ownFilter.on', true));
         $this->actingAs($user)->get('/')->assertInertia(fn ($page) => $page->where('ownFilter.on', true));
+        // The switch on the album list: only this view, the default stays
+        $this->actingAs($user)->get('/?mine=0')->assertInertia(fn ($page) => $page->where('ownFilter.on', false)->where('ownFilter.default', true));
+        $this->assertTrue((bool) $user->fresh()->only_own_albums);
+        $this->actingAs($user)->get('/')->assertInertia(fn ($page) => $page->where('ownFilter.on', true));
+        $this->actingAs($user)->get('/map?mine=0')->assertInertia(fn ($page) => $page->where('ownFilter.on', false));
         // Who never posted an album doesn't get it
         $this->actingAs(User::factory()->create())->get('/account')->assertInertia(fn ($page) => $page->where('ownFilter.available', false));
     }
