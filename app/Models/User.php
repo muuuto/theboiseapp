@@ -54,6 +54,12 @@ class User extends Authenticatable
         return $this->belongsToMany(Listing::class, 'listing_user');
     }
 
+    // Shared expenses groups the user is in
+    public function expenseGroups(): BelongsToMany
+    {
+        return $this->belongsToMany(ExpenseGroup::class)->withTimestamps();
+    }
+
     // Relationship With Listings
     public function listings() {
         return $this->hasMany(Listing::class, 'user_id');

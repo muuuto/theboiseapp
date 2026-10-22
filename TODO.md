@@ -17,12 +17,12 @@ Feature wishlist is in `notes.md`. How-to for local development and deploying is
 ## On the server (after the Laravel 13 deploy)
 
 - [x] cPanel → *Gestione MultiPHP* → PHP 8.4
-- [ ] cPanel → *Processi cron* → the regular job must use the PHP 8.4 binary
+- [x] cPanel → *Processi cron* → the regular job must use the PHP 8.4 binary
       (`/usr/local/bin/ea-php84 /home/bptheboi/public_html/artisan schedule:run >> /dev/null 2>&1`)
-- [ ] The next morning: check that `/admin/maintenance` lists a new backup made at 03:00
+- [x] The next morning: check that `/admin/maintenance` lists a new backup made at 03:00
       (if not, the cron is still using the old PHP)
 - [ ] `/admin/maintenance`: check that all PHP extensions are green
-- [ ] Add to the server `.env` to get a backup by email every Sunday:
+- [x] Add to the server `.env` to get a backup by email every Sunday:
       ```
       BACKUP_MAIL_TO=matteo.gavoni@gmail.com
       ```
@@ -192,7 +192,7 @@ Steps (one release each):
    name and your albums (also `php artisan mails:preview you@example.com` sends all of them).
    The empty `slogan` table is dropped by a migration (only if still empty).
    **To deploy** (quick release, one migration):
-   - [ ] Check that the server `.env` has `APP_URL=https://theboise.it` (the scheduled emails
+   - [x] Check that the server `.env` has `APP_URL=https://theboise.it` (the scheduled emails
          build their links and images from it)
    - [ ] Push, cPanel Git deploy, then `/admin/maintenance` → **Backup + run migrations**
    - [ ] `/admin/maintenance` → **Test emails**: send yourself a few (New album, On this day,
@@ -201,7 +201,18 @@ Steps (one release each):
    version). If an email ever includes the photos link or the description directly, it must use
    the recipient's personal version when there is one (`listing_user.custom_album_link` /
    `custom_description`).
-7. **Splitwise** (decided):
+7. **Splitwise**: ✅ Done locally, 172 tests passing. *Expenses* in the sidebar (not for the demo
+   account). Only a group's members see it, admins included. Whoever creates a group (and admins)
+   edits its name, album and members; people with expenses or payments can't be removed; a group
+   can be deleted only once everyone is settled. Any member adds expenses; who added or paid an
+   expense (and the group creator) can edit or delete it. The album page shows a link to its group.
+   Emails: everyone with a share in a new expense (except who added it), and the other person of a
+   payment. Both are in **Test emails** on the maintenance page.
+   **To deploy** (quick release, one migration):
+   - [ ] Push, cPanel Git deploy, then `/admin/maintenance` → **Backup + run migrations**
+     (until then the Expenses page gives an error; albums and the rest work)
+   - [ ] Try it with a small real group (e.g. you and one friend) before the next trip
+   Decided:
    - **groups** (e.g. "Sicilia 2026", "Casa") with their members, optionally linked to an album
    - expenses split **equally**, by **exact amounts** or by **shares** (2 nights vs 3 nights)
    - **euro only**

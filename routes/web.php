@@ -10,6 +10,9 @@ use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\InviteController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\AlbumMapController;
+use App\Http\Controllers\ExpenseGroupController;
+use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\ExpensePaymentController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -211,6 +214,26 @@ Route::post('/forum/{category}/{post}/comment', [PostController::class, 'comment
 
 // Send Post
 Route::post('/forum/{category}/{post}/notify', [PostController::class, 'notify'])->middleware(['auth', 'not-demo'])->name('forum.posts.notify');
+
+// Shared expenses (like Splitwise): only the members of a group see it, never the demo account
+Route::middleware(['auth', 'not-demo'])->prefix('expenses')->scopeBindings()->group(function () {
+    Route::get('/', [ExpenseGroupController::class, 'index']);
+    Route::get('/create', [ExpenseGroupController::class, 'create']);
+    Route::post('/', [ExpenseGroupController::class, 'store']);
+    Route::get('/{group}', [ExpenseGroupController::class, 'show']);
+    Route::get('/{group}/edit', [ExpenseGroupController::class, 'edit']);
+    Route::put('/{group}', [ExpenseGroupController::class, 'update']);
+    Route::delete('/{group}', [ExpenseGroupController::class, 'destroy']);
+
+    Route::get('/{group}/expenses/create', [ExpenseController::class, 'create']);
+    Route::post('/{group}/expenses', [ExpenseController::class, 'store']);
+    Route::get('/{group}/expenses/{expense}/edit', [ExpenseController::class, 'edit']);
+    Route::put('/{group}/expenses/{expense}', [ExpenseController::class, 'update']);
+    Route::delete('/{group}/expenses/{expense}', [ExpenseController::class, 'destroy']);
+
+    Route::post('/{group}/payments', [ExpensePaymentController::class, 'store']);
+    Route::delete('/{group}/payments/{payment}', [ExpensePaymentController::class, 'destroy']);
+});
 
 // Maintenance (admin only): clear caches, backups and migrations without SSH
 Route::middleware(['auth', 'can:admin'])->prefix('admin/maintenance')->group(function () {

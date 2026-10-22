@@ -2,7 +2,7 @@
 import { computed, nextTick, onMounted, ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import {
-    ArrowLeft, CalendarDays, Check, Copy, ExternalLink, MapPin, Pencil, PlayCircle, Trash2, UserCog, Users,
+    ArrowLeft, CalendarDays, Check, Copy, ExternalLink, MapPin, Pencil, PlayCircle, Trash2, UserCog, Users, Wallet,
 } from 'lucide-vue-next';
 import LeafletMap from '../../components/LeafletMap.vue';
 import CommentBox from '../../components/CommentBox.vue';
@@ -14,6 +14,7 @@ const props = defineProps({
     album: Object,
     comments: Array,
     can: Object,
+    expenseGroups: { type: Array, default: () => [] },
 });
 
 const longDate = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
@@ -185,6 +186,14 @@ onMounted(() => {
                     <component :is="copied ? Check : Copy" class="size-4" />
                     {{ copied ? 'Copied!' : 'Copy the photos link' }}
                 </button>
+                <Link
+                    v-for="expenseGroup in expenseGroups"
+                    :key="expenseGroup.id"
+                    :href="`/expenses/${expenseGroup.id}`"
+                    class="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-teal-700 ring-1 ring-slate-200 transition hover:bg-teal-50 dark:text-teal-400 dark:ring-slate-700 dark:hover:bg-slate-800"
+                >
+                    <Wallet class="size-4" /> Expenses: {{ expenseGroup.name }}
+                </Link>
             </div>
 
             <div class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">

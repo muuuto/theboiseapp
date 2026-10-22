@@ -15,6 +15,7 @@ use App\Support\AlbumCover;
 use App\Support\Media;
 use App\Support\SafeHtml;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Schema;
 
 class ListingController extends Controller
 {
@@ -78,7 +79,14 @@ class ListingController extends Controller
 
         $listing->load(['users', 'places', 'comments.user', 'comments.likes.user']);
 
+        // Expense groups of this trip I'm in (the table doesn't exist until its migration runs)
+        $expenseGroups = Schema::hasTable('expense_groups') && ! auth()->user()->is_demo
+            ? auth()->user()->expenseGroups()->where('listing_id', $listing->id)->get(['expense_groups.id', 'name'])
+                ->map(fn ($group) => ['id' => $group->id, 'name' => $group->name])
+            : [];
+
         return Inertia::render('Albums/Show', [
+            'expenseGroups' => $expenseGroups,
             'album' => [
                 'id' => $listing->id,
                 'title' => $listing->title,
