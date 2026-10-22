@@ -38,6 +38,10 @@ class GenerateAnniversaryNotifications extends Command
         } else {
             foreach ($notifyUsersCollection as $key => $userWithAlbums) {
                 $user = User::where('id', '=', $key)->first();
+                // Not in an album nor on the site for 18 months: no daily memories for them
+                if (! $user || ! $user->isActive()) {
+                    continue;
+                }
 
                 $filteredListings = collect($userWithAlbums)->filter(function ($listing) use ($todayMd) {
                     return Carbon::parse($listing->dateFrom)->format('m-d') === $todayMd;

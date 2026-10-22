@@ -21,7 +21,12 @@ class SendListingReminderEmails extends Command
         
         $listingUsers->groupBy('user_id')->each(function ($groupedModels, $userId) {
             $user = $groupedModels->first()->user;
-            $listings = $groupedModels->pluck('listing');
+            $listings = $groupedModels->pluck('listing')->filter();
+
+            // Not in an album nor on the site for 18 months: they've drifted away, no reminders
+            if (! $user || $listings->isEmpty() || ! $user->isActive()) {
+                return;
+            }
 
             Mail::to($user->email)
                 ->send(new ListingReminderMail($user, $listings));

@@ -12,7 +12,7 @@ defineProps({ users: Array });
     <div class="mb-6 flex flex-wrap items-center gap-3">
         <div>
             <h1 class="text-3xl font-extrabold tracking-tight">Monitor</h1>
-            <p class="text-sm text-slate-500">{{ users.length }} users, last login first</p>
+            <p class="text-sm text-slate-500">{{ users.length }} users, most recently on the site first</p>
         </div>
         <Link href="/admin/maintenance" class="ml-auto inline-flex items-center gap-1.5 rounded-xl bg-white px-4 py-2 text-sm font-semibold shadow-sm ring-1 ring-slate-200 hover:ring-slate-300 dark:bg-slate-800 dark:ring-slate-700">
             <Wrench class="size-4" /> Maintenance

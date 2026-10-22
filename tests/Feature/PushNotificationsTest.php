@@ -177,6 +177,7 @@ class PushNotificationsTest extends TestCase
         $anna = User::factory()->create();
         $album = Listing::factory()->create(['title' => 'Sicilia 2023', 'dateFrom' => '2023-08-03', 'dateTo' => '2023-08-05']);
         $album->users()->attach($anna);
+        $this->makeActive($anna);
         $this->device($anna);
 
         $this->artisan('notifications:anniversaries')->assertSuccessful();

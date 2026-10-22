@@ -135,6 +135,10 @@ Route::post('/notifications/read', function (Illuminate\Http\Request $request) {
     return $request->header('X-Inertia') ? back() : response()->noContent();
 })->middleware('auth');
 
+// TheBoise Wrapped: your year in albums
+Route::get('/wrapped', [App\Http\Controllers\WrappedController::class, 'index'])->middleware('auth');
+Route::get('/wrapped/{year}', [App\Http\Controllers\WrappedController::class, 'show'])->middleware('auth')->whereNumber('year');
+
 // All the user's albums on a map
 Route::get('/map', [AlbumMapController::class, 'index'])->middleware('auth');
 
@@ -226,6 +230,26 @@ Route::post('/forum/{category}/{post}/comment', [PostController::class, 'comment
 
 // Send Post
 Route::post('/forum/{category}/{post}/notify', [PostController::class, 'notify'])->middleware(['auth', 'not-demo'])->name('forum.posts.notify');
+
+// Upcoming trips: only the people going see one, never the demo account
+Route::middleware(['auth', 'not-demo'])->prefix('trips')->scopeBindings()->group(function () {
+    Route::get('/', [App\Http\Controllers\TripController::class, 'index']);
+    Route::get('/create', [App\Http\Controllers\TripController::class, 'create']);
+    Route::post('/', [App\Http\Controllers\TripController::class, 'store']);
+    Route::get('/{trip}', [App\Http\Controllers\TripController::class, 'show']);
+    Route::get('/{trip}/edit', [App\Http\Controllers\TripController::class, 'edit']);
+    Route::put('/{trip}', [App\Http\Controllers\TripController::class, 'update']);
+    Route::delete('/{trip}', [App\Http\Controllers\TripController::class, 'destroy']);
+    Route::post('/{trip}/options', [App\Http\Controllers\TripController::class, 'addOption']);
+    Route::delete('/{trip}/options/{option}', [App\Http\Controllers\TripController::class, 'deleteOption']);
+    Route::post('/{trip}/options/{option}/vote', [App\Http\Controllers\TripController::class, 'vote']);
+    Route::post('/{trip}/options/{option}/choose', [App\Http\Controllers\TripController::class, 'choose']);
+    Route::post('/{trip}/items', [App\Http\Controllers\TripController::class, 'addItem']);
+    Route::put('/{trip}/items/{item}', [App\Http\Controllers\TripController::class, 'updateItem']);
+    Route::delete('/{trip}/items/{item}', [App\Http\Controllers\TripController::class, 'deleteItem']);
+    Route::post('/{trip}/expenses', [App\Http\Controllers\TripController::class, 'expenses']);
+    Route::get('/{trip}/album', [App\Http\Controllers\TripController::class, 'makeAlbum']);
+});
 
 // Shared expenses (like Splitwise): only the members of a group see it, never the demo account
 Route::middleware(['auth', 'not-demo'])->prefix('expenses')->scopeBindings()->group(function () {

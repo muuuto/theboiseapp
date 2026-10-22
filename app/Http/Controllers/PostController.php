@@ -234,7 +234,8 @@ class PostController extends Controller
             abort(403, 'Unauthorized Action');
         }
 
-        $allowedUsers = User::where('id', '!=', auth()->id())->get()
+        // Everyone who can see the post and is still around (in an album or on the site in the last 18 months)
+        $allowedUsers = User::active()->where('id', '!=', auth()->id())->get()
             ->filter(fn ($user) => $post->isVisibleTo($user));
 
         Notify::push($allowedUsers, 'forum', [

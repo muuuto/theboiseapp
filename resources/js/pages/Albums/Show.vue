@@ -2,7 +2,7 @@
 import { computed, nextTick, onMounted, ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import {
-    ArrowLeft, CalendarDays, Check, Copy, ExternalLink, History, MapPin, Pencil, PlayCircle, ShieldCheck, Trash2, UserCog, Users, Wallet,
+    ArrowLeft, CalendarDays, Check, Copy, ExternalLink, History, MapPin, Plane, Pencil, PlayCircle, ShieldCheck, Trash2, UserCog, Users, Wallet,
 } from 'lucide-vue-next';
 import LeafletMap from '../../components/LeafletMap.vue';
 import CommentBox from '../../components/CommentBox.vue';
@@ -17,6 +17,7 @@ const props = defineProps({
     can: Object,
     expenseGroups: { type: Array, default: () => [] },
     history: { type: Array, default: () => [] }, // admins only
+    trip: { type: Object, default: null }, // the trip plan it was made from
 });
 
 const longDate = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
@@ -193,6 +194,13 @@ onMounted(() => {
                     <component :is="copied ? Check : Copy" class="size-4" />
                     {{ copied ? 'Copied!' : 'Copy the photos link' }}
                 </button>
+                <Link
+                    v-if="trip"
+                    :href="`/trips/${trip.id}`"
+                    class="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-sky-700 ring-1 ring-slate-200 transition hover:bg-sky-50 dark:text-sky-400 dark:ring-slate-700 dark:hover:bg-slate-800"
+                >
+                    <Plane class="size-4" /> The trip plan
+                </Link>
                 <Link
                     v-for="expenseGroup in expenseGroups"
                     :key="expenseGroup.id"

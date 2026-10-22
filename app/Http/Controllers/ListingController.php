@@ -60,6 +60,7 @@ class ListingController extends Controller
             'albums' => $albums,
             'slogan' => $slogan,
             'ownFilter' => $ownFilter,
+            'wrappedBanner' => $this->wrappedBanner($user),
             'filters' => [
                 'search' => $filters['search'] ?? '',
                 'tag' => $filters['tag'] ?? '',
@@ -90,8 +91,13 @@ class ListingController extends Controller
                 ->map(fn ($group) => ['id' => $group->id, 'name' => $group->name])
             : [];
 
+        $trip = Schema::hasTable('trips') && ! $user->is_demo
+            ? $user->trips()->where('listing_id', $listing->id)->first(['trips.id', 'title'])
+            : null;
+
         return Inertia::render('Albums/Show', [
             'expenseGroups' => $expenseGroups,
+            'trip' => $trip ? ['id' => $trip->id, 'title' => $trip->title] : null,
             'album' => [
                 'id' => $listing->id,
                 'title' => $listing->title,
@@ -143,7 +149,7 @@ class ListingController extends Controller
     {
         abort_unless(auth()->user()->canPostAlbums(), 403, 'Unauthorized Action');
 
-        return Inertia::render('Albums/Form', $this->formProps(null));
+        return Inertia::render('Albums/Form', $this->formProps(null) + ['fromTrip' => $this->tripToAlbum(request('trip'))]);
     }
 
     // Store Listing Data
@@ -164,6 +170,14 @@ class ListingController extends Controller
             $this->savePersonalVersions($listing, $request->input('personal', []));
         }
         AlbumEvent::record('created', $listing, ['people' => User::findMany($people)->pluck('name')->sort()->values()->all()]);
+
+        // Made from a planned trip: they stay linked, and the trip's expenses point to the album
+        if ($trip = $this->tripForAlbum($request->input('trip_id'))) {
+            $trip->update(['listing_id' => $listing->id]);
+            if ($trip->expenseGroup && ! $trip->expenseGroup->listing_id) {
+                $trip->expenseGroup->update(['listing_id' => $listing->id]);
+            }
+        }
 
         // Tell the people in the album (not who posted it): email and/or phone, as each prefers
         $recipients = User::findMany($people)->where('id', '!=', $poster->id);
@@ -321,6 +335,44 @@ class ListingController extends Controller
         }
 
         return back()->with('message', 'Comment added!');
+    }
+
+    // A trip of mine without an album yet (null otherwise, also before the trips migration)
+    private function tripForAlbum($id): ?\App\Models\Trip
+    {
+        if (! $id || ! Schema::hasTable('trips')) {
+            return null;
+        }
+        $trip = \App\Models\Trip::with('members')->find($id);
+
+        return $trip && ! $trip->listing_id && $trip->hasMember(auth()->user()) ? $trip : null;
+    }
+
+    // What the album form starts with when made from a trip
+    private function tripToAlbum($id): ?array
+    {
+        $trip = $this->tripForAlbum($id);
+
+        return $trip ? [
+            'id' => $trip->id,
+            'title' => $trip->title,
+            'dateFrom' => $trip->date_from?->toDateString(),
+            'dateTo' => $trip->date_to?->toDateString(),
+            'location' => $trip->destination,
+            'people' => $trip->members->where('is_demo', false)->pluck('id')->values(),
+        ] : null;
+    }
+
+    // December: this year's Wrapped; January: last year's (if there are albums)
+    private function wrappedBanner(User $user): ?int
+    {
+        $year = match (now()->month) {
+            \App\Support\Wrapped::OPENS_MONTH => now()->year,
+            1 => now()->year - 1,
+            default => null,
+        };
+
+        return $year && $user->listing()->whereYear('dateFrom', $year)->exists() ? $year : null;
     }
 
     // "Only albums I posted": offered to who posted at least one album (and saved on their account)

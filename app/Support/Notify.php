@@ -19,7 +19,9 @@ class Notify
         'forum' => ['label' => 'Forum: replies to your posts and shared posts', 'email' => true, 'push' => true],
         'like' => ['label' => 'Likes on your comments', 'email' => null, 'push' => true],
         'expenses' => ['label' => 'Shared expenses: new expenses and payments', 'email' => true, 'push' => true],
+        'trips' => ['label' => 'Trips: invitations, dates decided, reminders', 'email' => true, 'push' => true],
         'memories' => ['label' => '"On this day" memories', 'email' => true, 'push' => true],
+        'wrapped' => ['label' => 'Your yearly Wrapped (end of December)', 'email' => true, 'push' => true],
     ];
 
     private static ?bool $ready = null;

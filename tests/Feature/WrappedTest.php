@@ -1,0 +1,118 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Comment;
+use App\Models\Listing;
+use App\Models\PushSubscription;
+use App\Models\User;
+use App\Support\PushSender;
+use App\Support\Wrapped;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Collection;
+use Tests\TestCase;
+
+// TheBoise Wrapped: the numbers, when it opens, and the December notification
+class WrappedTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_the_year_in_numbers(): void
+    {
+        $me = User::factory()->create();
+        $anna = User::factory()->create(['name' => 'Anna']);
+        $bob = User::factory()->create(['name' => 'Bob']);
+        $demo = User::factory()->create(['is_demo' => true]);
+        // Palermo (2 nights) and Tenerife (1 night) with Anna; Bolzano itself with Bob
+        $palermo = $this->album('Sicilia', '2025-08-01', '2025-08-03', [[38.1157, 13.3615, 'Palermo, Sicilia, Italia']], [$me, $anna, $demo]);
+        $this->album('Bene Life', '2025-05-17', '2025-05-18', [[28.2916, -16.6291, 'Tenerife, Canarie, Spagna']], [$me, $anna]);
+        $this->album('Spritz', '2025-05-30', '2025-05-30', [[46.4983, 11.3548, 'Bolzano, Alto Adige, Italia']], [$me, $bob]);
+        // Another year doesn't count
+        $this->album('Old', '2024-01-01', '2024-01-02', [], [$me]);
+        $comment = Comment::create(['listing_id' => $palermo->id, 'user_id' => $me->id, 'comment' => '<p>Che <b>mare</b>!</p>', 'created_at' => '2025-08-04 10:00:00']);
+        $comment->likes()->create(['user_id' => $anna->id]);
+        $comment->likes()->create(['user_id' => $bob->id]);
+
+        $w = Wrapped::for($me, 2025);
+
+        $this->assertSame(3, $w['albumCount']);
+        $this->assertSame(1, $w['previousYear']);
+        $this->assertSame(3 + 2 + 1, $w['daysAway']);
+        // In the order of the first visit: Tenerife (May) before Sicily
+        $this->assertSame(['Spagna' => '🇪🇸', 'Italia' => '🇮🇹'], $w['countries']->pluck('flag', 'name')->all());
+        $this->assertSame('Tenerife', $w['farthest']['name']);
+        $this->assertEqualsWithDelta(3165, $w['farthest']['km'], 15);
+        // There and back: about 2 × (Palermo 947 + Tenerife 3165), Bolzano itself 0
+        $this->assertEqualsWithDelta(2 * (947 + 3165), $w['km'], 30);
+        $this->assertSame(['name' => 'Sicilia', 'days' => 3], ['name' => $w['longest']['title'], 'days' => $w['longest']['days']]);
+        $this->assertSame('May', $w['busiestMonth']['name']);
+        // Anna first (2 albums), never the demo account
+        $this->assertSame(['Anna' => 2, 'Bob' => 1], $w['friends']->mapWithKeys(fn ($f) => [$f['name'] => $f['trips']])->all());
+        $this->assertSame(['text' => 'Che mare!', 'likes' => 2, 'on' => 'Sicilia'], $w['comments']['best']);
+
+        $this->assertNull(Wrapped::for($me, 2023));
+    }
+
+    public function test_the_current_year_opens_in_december(): void
+    {
+        $me = User::factory()->create();
+        $this->album('Summer', now()->year . '-07-01', now()->year . '-07-03', [], [$me]);
+        $this->album('Last year', (now()->year - 1) . '-07-01', (now()->year - 1) . '-07-03', [], [$me]);
+
+        $this->travelTo(now()->setDate(now()->year, 11, 30));
+        $this->actingAs($me)->get('/wrapped/' . now()->year)->assertRedirect('/wrapped');
+        $this->actingAs($me)->get('/wrapped')->assertRedirect('/wrapped/' . (now()->year - 1));
+        // Admins can look before
+        $this->actingAs(tap($me)->update(['isAdmin' => 1]))->get('/wrapped/' . now()->year)->assertOk();
+        $me->update(['isAdmin' => 0]);
+
+        $this->travelTo(now()->setDate(now()->year, 12, 1));
+        $this->actingAs($me)->get('/wrapped/' . now()->year)
+            ->assertInertia(fn ($page) => $page->component('Wrapped')->where('wrapped.albumCount', 1));
+        $this->actingAs($me)->get('/')->assertInertia(fn ($page) => $page->where('wrappedBanner', now()->year));
+    }
+
+    public function test_no_albums_no_wrapped(): void
+    {
+        $this->actingAs(User::factory()->create())->get('/wrapped')
+            ->assertInertia(fn ($page) => $page->component('Wrapped')->where('wrapped', null)->where('years', []));
+    }
+
+    public function test_december_notification_goes_to_people_with_albums_that_year(): void
+    {
+        $sent = [];
+        $this->app->instance(PushSender::class, new class($sent) extends PushSender {
+            public function __construct(private array &$sent) {}
+
+            public function send(Collection $subscriptions, array $payload): array
+            {
+                $this->sent[] = $payload;
+
+                return [];
+            }
+        });
+        $this->travelTo(now()->setDate(2026, 12, 27));
+        [$traveller, $stayedHome] = User::factory()->count(2)->create();
+        $this->album('Summer', '2026-07-01', '2026-07-03', [], [$traveller]);
+        $this->album('Long ago', '2020-07-01', '2020-07-03', [], [$stayedHome]);
+        PushSubscription::create(['user_id' => $traveller->id, 'endpoint' => 'https://fcm.googleapis.com/x', 'endpoint_hash' => hash('sha256', 'x'), 'public_key' => 'k', 'auth_token' => 'a']);
+
+        $this->artisan('wrapped:send')->assertSuccessful()->expectsOutput('Wrapped 2026 sent to 1 person.');
+
+        $this->assertSame('Your 2026 Wrapped is ready 🎁', $sent[0]['title']);
+        $emails = app('mailer')->getSymfonyTransport()->messages();
+        $this->assertCount(1, $emails);
+        $this->assertSame($traveller->email, $emails->first()->getEnvelope()->getRecipients()[0]->getAddress());
+    }
+
+    private function album(string $title, string $from, string $to, array $places, array $people): Listing
+    {
+        $album = Listing::factory()->create(['title' => $title, 'dateFrom' => $from, 'dateTo' => $to]);
+        foreach ($places as $i => [$lat, $lng, $name]) {
+            $album->places()->create(['latitude' => $lat, 'longitude' => $lng, 'place_name' => $name, 'position' => $i]);
+        }
+        $album->users()->attach(collect($people)->pluck('id'));
+
+        return $album;
+    }
+}

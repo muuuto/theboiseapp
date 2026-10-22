@@ -26,6 +26,9 @@ class ScheduledEmailsTest extends TestCase
     {
         $birthdayToday = User::factory()->create(['birthday' => now()->subYears(30)->format('Y-m-d')]);
         User::factory()->create(['birthday' => now()->subYears(30)->addDays(3)->format('Y-m-d')]);
+        // Same birthday, but not in any album for a year: left alone
+        User::factory()->create(['birthday' => now()->subYears(25)->format('Y-m-d')]);
+        $this->makeActive($birthdayToday);
 
         $this->artisan('notifications:birthday')->assertSuccessful();
 
@@ -38,6 +41,7 @@ class ScheduledEmailsTest extends TestCase
     public function test_anniversary_mail_is_sent_to_album_members(): void
     {
         $member = User::factory()->create();
+        $this->makeActive($member);
         $listing = Listing::factory()->create([
             'dateFrom' => now()->subYears(3)->format('Y-m-d'),
             'dateTo' => now()->subYears(3)->addDays(2)->format('Y-m-d'),
@@ -60,6 +64,7 @@ class ScheduledEmailsTest extends TestCase
     public function test_reminder_mail_is_sent_for_unseen_albums_only(): void
     {
         $user = User::factory()->create();
+        $this->makeActive($user);
         $unseen = Listing::factory()->create();
         $seen = Listing::factory()->create();
         $unseen->users()->attach($user, ['seen' => false]);
@@ -72,5 +77,56 @@ class ScheduledEmailsTest extends TestCase
         Mail::assertSent(ListingReminderMail::class, function (ListingReminderMail $mail) use ($user, $unseen) {
             return $mail->hasTo($user->email) && $mail->listings->pluck('id')->all() === [$unseen->id];
         });
+    }
+
+    public function test_people_not_in_any_album_for_a_year_get_no_automatic_emails(): void
+    {
+        $gone = User::factory()->create(['birthday' => now()->subYears(40)->format('Y-m-d')]);
+        Listing::factory()->create([
+            'dateFrom' => now()->subYears(3)->format('Y-m-d'),
+            'dateTo' => now()->subYears(3)->addDays(2)->format('Y-m-d'),
+        ])->users()->attach($gone, ['seen' => false]);
+
+        $this->artisan('notifications:birthday')->assertSuccessful();
+        $this->artisan('notifications:anniversaries')->assertSuccessful();
+        $this->artisan('listings:send-reminders')->assertSuccessful();
+
+        Mail::assertNothingSent();
+        $this->assertFalse($gone->isActive());
+        // One recent album and they're back
+        $this->makeActive($gone);
+        $this->assertTrue($gone->fresh()->isActive());
+    }
+
+    public function test_active_means_an_album_or_a_visit_in_the_last_18_months(): void
+    {
+        $oldAlbum = fn () => Listing::factory()->create(['dateFrom' => now()->subYears(3)->toDateString(), 'dateTo' => now()->subYears(3)->addDay()->toDateString()]);
+
+        // Old albums only, but they opened the site a year ago: still interested
+        $visitor = User::factory()->create(['last_login' => now()->subYear()]);
+        $oldAlbum()->users()->attach($visitor);
+        $this->assertTrue($visitor->isActive());
+
+        // An album 15 months ago is enough
+        $recent = User::factory()->create();
+        Listing::factory()->create(['dateFrom' => now()->subMonths(15)->toDateString(), 'dateTo' => now()->subMonths(15)->toDateString()])->users()->attach($recent);
+        $this->assertTrue($recent->isActive());
+
+        // Neither for two years: gone
+        $gone = User::factory()->create(['last_login' => now()->subYears(2)]);
+        $oldAlbum()->users()->attach($gone);
+        $this->assertFalse($gone->isActive());
+
+        // The query agrees with the check
+        $this->assertEqualsCanonicalizing([$visitor->id, $recent->id], User::active()->pluck('id')->all());
+    }
+
+    public function test_a_visit_updates_the_last_login_once_a_day(): void
+    {
+        $user = User::factory()->create(['last_login' => now()->subYears(2)]);
+
+        $this->actingAs($user)->get('/account')->assertOk();
+        $this->assertTrue($user->fresh()->isActive());
+        $this->assertSame(now()->toDateString(), substr($user->fresh()->last_login, 0, 10));
     }
 }

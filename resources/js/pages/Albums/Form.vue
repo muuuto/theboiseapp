@@ -15,25 +15,28 @@ const props = defineProps({
     canPersonalize: Boolean,
     // Not admins: the poster is always in their own album
     alwaysIn: { type: Number, default: null },
+    // Made from a planned trip: title, dates, place and people already filled in
+    fromTrip: { type: Object, default: null },
 });
 
 const editing = computed(() => !!props.album);
 
 const form = useForm({
-    title: props.album?.title ?? '',
-    dateFrom: props.album?.dateFrom ?? '',
-    dateTo: props.album?.dateTo ?? '',
-    location: props.album?.location ?? '',
+    title: props.album?.title ?? props.fromTrip?.title ?? '',
+    dateFrom: props.album?.dateFrom ?? props.fromTrip?.dateFrom ?? '',
+    dateTo: props.album?.dateTo ?? props.fromTrip?.dateTo ?? '',
+    location: props.album?.location ?? props.fromTrip?.location ?? '',
     // Pins on the map: none, one or more (e.g. "Londra e Dublino")
     places: props.album?.places.map((place) => ({ ...place })) ?? [],
     albumLink: props.album?.albumLink ?? '',
     tags: props.album?.tags.filter((tag) => tag !== 'Youtube') ?? [],
     description: props.album?.description ?? '',
     videoLinks: props.album?.videoLinks.length ? [...props.album.videoLinks] : [],
-    people: props.album?.people ?? (props.alwaysIn ? [props.alwaysIn] : []),
+    people: props.album?.people ?? props.fromTrip?.people ?? (props.alwaysIn ? [props.alwaysIn] : []),
     // Own photos link and/or description for some of the people (empty = the general one)
     personal: props.album?.personal.map((version) => ({ ...version })) ?? [],
     cover: null,
+    trip_id: props.fromTrip?.id ?? null,
 });
 
 // Place search on OpenStreetMap (on button press: their rules forbid search-as-you-type)
@@ -113,6 +116,9 @@ const labelClass = 'mb-1.5 block text-sm font-semibold';
     </Link>
 
     <h1 class="mb-6 text-3xl font-extrabold tracking-tight">{{ editing ? 'Edit album' : 'New album' }}</h1>
+    <p v-if="fromTrip" class="-mt-4 mb-6 rounded-2xl bg-teal-50 px-4 py-3 text-sm text-teal-800 dark:bg-teal-950/40 dark:text-teal-300">
+        ✈️ From the trip <strong>{{ fromTrip.title }}</strong>: title, dates, place and people are filled in. Add the photos link, a preview photo and a description.
+    </p>
 
     <form class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]" @submit.prevent="submit">
         <div class="min-w-0 space-y-6">

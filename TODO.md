@@ -254,7 +254,7 @@ Steps (one release each):
    - [ ] Push, cPanel Git deploy, then `/admin/maintenance` → **Backup + run migrations**
      (until then the forum works as today, without the Reorder button)
 
-10. **The app on the phone and phone notifications**: ✅ Done locally, 194 tests passing.
+10. **The app on the phone and phone notifications**: ✅ Deployed (full release), tested on Matteo's phone.
    - "Add to Home Screen" makes TheBoise an app: its own TB icon (redrawn sharp from the logo),
      full screen, a "No connection" page when offline. Account page → *App & notifications*:
      install button (Android, computers) or the 3 steps for iPhone (Safari → Share → Add to Home
@@ -275,11 +275,31 @@ Steps (one release each):
    - [ ] If `public_html/vendor_old` from the last full release is still there, delete it first
    - [ ] If the `/home/bptheboi/composer-ran` folder is still there, delete it (or the install
      job won't run)
-   - [ ] Then the full release steps; at step 7 check **curl (phone notifications)** is green, and
+   - [x] Then the full release steps; at step 7 check **curl (phone notifications)** is green, and
      **Backup + run migrations**
-   - [ ] On your phone: open theboise.it, add it to the home screen, open it from the icon,
+   - [ ] After a few days without problems: delete `public_html/vendor_old`
+   - [x] On your phone: open theboise.it, add it to the home screen, open it from the icon,
      Account → *Turn on notifications* → *Send a test*
-11. **Announcement post** (wanted): write for Matteo an announcement of all these changes, to
+12. **TheBoise Wrapped**: ✅ Done locally. `/wrapped`: your year as story slides (albums, days
+    away, countries with flags, km as the crow flies from Bolzano and back, farthest place,
+    longest trip, busiest month, your crew, your most liked comment), ending with a card to save
+    as an image or share. The current year opens on 1 December (admins anytime), past years
+    always. 27 December 10:00: email + phone notification to everyone with albums that year;
+    banner on the home page in December and January. Not for people not in an album for a year.
+13. **Upcoming trips**: ✅ Done locally. *Trips* in the menu (not the demo account): a trip with
+    who's going, fixed dates or a date poll (everyone ticks what works, anyone suggests other
+    dates, the organiser chooses), a checklist (who brings what), shared expenses in one click,
+    a live countdown, notifications (invited, dates decided, one week and one day before). After
+    the start, who can post albums gets "Make it an album": the form comes filled in, and the
+    album, the trip and its expenses stay linked.
+14. **Automatic notifications skip inactive people** (in no album and not on the site in the last
+    18 months; admins always active. "Last login" now also counts visits of who stays logged in,
+    once a day): "On this day" memories, unseen album reminders, birthday email,
+    "Notify all" forum posts, Wrapped. Direct ones (tagged in an album, comments, likes,
+    expenses, trips) still reach them.
+    **To deploy 12–14** (quick release, one migration): push, cPanel Git deploy, then
+    `/admin/maintenance` → **Backup + run migrations**. Try `/wrapped/2025` and plan a test trip.
+15. **Announcement post** (next): write for Matteo an announcement of all these changes, to
     publish as a new post in the forum (what's new, in the site's tone: redesign, maps, likes,
     emails, QR codes, expenses, the app and notifications...).
 

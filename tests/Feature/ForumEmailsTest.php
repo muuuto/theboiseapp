@@ -71,16 +71,18 @@ class ForumEmailsTest extends TestCase
         $post = Post::factory()->create();
         $visible = User::factory()->create();
         $hidden = User::factory()->create();
+        $inactive = User::factory()->create();
         $post->hidedUser()->attach($hidden);
+        $this->makeActive($visible, $hidden);
 
         $this->actingAs(User::find($post->author))
             ->post("/forum/{$post->category_id}/{$post->id}/notify")
             ->assertRedirect();
 
-        // Everyone except the author and the hidden user (the category creator included)
-        $expected = User::whereNotIn('id', [$post->author, $hidden->id])->pluck('email')->all();
-        $this->assertContains($visible->email, $expected);
-        $this->assertEqualsCanonicalizing($expected, $this->recipients());
+        // Everyone active except the author and the hidden user; not who hasn't been in an album
+        // for a year (like the category creator and $inactive here)
+        $this->assertEqualsCanonicalizing([$visible->email], $this->recipients());
+        $this->assertNotContains($inactive->email, $this->recipients());
     }
 
     private function comment(User $user, Post $post): void

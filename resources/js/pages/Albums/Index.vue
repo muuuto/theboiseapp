@@ -12,6 +12,7 @@ const props = defineProps({
     slogan: Object,
     filters: Object,
     ownFilter: { type: Object, default: () => ({ available: false, on: false }) },
+    wrappedBanner: { type: Number, default: null }, // December/January: the year to open
 });
 
 const user = computed(() => usePage().props.auth.user);
@@ -68,6 +69,19 @@ function resetFilters() {
             </div>
         </div>
     </section>
+
+    <!-- December and January: this year's (or last year's) Wrapped -->
+    <a
+        v-if="wrappedBanner"
+        :href="`/wrapped/${wrappedBanner}`"
+        class="mt-6 flex items-center gap-4 rounded-3xl bg-gradient-to-r from-rose-500 via-fuchsia-600 to-indigo-600 p-5 text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl"
+    >
+        <span class="text-4xl">🎁</span>
+        <span class="min-w-0 flex-1">
+            <span class="block text-xl font-extrabold">Your {{ wrappedBanner }} Wrapped is ready</span>
+            <span class="text-sm text-white/85">Albums, places, kilometres, your crew. Tap to see it.</span>
+        </span>
+    </a>
 
     <!-- Title, search and actions -->
     <div class="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">

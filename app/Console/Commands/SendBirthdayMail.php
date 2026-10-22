@@ -97,7 +97,9 @@ class SendBirthdayMail extends Command
     {
         $today = now();
 
-        $users = User::whereMonth('birthday', $today->month)
+        // Only people still around (in an album or on the site in the last 18 months)
+        $users = User::active()
+            ->whereMonth('birthday', $today->month)
             ->whereDay('birthday', $today->day)
             ->get();
 

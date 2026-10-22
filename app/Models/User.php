@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Comment;
 use App\Support\Settings;
+use Carbon\Carbon;
 use App\Models\Category;
 
 class User extends Authenticatable
@@ -56,6 +57,29 @@ class User extends Authenticatable
         return $this->belongsToMany(Listing::class, 'listing_user');
     }
 
+    // Active: in an album or on the site in the last 18 months (admins always). Who's neither has
+    // probably drifted away: the automatic notifications (memories, reminders, birthday, "notify
+    // everyone", Wrapped) leave them alone. What someone does with them directly still reaches them
+    public const ACTIVE_MONTHS = 18;
+
+    public function scopeActive($query)
+    {
+        $since = now()->subMonths(self::ACTIVE_MONTHS);
+
+        return $query->where(fn ($query) => $query->where('isAdmin', 1)
+            ->orWhere('last_login', '>=', $since)
+            ->orWhereHas('listing', fn ($albums) => $albums->where('dateFrom', '>=', $since->toDateString())));
+    }
+
+    public function isActive(): bool
+    {
+        $since = now()->subMonths(self::ACTIVE_MONTHS);
+
+        return $this->isAdmin == 1
+            || ($this->last_login && Carbon::parse($this->last_login)->gte($since))
+            || $this->listing()->where('dateFrom', '>=', $since->toDateString())->exists();
+    }
+
     // Admins always; the others only while the admins allow it (the site switch and their own
     // switch on the maintenance page); never the demo account
     public function canPostAlbums(): bool
@@ -78,6 +102,12 @@ class User extends Authenticatable
     public function pushSubscriptions(): HasMany
     {
         return $this->hasMany(PushSubscription::class);
+    }
+
+    // Trips the user is going on (planned or done)
+    public function trips(): BelongsToMany
+    {
+        return $this->belongsToMany(Trip::class)->withTimestamps();
     }
 
     // Shared expenses groups the user is in
