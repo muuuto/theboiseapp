@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\ForumOrder;
 use App\Models\Post;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -25,8 +26,9 @@ class Category extends Model
     }
 
     // Relationship With Posts
+    // In the order chosen by the admins, then newest first
     public function posts() {
-        return $this->hasMany(Post::class, 'category_id')->latest();
+        return ForumOrder::apply($this->hasMany(Post::class, 'category_id'))->latest();
     }
 
     public function hidedUser(): BelongsToMany

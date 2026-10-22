@@ -168,6 +168,10 @@ Route::post('/forum/category/store', [CategoryController::class, 'store'])->midd
 // Show Edit Categories
 Route::get('/forum/{category}/edit', [CategoryController::class, 'edit'])->middleware(['auth', 'not-demo'])->name('forum.categories.edit');
 
+// Order of the categories and of the posts of a category (admins, drag and drop)
+Route::put('/forum/order', [CategoryController::class, 'reorder'])->middleware(['auth', 'not-demo'])->name('forum.categories.order');
+Route::put('/forum/{category}/order', [PostController::class, 'reorder'])->middleware(['auth', 'not-demo'])->name('forum.posts.order');
+
 // Update Categories
 Route::put('/forum/{category}', [CategoryController::class, 'update'])->middleware(['auth', 'not-demo'])->name('forum.categories.update');
 

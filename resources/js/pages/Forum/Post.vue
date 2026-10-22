@@ -4,6 +4,7 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import { ArrowLeft, Check, Eye, FileText, History, Link2, Lock, Mail, Pencil, Trash2 } from 'lucide-vue-next';
 import CommentBox from '../../components/CommentBox.vue';
 import LikeButton from '../../components/LikeButton.vue';
+import QrCodeButton from '../../components/QrCodeButton.vue';
 import { ago, fullDate } from '../../time.js';
 
 const props = defineProps({
@@ -62,6 +63,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown));
             <ArrowLeft class="size-4" /> {{ category.title }}
         </Link>
         <div class="ml-auto flex flex-wrap gap-2">
+            <QrCodeButton :path="`/forum/${category.id}/${post.id}`" :title="post.title" />
             <button class="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-sm font-semibold shadow-sm ring-1 ring-slate-200 hover:ring-slate-300 dark:bg-slate-800 dark:ring-slate-700" @click="copyLink">
                 <component :is="copied ? Check : Link2" class="size-4" /> {{ copied ? 'Copied!' : 'Share' }}
             </button>

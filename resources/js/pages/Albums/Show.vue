@@ -8,6 +8,7 @@ import LeafletMap from '../../components/LeafletMap.vue';
 import CommentBox from '../../components/CommentBox.vue';
 import { ago, fullDate } from '../../time.js';
 import LikeButton from '../../components/LikeButton.vue';
+import QrCodeButton from '../../components/QrCodeButton.vue';
 
 const props = defineProps({
     album: Object,
@@ -77,14 +78,17 @@ onMounted(() => {
         <Link href="/" class="inline-flex items-center gap-1.5 rounded-xl px-2 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-200/60 dark:text-slate-300 dark:hover:bg-slate-800">
             <ArrowLeft class="size-4" /> Albums
         </Link>
-        <div v-if="can.manage" class="ml-auto flex gap-2">
+        <div class="ml-auto flex flex-wrap gap-2">
+            <QrCodeButton :path="`/listings/${album.id}`" :title="album.title" />
             <Link
+                v-if="can.manage"
                 :href="`/listings/${album.id}/edit`"
                 class="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-sm font-semibold shadow-sm ring-1 ring-slate-200 hover:ring-slate-300 dark:bg-slate-800 dark:ring-slate-700"
             >
                 <Pencil class="size-4" /> Edit
             </Link>
             <button
+                v-if="can.manage"
                 class="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-slate-200 hover:bg-red-50 dark:bg-slate-800 dark:ring-slate-700 dark:hover:bg-red-950/40"
                 @click="destroy"
             >

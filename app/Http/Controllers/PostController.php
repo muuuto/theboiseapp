@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\ForumOrder;
 use App\Models\Category;
 use App\Models\Post;
 use App\Models\PostComment;
@@ -52,7 +53,19 @@ class PostController extends Controller
                 'canEdit' => $user->id == $category->created_by || $user->isAdmin == 1,
             ],
             'posts' => $posts,
+            'canReorder' => $user->isAdmin == 1 && ForumOrder::enabled(),
         ]);
+    }
+
+    // Admins: the order of the posts of a category, from the "Reorder" mode of the category page
+    public function reorder(Request $request, Category $category)
+    {
+        abort_unless($request->user()->isAdmin == 1, 403, 'Unauthorized Action');
+        $data = $request->validate(['ids' => 'required|array', 'ids.*' => 'integer|distinct']);
+
+        ForumOrder::save('posts', $category->posts()->pluck('id')->all(), $data['ids']);
+
+        return back()->with('message', 'Order saved!');
     }
 
     // Show Create Form

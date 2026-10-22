@@ -240,6 +240,17 @@ Steps (one release each):
      - [ ] Should albums by non-admins need an admin's approval before the tagged people see them,
            or are they visible right away (with the history to check afterwards)?
      - [ ] Show "Posted by Zecca" on the album page to everyone, or only to admins?
+9. **QR codes and forum order**: ✅ Done locally, 152 tests passing.
+   - **QR code** button on every album and forum post (everyone): the code has the logo in the
+     middle and the title under it, to download, share (phones) or copy the link. Scanning opens
+     the page (after the login if needed); people still need an account that can see it.
+   - **Reorder** button for admins on the forum and in each category: drag the cards by the
+     handle (or the arrows), then Save. Everyone sees that order. Until the first reorder nothing
+     changes (categories A-Z, posts newest first); after it, new categories/posts appear at the
+     top so you can place them.
+   **To deploy** (quick release, one migration):
+   - [ ] Push, cPanel Git deploy, then `/admin/maintenance` → **Backup + run migrations**
+     (until then the forum works as today, without the Reorder button)
 
 ## Found later (to plan)
 

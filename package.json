@@ -26,6 +26,8 @@
         "leaflet": "^1.9.4",
         "leaflet.markercluster": "^1.5.3",
         "lucide-vue-next": "^1.0.0",
+        "qrcode": "^1.5.4",
+        "sortablejs": "^1.15.6",
         "vue": "^3.5.44"
     }
 }

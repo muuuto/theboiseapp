@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\ForumOrder;
 use App\Models\Category;
 use App\Models\User;
 use App\Support\AlbumCover;
@@ -18,8 +19,7 @@ class CategoryController extends Controller
         $user = auth()->user();
         $hidden = $user->hidedCategories()->allRelatedIds()->all();
 
-        $categories = Category::with(['posts.hidedUser', 'hidedUser'])
-            ->whereNotIn('id', $hidden)
+        $categories = ForumOrder::apply(Category::with(['posts.hidedUser', 'hidedUser'])->whereNotIn('id', $hidden))
             ->orderBy('title')
             ->get()
             ->map(function (Category $category) use ($user) {
@@ -40,7 +40,22 @@ class CategoryController extends Controller
                 ];
             });
 
-        return Inertia::render('Forum/Index', ['categories' => $categories]);
+        return Inertia::render('Forum/Index', [
+            'categories' => $categories,
+            'canReorder' => $user->isAdmin == 1 && ForumOrder::enabled(),
+        ]);
+    }
+
+    // Admins: the order of the categories, from the "Reorder" mode of the forum page
+    public function reorder(Request $request)
+    {
+        abort_unless($request->user()->isAdmin == 1, 403, 'Unauthorized Action');
+        $data = $request->validate(['ids' => 'required|array', 'ids.*' => 'integer|distinct']);
+
+        $current = ForumOrder::apply(Category::query())->orderBy('title')->pluck('id')->all();
+        ForumOrder::save('categories', $current, $data['ids']);
+
+        return back()->with('message', 'Order saved!');
     }
 
     // Show Create Form
