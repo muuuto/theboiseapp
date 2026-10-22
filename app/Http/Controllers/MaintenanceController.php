@@ -8,6 +8,7 @@ use App\Models\Listing;
 use App\Models\User;
 use App\Support\AlbumHistory;
 use App\Support\Settings;
+use App\Support\Decorations;
 use App\Support\Media;
 use App\Support\MailSamples;
 use Illuminate\Http\Request;
@@ -59,6 +60,7 @@ class MaintenanceController extends Controller
             ], $backups),
             'mailTemplates' => MailSamples::TEMPLATES,
             'albumPosting' => $this->albumPosting(),
+            'decorations' => $this->decorations(),
             'phpVersion' => PHP_VERSION,
             'phpBinary' => PHP_BINARY,
             'laravelVersion' => app()->version(),
@@ -147,6 +149,45 @@ class MaintenanceController extends Controller
         }
 
         return back();
+    }
+
+    // Home page decorations: the switches and, for each holiday, its next dates
+    private function decorations(): array
+    {
+        $settings = Decorations::settings();
+        $today = now()->startOfDay()->toImmutable();
+
+        return $settings + [
+            'list' => collect(Decorations::HOLIDAYS)->map(function ($holiday, $key) use ($settings, $today) {
+                [$first, $last] = Decorations::days($key, $today->year);
+                if ($last->lt($today)) {
+                    [$first, $last] = Decorations::days($key, $today->year + 1);
+                }
+
+                return [
+                    'key' => $key,
+                    'label' => $holiday['label'],
+                    'icon' => $holiday['icon'],
+                    'falling' => $holiday['falling'] === 'snow' ? '❄️ snow' : implode('', $holiday['falling']),
+                    'first' => $first->toDateString(),
+                    'last' => $last->toDateString(),
+                ] + $settings['holidays'][$key];
+            })->values(),
+        ];
+    }
+
+    public function saveDecorations(Request $request)
+    {
+        abort_unless(Schema::hasTable('settings'), 409, 'Run the pending migrations first');
+        $rules = ['enabled' => 'required|boolean', 'birthdays' => 'required|boolean'];
+        foreach (array_keys(Decorations::HOLIDAYS) as $key) {
+            $rules["holidays.{$key}.on"] = 'required|boolean';
+            $rules["holidays.{$key}.weeks"] = 'required|integer|min:0|max:8';
+        }
+        $data = $request->validate($rules);
+        Settings::set(Decorations::SETTING, $data);
+
+        return back()->with('message', 'Decorations saved');
     }
 
     // Sends one email with sample data to the admin, to see how it looks

@@ -5,6 +5,7 @@ import { Plus, Quote, Search, X } from 'lucide-vue-next';
 import AlbumCard from '../../components/AlbumCard.vue';
 import Pagination from '../../components/Pagination.vue';
 import OwnAlbumsToggle from '../../components/OwnAlbumsToggle.vue';
+import Decorations from '../../components/Decorations.vue';
 import { heroPatterns, randomHeroPattern } from '../../heroPatterns.js';
 
 const props = defineProps({
@@ -13,6 +14,7 @@ const props = defineProps({
     filters: Object,
     ownFilter: { type: Object, default: () => ({ available: false, on: false }) },
     wrappedBanner: { type: Number, default: null }, // December/January: the year to open
+    decoration: { type: Object, default: null }, // holiday or birthday: things falling, and a badge
 });
 
 const user = computed(() => usePage().props.auth.user);
@@ -48,6 +50,7 @@ function resetFilters() {
             :style="{ backgroundImage: pattern.image, backgroundSize: pattern.size, opacity: pattern.opacity }"
         />
         <div class="relative">
+            <div v-if="decoration" class="mb-4"><Decorations :key="decoration.season" :decoration="decoration" /></div>
             <h1 class="text-5xl font-extrabold uppercase tracking-tight sm:text-6xl">
                 The<span class="text-slate-900">Boise</span>
             </h1>

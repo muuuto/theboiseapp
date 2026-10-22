@@ -61,6 +61,10 @@ class ListingController extends Controller
             'slogan' => $slogan,
             'ownFilter' => $ownFilter,
             'wrappedBanner' => $this->wrappedBanner($user),
+            // Falling snow, pumpkins, confetti...: today's, or the one an admin previews (?decoration=halloween)
+            'decoration' => $user->isAdmin == 1 && request('decoration')
+                ? \App\Support\Decorations::preview(request('decoration'), $user)
+                : \App\Support\Decorations::today($user),
             'filters' => [
                 'search' => $filters['search'] ?? '',
                 'tag' => $filters['tag'] ?? '',

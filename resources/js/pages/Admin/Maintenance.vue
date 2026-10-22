@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import {
-    Brush, Check, CheckCircle2, Copy, Crop, Database, Download, History, ImagePlus, Mail, MapPin, MapPinned, Play, UserPlus, XCircle,
+    Brush, Check, CheckCircle2, Copy, Crop, Database, Download, Eye, History, ImagePlus, Sparkles, Mail, MapPin, MapPinned, Play, UserPlus, XCircle,
 } from 'lucide-vue-next';
 import { fullDate } from '../../time.js';
 import AlbumHistory from '../../components/AlbumHistory.vue';
@@ -17,6 +17,7 @@ const props = defineProps({
     checks: Object,
     mailTemplates: Object,
     albumPosting: Object, // null until its migration runs
+    decorations: Object,
 });
 
 const page = usePage();
@@ -62,6 +63,18 @@ function setPostingMode(enabled) {
 }
 function setCanPost(person, canPost) {
     router.put(`/admin/maintenance/album-posting/${person.id}`, { canPost }, { preserveScroll: true });
+}
+
+// Home page decorations (holidays and birthdays)
+const decorationsForm = useForm({
+    enabled: props.decorations.enabled,
+    birthdays: props.decorations.birthdays,
+    holidays: Object.fromEntries(props.decorations.list.map((h) => [h.key, { on: h.on, weeks: h.weeks }])),
+});
+const dayMonth = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' });
+const holidayDates = (h) => (h.first === h.last ? dayMonth.format(new Date(h.first)) : `${dayMonth.format(new Date(h.first))} – ${dayMonth.format(new Date(h.last))}`);
+function saveDecorations() {
+    decorationsForm.put('/admin/maintenance/decorations', { preserveScroll: true });
 }
 
 const cardClass = 'rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800';
@@ -259,6 +272,66 @@ const buttonClass = 'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-
                 </div>
             </div>
         </section>
+
+        <!-- Home page decorations -->
+        <form :class="cardClass" class="space-y-4 lg:col-span-2" @submit.prevent="saveDecorations">
+            <div class="flex flex-wrap items-start gap-3">
+                <div class="min-w-60 flex-1">
+                    <h2 class="flex items-center gap-2 text-lg font-bold"><Sparkles class="size-5 text-accent" /> Decorations</h2>
+                    <p class="mt-1 text-sm text-slate-500">
+                        Things falling on the home page for holidays, from the weeks before you choose until the day.
+                        Birthdays come first (only that day). Two holidays at once: the shorter one shows. Preview opens the home page with it.
+                    </p>
+                </div>
+                <label class="inline-flex items-center gap-2 text-sm font-semibold">
+                    <input v-model="decorationsForm.enabled" type="checkbox" class="size-5 accent-teal-600" /> Decorations on
+                </label>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3 rounded-2xl bg-slate-50 p-3 text-sm dark:bg-slate-800/60" :class="!decorationsForm.enabled && 'opacity-50'">
+                <label class="inline-flex items-center gap-2 font-semibold">
+                    <input v-model="decorationsForm.birthdays" type="checkbox" class="size-5 accent-teal-600" /> 🎂 Birthdays
+                </label>
+                <span class="text-slate-500">🥳🎂🎉🎁 on someone's birthday, with their name</span>
+                <a href="/?decoration=birthday" class="ml-auto inline-flex items-center gap-1 font-semibold text-accent hover:underline"><Eye class="size-4" /> Preview</a>
+            </div>
+
+            <div class="overflow-x-auto" :class="!decorationsForm.enabled && 'opacity-50'">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-left text-xs text-slate-500">
+                            <th class="py-1 pr-2 font-medium">Holiday</th>
+                            <th class="py-1 pr-2 font-medium">Next</th>
+                            <th class="py-1 pr-2 font-medium">Falling</th>
+                            <th class="py-1 pr-2 font-medium">Weeks before</th>
+                            <th class="py-1 font-medium"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                        <tr v-for="h in decorations.list" :key="h.key">
+                            <td class="py-2 pr-2">
+                                <label class="inline-flex items-center gap-2 font-medium whitespace-nowrap">
+                                    <input v-model="decorationsForm.holidays[h.key].on" type="checkbox" class="size-5 accent-teal-600" /> {{ h.icon }} {{ h.label }}
+                                </label>
+                            </td>
+                            <td class="py-2 pr-2 whitespace-nowrap text-slate-500">{{ holidayDates(h) }}</td>
+                            <td class="py-2 pr-2 whitespace-nowrap">{{ h.falling }}</td>
+                            <td class="py-2 pr-2">
+                                <select v-model.number="decorationsForm.holidays[h.key].weeks" class="h-9 rounded-lg border-0 bg-white px-2 ring-1 ring-slate-200 dark:bg-slate-950 dark:ring-slate-700" :aria-label="`${h.label}: weeks before`">
+                                    <option :value="0">only the day(s)</option>
+                                    <option v-for="n in 8" :key="n" :value="n">{{ n }} {{ n === 1 ? 'week' : 'weeks' }}</option>
+                                </select>
+                            </td>
+                            <td class="py-2 text-right"><a :href="`/?decoration=${h.key}`" class="inline-flex items-center gap-1 font-semibold text-accent hover:underline"><Eye class="size-4" /> Preview</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <button type="submit" :class="buttonClass" class="bg-brand text-white hover:bg-brand-dark" :disabled="decorationsForm.processing || !decorationsForm.isDirty">
+                Save decorations
+            </button>
+        </form>
 
         <!-- One-time album jobs -->
         <section :class="cardClass" class="space-y-3">

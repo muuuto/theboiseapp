@@ -299,7 +299,17 @@ Steps (one release each):
     expenses, trips) still reach them.
     **To deploy 12–14** (quick release, one migration): push, cPanel Git deploy, then
     `/admin/maintenance` → **Backup + run migrations**. Try `/wrapped/2025` and plan a test trip.
-15. **Announcement post** (next): write for Matteo an announcement of all these changes, to
+16. **Home page decorations**: ✅ Done locally, 216 tests passing. Things falling on the home
+    page: snow at Christmas, 🎃☠️⚰️👻🦇 at Halloween, 🏳️‍🌈 for Pride Month, and New Year, Befana,
+    Valentine's, Carnival and Easter (moving dates calculated), Ferragosto, Oktoberfest (its real
+    dates); Women's Day, St Patrick's, Liberation Day, Festa della Repubblica off by default.
+    Birthdays first (🥳🎂🎉🎁 and "Today is Anna's birthday!", only people still around, never for
+    the demo account). Two at once: the shorter wins. A badge in the banner ("Halloween in 9 days")
+    with ✕ to hide it. `/admin/maintenance` → *Decorations*: on/off, birthdays, each holiday on/off
+    and weeks before, Preview links. No motion for who asked their device for less.
+    **To deploy** (quick release, no migration): push, cPanel Git deploy, **Clear caches**.
+    Halloween is already within its 2 weeks: it shows right away.
+15. **Announcement post** (done, written in the chat): write for Matteo an announcement of all these changes, to
     publish as a new post in the forum (what's new, in the site's tone: redesign, maps, likes,
     emails, QR codes, expenses, the app and notifications...).
 
