@@ -1,3 +1,5 @@
+import { request as send } from './http.js';
+
 // The app on the phone: service worker (notifications, offline page) and this device's notifications
 const supported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
 
@@ -9,19 +11,6 @@ export function pushState() {
     if (!supported()) return isIos() && !isInstalled() ? 'install-first' : 'unsupported';
     if (Notification.permission === 'denied') return 'denied';
     return 'ok';
-}
-
-// Laravel's CSRF protection: the XSRF-TOKEN cookie goes back as a header
-async function send(method, url, body) {
-    const token = decodeURIComponent(document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]+)/)?.[1] ?? '');
-    const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-XSRF-TOKEN': token, 'X-Requested-With': 'XMLHttpRequest' },
-        credentials: 'same-origin',
-        body: JSON.stringify(body),
-    });
-    if (!response.ok) throw new Error(`Request failed (${response.status})`);
-    return response.json();
 }
 
 // Android and computers: the browser's own "Install app" question, kept to ask it from the account page

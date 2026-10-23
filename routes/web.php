@@ -238,6 +238,20 @@ Route::delete('/forum/{category}/{post}/pin', [PostController::class, 'pin'])->m
 // Send Post
 Route::post('/forum/{category}/{post}/notify', [PostController::class, 'notify'])->middleware(['auth', 'not-demo'])->name('forum.posts.notify');
 
+// Gym tracker: for the people the admins allow; everyone sees only their own
+Route::middleware(['auth', 'not-demo'])->prefix('gym')->group(function () {
+    Route::get('/', [App\Http\Controllers\GymController::class, 'index']);
+    Route::post('/workouts', [App\Http\Controllers\GymController::class, 'store']);
+    Route::get('/workouts/{workout}', [App\Http\Controllers\GymController::class, 'show']);
+    Route::put('/workouts/{workout}', [App\Http\Controllers\GymController::class, 'update']);
+    Route::delete('/workouts/{workout}', [App\Http\Controllers\GymController::class, 'destroy']);
+    Route::post('/exercises', [App\Http\Controllers\GymController::class, 'storeExercise']);
+    Route::get('/exercises/{exercise}', [App\Http\Controllers\GymController::class, 'exercise']);
+    Route::post('/exercises/{exercise}/photo', [App\Http\Controllers\GymController::class, 'exercisePhoto']);
+    Route::get('/records', [App\Http\Controllers\GymController::class, 'records']);
+    Route::put('/share', [App\Http\Controllers\GymController::class, 'share']);
+});
+
 // Upcoming trips: only the people going see one, never the demo account
 Route::middleware(['auth', 'not-demo'])->prefix('trips')->scopeBindings()->group(function () {
     Route::get('/', [App\Http\Controllers\TripController::class, 'index']);
@@ -285,6 +299,8 @@ Route::middleware(['auth', 'can:admin'])->prefix('admin/maintenance')->group(fun
     Route::post('/album-posting', [MaintenanceController::class, 'albumPostingMode']);
     Route::put('/decorations', [MaintenanceController::class, 'saveDecorations']);
     Route::put('/album-posting/everyone', [MaintenanceController::class, 'albumPostingEveryone']);
+    Route::put('/gym/everyone', [MaintenanceController::class, 'gymEveryone']);
+    Route::put('/gym/{user}', [MaintenanceController::class, 'gymAccess']);
     Route::put('/album-posting/{user}', [MaintenanceController::class, 'albumPostingPermission']);
     Route::post('/{action}', [MaintenanceController::class, 'run']);
     Route::get('/backups/{file}', [MaintenanceController::class, 'download']);

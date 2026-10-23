@@ -93,6 +93,12 @@ class User extends Authenticatable implements HasLocalePreference
             || ($this->can_post_albums && Settings::get(Settings::MEMBERS_CAN_POST_ALBUMS, false));
     }
 
+    // The gym tracker: only the people the admins switched on (never the demo account)
+    public function canUseGym(): bool
+    {
+        return ! $this->is_demo && (bool) $this->can_use_gym;
+    }
+
     // Admins every album; the others the albums they posted, while they can still post
     public function canEditAlbum(Listing $listing): bool
     {

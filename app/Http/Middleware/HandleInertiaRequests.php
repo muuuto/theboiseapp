@@ -47,6 +47,7 @@ class HandleInertiaRequests extends Middleware
                     'avatar' => Media::url($user->profilePicture),
                     'isAdmin' => $user->isAdmin == 1,
                     'canPostAlbums' => $user->canPostAlbums(),
+                    'canUseGym' => $user->canUseGym(),
                     'isDemo' => (bool) $user->is_demo,
                     // null = follow the device
                     'darkMode' => is_null($user->dark_mode) ? null : (bool) $user->dark_mode,

@@ -60,6 +60,15 @@ class MaintenanceController extends Controller
             ], $backups),
             'mailTemplates' => array_map(fn ($label) => __($label), MailSamples::TEMPLATES),
             'albumPosting' => $this->albumPosting(),
+            // Who can use the gym tracker (null until its migration runs)
+            'gym' => Schema::hasColumn('users', 'can_use_gym')
+                ? User::where('is_demo', false)->orderBy('name')->get()->map(fn (User $user) => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'avatar' => Media::url($user->profilePicture),
+                    'on' => (bool) $user->can_use_gym,
+                ])
+                : null,
             'decorations' => $this->decorations(),
             'phpVersion' => PHP_VERSION,
             'phpBinary' => PHP_BINARY,
@@ -150,6 +159,23 @@ class MaintenanceController extends Controller
         AlbumEvent::record($data['canPost'] ? 'permission_everyone' : 'permission_no_one', null, ['count' => $changed]);
 
         return back()->with('message', $data['canPost'] ? 'Everyone can post albums' : 'Only admins can post albums');
+    }
+
+    public function gymAccess(Request $request, User $user)
+    {
+        $data = $request->validate(['on' => 'required|boolean']);
+        abort_if($user->is_demo, 422, 'The demo account never uses the gym tracker');
+        $user->update(['can_use_gym' => $data['on']]);
+
+        return back();
+    }
+
+    public function gymEveryone(Request $request)
+    {
+        $data = $request->validate(['on' => 'required|boolean']);
+        User::where('is_demo', false)->update(['can_use_gym' => $data['on']]);
+
+        return back()->with('message', $data['on'] ? 'Everyone can use the gym tracker' : 'Nobody can use the gym tracker');
     }
 
     public function albumPostingPermission(Request $request, User $user)

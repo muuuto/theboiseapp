@@ -80,7 +80,7 @@ defineProps({ groups: Array, totals: Object });
                         <strong class="text-orange-600 dark:text-orange-400">{{ money(-group.myBalance) }}</strong>
                     </template>
                     <span v-else class="inline-flex items-center gap-1 text-slate-500">
-                        <CircleCheck class="size-4" /> {{ group.settled ? t('all settled') : "you're even" }}
+                        <CircleCheck class="size-4" /> {{ group.settled ? t('all settled') : t("you're even") }}
                     </span>
                 </p>
             </div>

@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import {
-    Brush, Check, CheckCircle2, Copy, Crop, Database, Download, Eye, History, ImagePlus, Sparkles, Mail, MapPin, MapPinned, Play, UserPlus, XCircle,
+    Brush, Check, CheckCircle2, Copy, Crop, Database, Download, Eye, Dumbbell, History, ImagePlus, Sparkles, Mail, MapPin, MapPinned, Play, UserPlus, XCircle,
 } from 'lucide-vue-next';
 import { formatDate, fullDate } from '../../time.js';
 import AlbumHistory from '../../components/AlbumHistory.vue';
@@ -18,6 +18,7 @@ const props = defineProps({
     checks: Object,
     mailTemplates: Object,
     albumPosting: Object, // null until its migration runs
+    gym: Array, // who can use the gym tracker, null until its migration runs
     decorations: Object,
 });
 
@@ -72,6 +73,16 @@ function setEveryone(canPost) {
 }
 function setCanPost(person, canPost) {
     router.put(`/admin/maintenance/album-posting/${person.id}`, { canPost }, { preserveScroll: true });
+}
+
+// Gym tracker: only for the people switched on
+function setGymEveryone(on) {
+    if (window.confirm(on ? t('Let everyone use the gym tracker? (Not the demo account.)') : t('Stop everyone from using the gym tracker? Their workouts are kept.'))) {
+        router.put('/admin/maintenance/gym/everyone', { on }, { preserveScroll: true });
+    }
+}
+function setGym(person, on) {
+    router.put(`/admin/maintenance/gym/${person.id}`, { on }, { preserveScroll: true });
 }
 
 // Home page decorations (holidays and birthdays)
@@ -344,6 +355,45 @@ const buttonClass = 'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-
                 {{ t('Save decorations') }}
             </button>
         </form>
+
+        <!-- Gym tracker -->
+        <section :class="cardClass" class="space-y-4">
+            <div>
+                <h2 class="flex items-center gap-2 text-lg font-bold"><Dumbbell class="size-5 text-accent" /> {{ t('Gym tracker') }}</h2>
+                <p class="mt-1 text-sm text-slate-500">
+                    {{ t('Workouts, weights and personal records. Only the people switched on see "Gym" in the menu; each one sees only their own workouts.') }}
+                </p>
+            </div>
+            <p v-if="!gym" class="text-sm text-slate-500">{{ t('Run the pending migrations to enable it.') }}</p>
+            <template v-else>
+                <div class="flex flex-wrap items-center gap-2">
+                    <h3 class="text-sm font-semibold">{{ t('Who can use it') }}</h3>
+                    <span class="text-xs text-slate-500">{{ gym.filter((person) => person.on).length }}/{{ gym.length }}</span>
+                    <span class="ml-auto flex gap-1.5">
+                        <button type="button" class="rounded-lg px-2.5 py-1 text-xs font-semibold text-accent ring-1 ring-slate-200 hover:bg-teal-50 dark:ring-slate-700 dark:hover:bg-slate-800" @click="setGymEveryone(true)">{{ t('Allow everyone') }}</button>
+                        <button type="button" class="rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200 hover:bg-slate-100 dark:text-slate-300 dark:ring-slate-700 dark:hover:bg-slate-800" @click="setGymEveryone(false)">{{ t('No one') }}</button>
+                    </span>
+                </div>
+                <ul class="max-h-96 divide-y divide-slate-100 overflow-y-auto pr-1 dark:divide-slate-800">
+                    <li v-for="person in gym" :key="person.id" class="flex items-center gap-3 py-2">
+                        <img v-if="person.avatar" :src="person.avatar" alt="" class="size-8 shrink-0 rounded-full object-cover" />
+                        <span v-else class="flex size-8 shrink-0 items-center justify-center rounded-full bg-slate-200 text-xs font-bold dark:bg-slate-700">{{ person.name.charAt(0).toUpperCase() }}</span>
+                        <span class="min-w-0 flex-1 truncate text-sm font-medium">{{ person.name }}</span>
+                        <button
+                            type="button"
+                            role="switch"
+                            :aria-checked="person.on"
+                            :aria-label="t(':name can use the gym tracker', { name: person.name })"
+                            class="relative inline-flex h-6 w-11 shrink-0 rounded-full transition"
+                            :class="person.on ? 'bg-accent' : 'bg-slate-300 dark:bg-slate-600'"
+                            @click="setGym(person, !person.on)"
+                        >
+                            <span class="absolute top-0.5 size-5 rounded-full bg-white shadow transition-all" :class="person.on ? 'left-5.5' : 'left-0.5'" />
+                        </button>
+                    </li>
+                </ul>
+            </template>
+        </section>
 
         <!-- One-time album jobs -->
         <section :class="cardClass" class="space-y-3">
