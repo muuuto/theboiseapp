@@ -129,6 +129,7 @@ class ListingController extends Controller
                     'avatar' => Media::url($person->profilePicture),
                 ])->values(),
             ],
+            'reactions' => $listing->reactionSummary($user, ! $user->is_demo && $membership !== null),
             'comments' => $listing->comments->map(fn (Comment $comment) => [
                 'id' => $comment->id,
                 'author' => $comment->user?->name ?? 'Deleted user',

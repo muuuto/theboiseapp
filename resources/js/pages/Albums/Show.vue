@@ -10,11 +10,13 @@ import { ago, formatDate, fullDate } from '../../time.js';
 import { t } from '../../i18n.js';
 import LikeButton from '../../components/LikeButton.vue';
 import QrCodeButton from '../../components/QrCodeButton.vue';
+import ReactionBar from '../../components/ReactionBar.vue';
 import AlbumHistory from '../../components/AlbumHistory.vue';
 
 const props = defineProps({
     album: Object,
     comments: Array,
+    reactions: Object,
     can: Object,
     expenseGroups: { type: Array, default: () => [] },
     history: { type: Array, default: () => [] }, // admins only
@@ -126,6 +128,7 @@ onMounted(() => {
                         </Link>
                     </li>
                 </ul>
+                <ReactionBar type="album" :id="album.id" :reactions="reactions" class="mt-4" />
             </div>
 
             <!-- Admins only (the count is 0 for everyone else): people never know their version is different -->

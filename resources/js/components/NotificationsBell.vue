@@ -51,7 +51,7 @@ onBeforeUnmount(() => document.removeEventListener('click', closeOnOutsideClick)
                 class="absolute right-0 mt-2 max-h-[75vh] w-80 max-w-[calc(100vw-2rem)] overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-800"
             >
                 <section v-if="likes.length" class="border-b border-slate-100 p-2 dark:border-slate-700">
-                    <h3 class="px-3 pt-2 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-400">{{ t('Likes') }}</h3>
+                    <h3 class="px-3 pt-2 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-400">{{ t('Likes and reactions') }}</h3>
                     <Link
                         v-for="like in likes"
                         :key="like.id"
@@ -60,10 +60,12 @@ onBeforeUnmount(() => document.removeEventListener('click', closeOnOutsideClick)
                         :class="!like.read && 'bg-red-50 dark:bg-red-950/30'"
                         @click="open = false"
                     >
-                        <Heart class="mt-0.5 size-4 shrink-0 fill-current text-brand" />
+                        <span v-if="like.emoji" class="w-4 shrink-0 text-center leading-5">{{ like.emoji }}</span>
+                        <Heart v-else class="mt-0.5 size-4 shrink-0 fill-current text-brand" />
                         <span class="min-w-0 text-sm">
-                            <strong>{{ like.liker }}</strong> {{ t('liked your comment') }}
-                            <span class="block truncate text-xs text-slate-500">"{{ like.excerpt }}" · {{ like.title }}</span>
+                            <strong>{{ like.liker }}</strong>
+                            {{ like.kind === 'album' ? t('reacted to your album') : like.kind === 'post' ? t('reacted to your post') : t('liked your comment') }}
+                            <span class="block truncate text-xs text-slate-500"><template v-if="like.excerpt">"{{ like.excerpt }}" · </template>{{ like.title }}</span>
                         </span>
                     </Link>
                 </section>

@@ -147,6 +147,7 @@ class PostController extends Controller
                 'images' => $images->map(fn ($path) => Media::url($path))->values(),
                 'pdfs' => $pdfs->values()->map(fn ($path, $index) => ['url' => Media::url($path), 'name' => 'Attachment ' . ($index + 1)]),
             ],
+            'reactions' => $post->reactionSummary($user, ! $user->is_demo),
             'comments' => $post->comments->sortByDesc('created_at')->map(fn (PostComment $comment) => [
                 'id' => $comment->id,
                 'author' => $comment->user?->name ?? 'Deleted user',

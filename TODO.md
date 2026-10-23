@@ -342,6 +342,15 @@ Steps (one release each):
     Italian; anyone can add their own, with a photo. **To deploy** (quick release, one migration):
     push, cPanel Git deploy, then `/admin/maintenance` → **Backup + run migrations**, then switch
     people on in *Gym tracker*.
+22. **Emoji reactions on albums and forum posts**: ✅ Done locally, 239 tests passing. Under the
+    album title and under the post: ❤️ 😂 😮 😢 🔥 👏 one tap away, any other emoji from the picker.
+    One each: another emoji changes it, the same one again takes it back. Tap the names to see who
+    reacted with what. The poster / post author gets it in the bell and on the phone (setting
+    "Likes on your comments, reactions to your albums and posts"); changing the emoji before they
+    look updates the same notification, taking it back removes it. People in the album only (admins
+    who just look can't), anyone who can see the post; never the demo account. **To deploy**
+    (quick release, one migration): push, cPanel Git deploy, `/admin/maintenance` → **Backup + run
+    migrations**.
 15. **Announcement post** (done, written in the chat): write for Matteo an announcement of all these changes, to
     publish as a new post in the forum (what's new, in the site's tone: redesign, maps, likes,
     emails, QR codes, expenses, the app and notifications...).
@@ -353,14 +362,6 @@ Steps (one release each):
   `type=exact` 800×600, which pads vertical photos. Plan (redesign phase): the site resizes and
   crops the preview itself (fill 4:3, no bars, no external tool), and auto-trim the 60 existing
   ones. Also make email images responsive (now fixed `width="800" height="600"`).
-
-- **Emoji reactions on albums and forum posts** (Matteo's pick from the suggestions): react
-  to an album or a post with an emoji without writing a comment. Today only comments have likes.
-  Idea: a row of a few emojis (e.g. ❤️ 😂 😮 🔥 👏 😢) under the album / post; tap one to add or
-  remove yours (one reaction per person, or several: to decide); the counts show, and tapping a
-  count shows who reacted. The poster gets a notification (grouped, following their notification
-  settings and the inactive-people rule). Not for the demo account. Probably reuse the `likes`
-  table idea (polymorphic) with an `emoji` column, or a new `reactions` table.
 
 ## Still open
 

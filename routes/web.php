@@ -131,6 +131,9 @@ Route::get('/mail/cover/{listing}', function (App\Models\Listing $listing) {
 // Like / unlike a comment
 Route::post('/likes', [LikeController::class, 'toggle'])->middleware(['auth', 'not-demo']);
 
+// React to an album or a forum post with an emoji
+Route::post('/reactions', [App\Http\Controllers\ReactionController::class, 'react'])->middleware(['auth', 'not-demo']);
+
 // The notification bell was opened: its notifications are read
 Route::post('/notifications/read', function (Illuminate\Http\Request $request) {
     $request->user()->unreadNotifications->markAsRead();

@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\URL;
 use App\Models\User;
 use App\Models\Comment;
 use App\Models\PostComment;
+use App\Models\Listing;
+use App\Models\Post;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Mail\Events\MessageSending;
 use Illuminate\Support\Facades\Event;
@@ -29,10 +31,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Short names stored in likes.likeable_type instead of class names
+        // Short names stored in likes.likeable_type and reactions.reactable_type instead of class names
         Relation::morphMap([
             'album_comment' => Comment::class,
             'post_comment' => PostComment::class,
+            'album' => Listing::class,
+            'post' => Post::class,
         ]);
 
         // The demo account never receives emails: cancel any email addressed only to demo users

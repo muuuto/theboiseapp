@@ -5,6 +5,7 @@ import { ArrowLeft, Check, Eye, FileText, History, Link2, Lock, Mail, Pencil, Pi
 import CommentBox from '../../components/CommentBox.vue';
 import LikeButton from '../../components/LikeButton.vue';
 import QrCodeButton from '../../components/QrCodeButton.vue';
+import ReactionBar from '../../components/ReactionBar.vue';
 import { ago, fullDate } from '../../time.js';
 import { t } from '../../i18n.js';
 
@@ -12,6 +13,7 @@ const props = defineProps({
     category: Object,
     post: Object,
     comments: Array,
+    reactions: Object,
     can: Object,
     pinned: Boolean, // linked at the top of the home page
 });
@@ -111,6 +113,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown));
         </header>
 
         <div class="rich-text rounded-3xl bg-white p-6 text-[17px] shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800" v-html="post.content" />
+
+        <ReactionBar type="post" :id="post.id" :reactions="reactions" />
 
         <section v-if="post.images.length" class="space-y-2">
             <h2 class="font-bold">{{ t('Photos') }}</h2>

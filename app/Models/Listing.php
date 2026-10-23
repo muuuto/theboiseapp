@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Comment;
+use App\Models\Concerns\HasReactions;
 use App\Models\ListingUser;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 
 class Listing extends Model
 {
-    use HasFactory;
+    use HasFactory, HasReactions;
 
     public function scopeFilter($query, array $filters) {
         if ($filters['tag'] ?? false) {
