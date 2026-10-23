@@ -14,7 +14,8 @@ use Illuminate\Support\Str;
 // Only from what's already on the site, and only their own albums and comments
 class Wrapped
 {
-    // Home: distances are counted from here and back, as the crow flies
+    // Distances are counted from home and back, as the crow flies: each person's hometown
+    // (Account → Preferences), Bolzano for who didn't set one
     public const HOME = [46.4983, 11.3548]; // Bolzano
 
     // The current year opens on this day; past years are always there
@@ -67,13 +68,15 @@ class Wrapped
             return null;
         }
 
+        $home = $user->home();
+
         // Carbon 3 gives decimals: whole days, the first and last included
         $days = fn (Listing $album) => (int) round(Carbon::parse($album->dateFrom)->startOfDay()->diffInDays(Carbon::parse($album->dateTo)->startOfDay())) + 1;
         $places = $albums->flatMap(fn (Listing $album) => $album->places->map(fn ($place) => [
             'album' => $album->title,
             'name' => trim(Str::before((string) $place->place_name, ',')) ?: $album->location,
             'country' => trim((string) Str::afterLast((string) $place->place_name, ',')),
-            'km' => self::distance(self::HOME, [(float) $place->latitude, (float) $place->longitude]),
+            'km' => self::distance($home['point'], [(float) $place->latitude, (float) $place->longitude]),
         ]));
 
         $countries = $places->pluck('country')->filter()->unique()->values()->map(fn ($name) => [
@@ -105,7 +108,8 @@ class Wrapped
             'albumCount' => $albums->count(),
             'previousYear' => $previous,
             'daysAway' => $albums->sum($days),
-            'km' => (int) round($albums->sum(fn (Listing $album) => self::tripKm($album))),
+            'km' => (int) round($albums->sum(fn (Listing $album) => self::tripKm($album, $home['point']))),
+            'home' => $home['name'],
             'countries' => $countries,
             'placeCount' => $places->pluck('name')->unique()->count(),
             'farthest' => $farthest ? ['name' => $farthest['name'], 'album' => $farthest['album'], 'km' => (int) round($farthest['km'])] : null,
@@ -136,13 +140,13 @@ class Wrapped
     }
 
     // From home to each place of the album (in their order) and back
-    private static function tripKm(Listing $album): float
+    private static function tripKm(Listing $album, array $home): float
     {
         $points = $album->places->sortBy('position')->map(fn ($place) => [(float) $place->latitude, (float) $place->longitude])->values();
         if ($points->isEmpty()) {
             return 0;
         }
-        $route = collect([self::HOME])->concat($points)->push(self::HOME);
+        $route = collect([$home])->concat($points)->push($home);
 
         return $route->sliding(2)->sum(fn ($pair) => self::distance($pair->first(), $pair->last()));
     }

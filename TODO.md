@@ -351,6 +351,11 @@ Steps (one release each):
     who just look can't), anyone who can see the post; never the demo account. **To deploy**
     (quick release, one migration): push, cPanel Git deploy, `/admin/maintenance` → **Backup + run
     migrations**.
+23. **Hometown**: ✅ Done locally, 240 tests passing. Account → Preferences → *Hometown*: search a
+    town (OpenStreetMap, like the album places) and pick it; *Back to Bolzano* resets it. Wrapped
+    counts the kilometres (home → places → home) and the farthest place from there, and the slide
+    says "from <hometown> and back". Without one: Bolzano, as before. Never the demo account.
+    **To deploy** (quick release, one migration): push, cPanel Git deploy, **Backup + run migrations**.
 15. **Announcement post** (done, written in the chat): write for Matteo an announcement of all these changes, to
     publish as a new post in the forum (what's new, in the site's tone: redesign, maps, likes,
     emails, QR codes, expenses, the app and notifications...).

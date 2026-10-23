@@ -317,7 +317,7 @@ async function shareImage() {
                         </p>
                         <template v-if="wrapped.km">
                             <p class="mt-8 text-5xl font-black tabular-nums">{{ number.format(shown.km ?? 0) }} km</p>
-                            <p class="text-lg text-white/85">{{ t('as the crow flies, from Bolzano and back.') }} {{ comparison }}</p>
+                            <p class="text-lg text-white/85">{{ t('as the crow flies, from :home and back.', { home: wrapped.home ?? 'Bolzano' }) }} {{ comparison }}</p>
                         </template>
                     </template>
 

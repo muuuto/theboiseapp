@@ -32,6 +32,8 @@ class AccountController extends Controller
             'wallet' => $wallet ? ['name' => $wallet['name'], 'url' => Media::url($wallet['path'])] : null,
             // Which albums the list and the map start with (for who posted some)
             'ownFilter' => ListingController::ownFilter($user),
+            // Where their trips start from (null until its migration runs)
+            'home' => Schema::hasColumn('users', 'home_name') ? ['name' => $user->home()['name'], 'custom' => $user->home_latitude !== null] : null,
             // Phone notifications (null until their migration runs; never for the demo account).
             // Not "notifications": that's the bell, given to every page
             'push' => ! $user->is_demo && Schema::hasTable('push_subscriptions') ? [
@@ -112,6 +114,25 @@ class AccountController extends Controller
         ])]);
 
         return redirect('/account')->with('message', 'Wallet updated!');
+    }
+
+    // Hometown, picked from the place search (empty: back to Bolzano)
+    public function home(Request $request)
+    {
+        abort_unless(Schema::hasColumn('users', 'home_name'), 409, 'Run the pending migrations first');
+        if ($request->boolean('reset')) {
+            $request->user()->update(['home_name' => null, 'home_latitude' => null, 'home_longitude' => null]);
+
+            return back()->with('message', 'Hometown: back to Bolzano');
+        }
+        $data = $request->validate([
+            'name' => 'required|string|max:100',
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
+        ]);
+        $request->user()->update(['home_name' => $data['name'], 'home_latitude' => $data['latitude'], 'home_longitude' => $data['longitude']]);
+
+        return back()->with('message', 'Hometown saved');
     }
 
     // "Only albums I posted" on the album list and the map (before its migration it isn't offered)

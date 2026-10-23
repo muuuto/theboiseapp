@@ -53,6 +53,35 @@ class WrappedTest extends TestCase
         $this->assertNull(Wrapped::for($me, 2023));
     }
 
+    public function test_kilometres_from_each_persons_hometown(): void
+    {
+        $me = User::factory()->create();
+        $this->album('Sicilia', '2025-08-01', '2025-08-03', [[38.1157, 13.3615, 'Palermo, Sicilia, Italia']], [$me]);
+        $this->album('Spritz', '2025-05-30', '2025-05-30', [[46.4983, 11.3548, 'Bolzano, Alto Adige, Italia']], [$me]);
+
+        // Without a hometown: from Bolzano
+        $this->assertSame('Bolzano', Wrapped::for($me, 2025)['home']);
+        $this->assertSame('Palermo', Wrapped::for($me, 2025)['farthest']['name']);
+
+        // From Palermo: Palermo is home, Bolzano is the trip (about 947 km each way)
+        $this->actingAs($me)->put('/account/home', ['name' => 'Palermo', 'latitude' => 38.1157, 'longitude' => 13.3615])->assertSessionHas('message', 'Hometown saved');
+        $w = Wrapped::for($me->fresh(), 2025);
+        $this->assertSame('Palermo', $w['home']);
+        $this->assertSame('Bolzano', $w['farthest']['name']);
+        $this->assertEqualsWithDelta(947, $w['farthest']['km'], 10);
+        $this->assertEqualsWithDelta(2 * 947, $w['km'], 20);
+
+        $this->actingAs($me)->get('/account')->assertInertia(fn ($page) => $page->where('home', ['name' => 'Palermo', 'custom' => true]));
+        $this->actingAs($me)->put('/account/home', ['name' => 'Nowhere', 'latitude' => 120, 'longitude' => 0])->assertSessionHasErrors('latitude');
+        $this->actingAs($me)->put('/account/home', ['reset' => true]);
+        $this->assertSame('Bolzano', Wrapped::for($me->fresh(), 2025)['home']);
+        $this->actingAs($me)->get('/account')->assertInertia(fn ($page) => $page->where('home', ['name' => 'Bolzano', 'custom' => false]));
+
+        $demo = User::factory()->create(['is_demo' => true]);
+        $this->actingAs($demo)->put('/account/home', ['name' => 'Roma', 'latitude' => 41.9, 'longitude' => 12.5])->assertForbidden();
+        $this->assertNull($demo->fresh()->home_name);
+    }
+
     public function test_the_current_year_opens_in_december(): void
     {
         $me = User::factory()->create();

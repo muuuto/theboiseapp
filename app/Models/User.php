@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Comment;
 use App\Support\Settings;
+use App\Support\Wrapped;
 use Carbon\Carbon;
 use App\Models\Category;
 
@@ -91,6 +92,14 @@ class User extends Authenticatable implements HasLocalePreference
 
         return $this->isAdmin == 1
             || ($this->can_post_albums && Settings::get(Settings::MEMBERS_CAN_POST_ALBUMS, false));
+    }
+
+    // Where their trips start from (Wrapped kilometres): the hometown they set, or Bolzano
+    public function home(): array
+    {
+        return $this->home_latitude !== null && $this->home_longitude !== null
+            ? ['name' => $this->home_name, 'point' => [(float) $this->home_latitude, (float) $this->home_longitude]]
+            : ['name' => 'Bolzano', 'point' => Wrapped::HOME];
     }
 
     // The gym tracker: only the people the admins switched on (never the demo account)

@@ -77,6 +77,7 @@ Route::get('/demo/{secret}', [UserController::class, 'demo'])->middleware(['gues
 
 // "Only albums I posted" on the album list and the map
 Route::put('/account/album-filter', [AccountController::class, 'albumFilter'])->middleware(['auth', 'not-demo']);
+Route::put('/account/home', [AccountController::class, 'home'])->middleware(['auth', 'not-demo']);
 
 // Phone notifications: this device on/off, test, remove a device, what to receive
 Route::middleware(['auth', 'not-demo'])->prefix('push')->group(function () {
