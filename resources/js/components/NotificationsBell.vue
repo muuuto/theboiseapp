@@ -50,9 +50,11 @@ onBeforeUnmount(() => document.removeEventListener('click', closeOnOutsideClick)
             leave-active-class="transition duration-100"
             leave-to-class="opacity-0 -translate-y-1"
         >
+            <!-- Phones: the bell isn't at the edge (theme and account are on its right), so the
+                 panel takes the width of the screen under the top bar. Wider: under the bell -->
             <div
                 v-if="open"
-                class="absolute right-0 mt-2 max-h-[75vh] w-80 max-w-[calc(100vw-2rem)] overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-800"
+                class="fixed inset-x-4 top-[4.5rem] max-h-[75vh] overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-xl sm:absolute sm:inset-x-auto sm:top-full sm:right-0 sm:mt-2 sm:w-80 dark:border-slate-700 dark:bg-slate-800"
             >
                 <section v-if="likes.length" class="border-b border-slate-100 p-2 dark:border-slate-700">
                     <h3 class="px-3 pt-2 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-400">{{ t('Likes and reactions') }}</h3>
