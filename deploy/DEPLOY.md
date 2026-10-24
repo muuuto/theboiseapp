@@ -5,8 +5,8 @@
 Everything (PHP 8.4, MySQL 8.0, Mailpit) runs in Docker containers with Laravel Sail,
 so the only thing the PC needs is Docker.
 
-Run the commands from a normal system terminal in the project folder. The terminal inside the
-Flatpak version of VS Code is sandboxed and can't see Docker.
+Run the commands from a normal system terminal in the project folder (on Windows: the Ubuntu
+terminal). The terminal inside the Flatpak version of VS Code is sandboxed and can't see Docker.
 
 Tip: add `alias sail='./vendor/bin/sail'` to `~/.bashrc` to type `sail` instead of `./vendor/bin/sail`.
 
@@ -69,46 +69,9 @@ docker compose exec -T mysql mysql -usail -ppassword theboise < ~/Downloads/bpth
 
 The dump has emails and password hashes: never put it inside the project folder or in git.
 
-### Setting up a new PC (already done on this one)
+### Setting up a new PC
 
-1. Install Docker and clone the repository.
-2. Install the PHP packages with a temporary container:
-   ```sh
-   docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd):/var/www/html" -w /var/www/html laravelsail/php84-composer:latest composer install
-   ```
-3. `cp .env.example .env` and change these values:
-   ```
-   APP_URL=http://localhost
-   FORCE_HTTPS=false
-   DB_HOST=mysql
-   DB_DATABASE=theboise
-   DB_USERNAME=sail
-   DB_PASSWORD=password
-   MAIL_MAILER=smtp
-   MAIL_HOST=mailpit
-   MAIL_PORT=1025
-   FORWARD_DB_PORT=3307
-   WWWUSER=1000
-   WWWGROUP=1000
-   ```
-4. Start everything, create the app key, install the frontend packages and turn on the build
-   reminder hook:
-   ```sh
-   ./vendor/bin/sail up -d --build
-   ./vendor/bin/sail artisan key:generate
-   ./vendor/bin/sail npm install
-   git config core.hooksPath .githooks
-   ```
-   Optional, to try the demo account locally: `DEMO_LOGIN_SECRET=local-demo-secret` in `.env`,
-   then open http://localhost/demo/local-demo-secret
-5. Import the database (see *Refresh the data from production*).
-6. Uploaded images: in cPanel File Manager compress `public_html/storage/app/public`, download it
-   and extract its content into `storage/app/public`. Then create the links that serve them
-   (the second one makes the `/storage/app/public/...` URLs used by the views work locally):
-   ```sh
-   ln -s ../storage/app/public public/storage
-   mkdir -p storage/app/public/app && ln -s .. storage/app/public/app/public
-   ```
+See the [README](../README.md) (Linux and Windows).
 
 
 ## Deploying

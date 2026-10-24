@@ -1,66 +1,126 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# theboise.it
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Laravel 13 + Inertia/Vue 3 site. Locally everything (PHP 8.4, MySQL 8.0, Mailpit) runs in Docker
+with Laravel Sail, so a machine only needs Docker and git.
 
-## About Laravel
+- Daily use, useful commands, frontend build, deploying: [deploy/DEPLOY.md](deploy/DEPLOY.md)
+- Setting up a new machine: below. Do the steps for your OS, then [Common steps](#common-steps).
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Linux
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+1. Install Docker Engine and the compose plugin
+   ([docs](https://docs.docker.com/engine/install/)), then let your user run it without `sudo`
+   and log out and back in:
+   ```sh
+   sudo usermod -aG docker $USER
+   ```
+2. Clone the repository:
+   ```sh
+   git clone https://github.com/muuuto/theboiseapp.git ~/theboiseapp
+   cd ~/theboiseapp
+   ```
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Run the commands from a normal system terminal: the terminal inside the Flatpak version of
+VS Code is sandboxed and can't see Docker.
 
-## Learning Laravel
+## Windows
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Windows runs the project inside Ubuntu with WSL2, so after this setup it works exactly like on
+Linux. **Keep the project inside Ubuntu** (`~/theboiseapp`), not in a Windows folder such as
+`C:\Users\...`: through `/mnt/c` Docker is very slow and `npm run dev` doesn't see file changes.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+1. Install [Git for Windows](https://git-scm.com/download/win) (it brings the credential manager
+   used below) and VS Code with the **WSL** extension (`ms-vscode-remote.remote-wsl`).
+2. In PowerShell as administrator, install WSL with Ubuntu, then reboot:
+   ```powershell
+   wsl --install -d Ubuntu
+   ```
+   Open *Ubuntu* from the Start menu and choose a username and password when asked.
+   If Ubuntu was already installed and opens as `root`, create the user yourself (in Ubuntu, as root):
+   ```sh
+   useradd -m -u 1000 -s /bin/bash -G sudo matteo && passwd matteo
+   printf '\n[user]\ndefault=matteo\n' >> /etc/wsl.conf
+   ```
+   then in PowerShell `wsl --terminate Ubuntu` and open Ubuntu again. Check with `id`: it must
+   say `uid=1000`.
+3. Make sure systemd is on (needed for Docker to start by itself): `/etc/wsl.conf` must contain
+   ```
+   [boot]
+   systemd=true
+   ```
+   (new installs already have it; if you add it, run `wsl --shutdown` in PowerShell).
+4. In Ubuntu, install Docker Engine (no Docker Desktop needed), then close and reopen Ubuntu:
+   ```sh
+   sudo apt-get update && sudo apt-get install -y ca-certificates curl
+   sudo install -m 0755 -d /etc/apt/keyrings
+   sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+   echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable" | sudo tee /etc/apt/sources.list.d/docker.list
+   sudo apt-get update && sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+   sudo usermod -aG docker $USER
+   ```
+5. In Ubuntu, set up git (it reuses the GitHub login saved in Windows) and clone:
+   ```sh
+   git config --global user.name "Your Name"
+   git config --global user.email "you@example.com"
+   git config --global credential.helper "/mnt/c/Program\ Files/Git/mingw64/bin/git-credential-manager.exe"
+   git clone https://github.com/muuuto/theboiseapp.git ~/theboiseapp
+   cd ~/theboiseapp
+   code .    # opens VS Code connected to Ubuntu
+   ```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Good to know on Windows:
 
-## Laravel Sponsors
+- Run every command (`sail`, `git`, `npm`) in the Ubuntu terminal, for example the one inside
+  VS Code once it's connected to WSL (bottom-left corner says *WSL: Ubuntu*).
+- Open the site from the Windows browser as usual: `localhost` is forwarded to Ubuntu.
+- In Explorer the project is at `\\wsl.localhost\Ubuntu\home\<user>\theboiseapp`, and Windows
+  files are under `/mnt/c/...` from Ubuntu (e.g. the dump in
+  `/mnt/c/Users/<you>/Downloads/bptheboi_theboise.sql`).
+- When no Ubuntu window is open, WSL shuts down after a short while and the containers with it:
+  just run `./vendor/bin/sail up -d` again.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+## Common steps
 
-### Premium Partners
+From the project folder (`~/theboiseapp`):
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+1. Install the PHP packages with a temporary container:
+   ```sh
+   docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd):/var/www/html" -w /var/www/html laravelsail/php84-composer:latest composer install
+   ```
+2. `cp .env.example .env` and change these values:
+   ```
+   APP_URL=http://localhost
+   FORCE_HTTPS=false
+   DB_HOST=mysql
+   DB_DATABASE=theboise
+   DB_USERNAME=sail
+   DB_PASSWORD=password
+   MAIL_MAILER=smtp
+   MAIL_HOST=mailpit
+   MAIL_PORT=1025
+   FORWARD_DB_PORT=3307
+   WWWUSER=1000
+   WWWGROUP=1000
+   ```
+   Optional, to try the demo account locally: `DEMO_LOGIN_SECRET=local-demo-secret`, then open
+   http://localhost/demo/local-demo-secret
+3. Start everything, create the app key, install the frontend packages and turn on the build
+   reminder hook:
+   ```sh
+   ./vendor/bin/sail up -d --build
+   ./vendor/bin/sail artisan key:generate
+   ./vendor/bin/sail npm install
+   git config core.hooksPath .githooks
+   ```
+   Tip: add `alias sail='./vendor/bin/sail'` to `~/.bashrc` to type `sail` instead of `./vendor/bin/sail`.
+4. Import the database: see
+   [Refresh the data from production](deploy/DEPLOY.md#refresh-the-data-from-production).
+5. Uploaded images: in cPanel File Manager compress `public_html/storage/app/public`, download it
+   and extract its content into `storage/app/public`. Then create the links that serve them
+   (the second one makes the `/storage/app/public/...` URLs used by the views work locally):
+   ```sh
+   ln -s ../storage/app/public public/storage
+   mkdir -p storage/app/public/app && ln -s .. storage/app/public/app/public
+   ```
+6. Check: http://localhost opens the site, http://localhost:8025 opens Mailpit, and
+   `./vendor/bin/sail artisan test` passes.
