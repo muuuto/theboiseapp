@@ -1,11 +1,13 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import {
-    Brush, Check, CheckCircle2, Copy, Crop, Database, Download, Eye, Dumbbell, History, ImagePlus, Sparkles, Mail, MapPin, MapPinned, Play, UserPlus, XCircle,
+    Brush, Check, CheckCircle2, Copy, Crop, Database, Download, Eye, Dumbbell, History, ImagePlus, Sparkles, Mail, MapPin, MapPinned, Pencil, Play, Plus, Trash2, UserPlus, XCircle,
 } from 'lucide-vue-next';
 import { formatDate, fullDate } from '../../time.js';
 import AlbumHistory from '../../components/AlbumHistory.vue';
+import EmojiPicker from '../../components/EmojiPicker.vue';
+import RequiredMark from '../../components/RequiredMark.vue';
 import { t, tc } from '../../i18n.js';
 
 const props = defineProps({
@@ -91,10 +93,50 @@ const decorationsForm = useForm({
     birthdays: props.decorations.birthdays,
     holidays: Object.fromEntries(props.decorations.list.map((h) => [h.key, { on: h.on, weeks: h.weeks }])),
 });
-const dayMonth = (date) => formatDate(date, { day: 'numeric', month: 'short' });
-const holidayDates = (h) => (h.first === h.last ? dayMonth(h.first) : `${dayMonth(h.first)} – ${dayMonth(h.last)}`);
+// Only-once decorations show the year too
+const dayMonth = (date, year = false) => formatDate(date, year ? { day: 'numeric', month: 'short', year: 'numeric' } : { day: 'numeric', month: 'short' });
+const holidayDates = (h) => {
+    const year = h.custom && !h.yearly;
+    return h.first === h.last ? dayMonth(h.first, year) : `${dayMonth(h.first, year)} – ${dayMonth(h.last, year)}`;
+};
 function saveDecorations() {
     decorationsForm.put('/admin/maintenance/decorations', { preserveScroll: true });
+}
+
+// The admins' own decorations: added and edited here, then switched on/off and timed like the others.
+// One added or deleted (the page stays, its list changes): its switch joins or leaves the form,
+// the changes not saved yet stay
+watch(() => props.decorations.list, (list) => {
+    const saved = (h) => ({ on: h.on, weeks: h.weeks });
+    decorationsForm.holidays = Object.fromEntries(list.map((h) => [h.key, decorationsForm.holidays[h.key] ?? saved(h)]));
+    decorationsForm.defaults('holidays', Object.fromEntries(list.map((h) => [h.key, saved(h)])));
+});
+const customOpen = ref(false);
+const customId = ref(null); // null: a new one
+const customForm = useForm({ label: '', icon: '', snow: false, falling: '', greeting: '', from: '', to: '', yearly: true });
+function openCustom(h = null) {
+    customId.value = h?.id ?? null;
+    customForm.clearErrors();
+    customForm.defaults(h
+        ? { label: h.label, icon: h.icon, snow: h.snow, falling: h.snow ? '' : h.falling, greeting: h.greeting, from: h.from, to: h.to, yearly: h.yearly }
+        : { label: '', icon: '', snow: false, falling: '', greeting: '', from: '', to: '', yearly: true });
+    customForm.reset();
+    customOpen.value = true;
+    nextTick(() => document.getElementById('custom-decoration')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+}
+function saveCustom() {
+    const done = { preserveScroll: true, onSuccess: () => (customOpen.value = false) };
+    customId.value ? customForm.put(`/admin/maintenance/decorations/custom/${customId.value}`, done) : customForm.post('/admin/maintenance/decorations/custom', done);
+}
+function deleteCustom(h) {
+    if (window.confirm(t('Delete the decoration ":name"?', { name: h.label }))) {
+        router.delete(`/admin/maintenance/decorations/custom/${h.id}`, { preserveScroll: true });
+    }
+}
+// One day: the end date follows the start until it's changed
+function setFrom(value) {
+    if (!customForm.to || customForm.to === customForm.from || customForm.to < value) customForm.to = value;
+    customForm.from = value;
 }
 
 const cardClass = 'rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800';
@@ -297,8 +339,8 @@ const buttonClass = 'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-
             </div>
         </section>
 
-        <!-- Home page decorations -->
-        <form :class="cardClass" class="space-y-4 lg:col-span-2" @submit.prevent="saveDecorations">
+        <!-- Home page decorations (a section: the form for your own decorations is inside it) -->
+        <section :class="cardClass" class="space-y-4 lg:col-span-2">
             <div class="flex flex-wrap items-start gap-3">
                 <div class="min-w-60 flex-1">
                     <h2 class="flex items-center gap-2 text-lg font-bold"><Sparkles class="size-5 text-accent" /> {{ t('Decorations') }}</h2>
@@ -331,30 +373,105 @@ const buttonClass = 'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-                        <tr v-for="h in decorations.list" :key="h.key">
+                        <tr v-for="h in decorations.list" :key="h.key" :class="h.past && 'opacity-50'">
                             <td class="py-2 pr-2">
                                 <label class="inline-flex items-center gap-2 font-medium whitespace-nowrap">
-                                    <input v-model="decorationsForm.holidays[h.key].on" type="checkbox" class="size-5 accent-teal-600" /> {{ h.icon }} {{ t(h.label) }}
+                                    <input v-model="decorationsForm.holidays[h.key].on" type="checkbox" class="size-5 accent-teal-600" /> {{ h.icon }} {{ h.custom ? h.label : t(h.label) }}
                                 </label>
+                                <span v-if="h.custom" class="ml-2 rounded-full bg-teal-50 px-2 py-0.5 text-xs font-semibold text-teal-700 dark:bg-teal-950 dark:text-teal-300">
+                                    {{ h.yearly ? t('yours, every year') : h.past ? t('yours, over') : t('yours, once') }}
+                                </span>
                             </td>
                             <td class="py-2 pr-2 whitespace-nowrap text-slate-500">{{ holidayDates(h) }}</td>
                             <td class="py-2 pr-2 whitespace-nowrap">{{ h.falling }}</td>
                             <td class="py-2 pr-2">
-                                <select v-model.number="decorationsForm.holidays[h.key].weeks" class="h-9 rounded-lg border-0 bg-white px-2 ring-1 ring-slate-200 dark:bg-slate-950 dark:ring-slate-700" :aria-label="t(':holiday: weeks before', { holiday: t(h.label) })">
+                                <select v-model.number="decorationsForm.holidays[h.key].weeks" class="h-9 rounded-lg border-0 bg-white px-2 ring-1 ring-slate-200 dark:bg-slate-950 dark:ring-slate-700" :aria-label="t(':holiday: weeks before', { holiday: h.custom ? h.label : t(h.label) })">
                                     <option :value="0">{{ t('only the day(s)') }}</option>
                                     <option v-for="n in 8" :key="n" :value="n">{{ tc(':count week|:count weeks', n) }}</option>
                                 </select>
                             </td>
-                            <td class="py-2 text-right"><a :href="`/?decoration=${h.key}`" class="inline-flex items-center gap-1 font-semibold text-accent hover:underline"><Eye class="size-4" /> {{ t('Preview') }}</a></td>
+                            <td class="py-2 text-right whitespace-nowrap">
+                                <a :href="`/?decoration=${h.key}`" class="inline-flex items-center gap-1 font-semibold text-accent hover:underline"><Eye class="size-4" /> {{ t('Preview') }}</a>
+                                <template v-if="h.custom">
+                                    <button type="button" class="ml-1 rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-accent dark:hover:bg-slate-800" :aria-label="t('Edit :name', { name: h.label })" @click="openCustom(h)"><Pencil class="size-4" /></button>
+                                    <button type="button" class="rounded-lg p-1.5 text-slate-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40" :aria-label="t('Delete :name', { name: h.label })" @click="deleteCustom(h)"><Trash2 class="size-4" /></button>
+                                </template>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
-            <button type="submit" :class="buttonClass" class="bg-brand text-white hover:bg-brand-dark" :disabled="decorationsForm.processing || !decorationsForm.isDirty">
-                {{ t('Save decorations') }}
-            </button>
-        </form>
+            <div class="flex flex-wrap items-center gap-2">
+                <button type="button" :class="buttonClass" class="bg-brand text-white hover:bg-brand-dark" :disabled="decorationsForm.processing || !decorationsForm.isDirty" @click="saveDecorations">
+                    {{ t('Save decorations') }}
+                </button>
+                <button v-if="!customOpen" type="button" :class="buttonClass" class="ring-1 ring-slate-200 hover:bg-slate-100 dark:ring-slate-700 dark:hover:bg-slate-800" @click="openCustom()">
+                    <Plus class="size-4" /> {{ t('Add a decoration') }}
+                </button>
+            </div>
+
+            <!-- Your own decoration: a party, a trip, a day that matters to you -->
+            <form v-if="customOpen" id="custom-decoration" class="space-y-3 rounded-2xl bg-slate-50 p-4 dark:bg-slate-800/60" @submit.prevent="saveCustom">
+                <h3 class="font-bold">{{ customId ? t('Edit the decoration') : t('New decoration') }}</h3>
+                <div class="grid gap-3 sm:grid-cols-2">
+                    <label class="block">
+                        <span class="mb-1 block text-sm font-semibold">{{ t('Name') }}<RequiredMark /></span>
+                        <input v-model="customForm.label" required maxlength="40" aria-required="true" :placeholder="t('Example: TheBoise anniversary')" class="h-10 w-full rounded-xl border-0 bg-white px-3 ring-1 ring-slate-200 focus:ring-2 focus:ring-accent focus:outline-none dark:bg-slate-950 dark:ring-slate-700" />
+                        <span v-if="customForm.errors.label" class="mt-1 block text-sm text-red-600">{{ customForm.errors.label }}</span>
+                    </label>
+                    <div>
+                        <span class="mb-1 block text-sm font-semibold">{{ t('Icon') }}</span>
+                        <div class="flex items-center gap-1">
+                            <input v-model="customForm.icon" maxlength="20" :placeholder="t('the first one falling')" class="h-10 w-full rounded-xl border-0 bg-white px-3 ring-1 ring-slate-200 focus:ring-2 focus:ring-accent focus:outline-none dark:bg-slate-950 dark:ring-slate-700" :aria-label="t('Icon')" />
+                            <EmojiPicker placement="bottom" @pick="(emoji) => (customForm.icon = emoji)" />
+                        </div>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <span class="mb-1 block text-sm font-semibold">{{ t('What falls') }}<RequiredMark /></span>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <input
+                                v-model="customForm.falling"
+                                :disabled="customForm.snow"
+                                maxlength="200"
+                                placeholder="🎈 🎉 🥳"
+                                class="h-10 min-w-0 flex-1 rounded-xl border-0 bg-white px-3 text-lg ring-1 ring-slate-200 focus:ring-2 focus:ring-accent focus:outline-none disabled:opacity-50 dark:bg-slate-950 dark:ring-slate-700"
+                                :aria-label="t('What falls')"
+                            />
+                            <EmojiPicker v-if="!customForm.snow" placement="bottom" @pick="(emoji) => (customForm.falling = `${customForm.falling.trim()} ${emoji}`.trim())" />
+                            <label class="inline-flex items-center gap-2 text-sm font-semibold">
+                                <input v-model="customForm.snow" type="checkbox" class="size-5 accent-teal-600" /> {{ t('❄️ Snow instead') }}
+                            </label>
+                        </div>
+                        <span class="mt-1 block text-xs text-slate-500">{{ t('Up to 8 emojis, they fall in turn.') }}</span>
+                        <span v-if="customForm.errors.falling" class="mt-1 block text-sm text-red-600">{{ customForm.errors.falling }}</span>
+                    </div>
+                    <label class="block sm:col-span-2">
+                        <span class="mb-1 block text-sm font-semibold">{{ t('Greeting on the day') }}<RequiredMark /></span>
+                        <input v-model="customForm.greeting" required maxlength="100" aria-required="true" :placeholder="t('Example: Happy anniversary, TheBoise!')" class="h-10 w-full rounded-xl border-0 bg-white px-3 ring-1 ring-slate-200 focus:ring-2 focus:ring-accent focus:outline-none dark:bg-slate-950 dark:ring-slate-700" />
+                        <span class="mt-1 block text-xs text-slate-500">{{ t('Before the day the badge says ":name in 3 days".', { name: customForm.label || t('Name') }) }}</span>
+                        <span v-if="customForm.errors.greeting" class="mt-1 block text-sm text-red-600">{{ customForm.errors.greeting }}</span>
+                    </label>
+                    <label class="block">
+                        <span class="mb-1 block text-sm font-semibold">{{ t('From') }}<RequiredMark /></span>
+                        <input :value="customForm.from" type="date" required aria-required="true" class="h-10 w-full rounded-xl border-0 bg-white px-3 ring-1 ring-slate-200 focus:ring-2 focus:ring-accent focus:outline-none dark:bg-slate-950 dark:ring-slate-700" @input="setFrom($event.target.value)" />
+                        <span v-if="customForm.errors.from" class="mt-1 block text-sm text-red-600">{{ customForm.errors.from }}</span>
+                    </label>
+                    <label class="block">
+                        <span class="mb-1 block text-sm font-semibold">{{ t('To') }}<RequiredMark /></span>
+                        <input v-model="customForm.to" type="date" required aria-required="true" :min="customForm.from" class="h-10 w-full rounded-xl border-0 bg-white px-3 ring-1 ring-slate-200 focus:ring-2 focus:ring-accent focus:outline-none dark:bg-slate-950 dark:ring-slate-700" />
+                        <span v-if="customForm.errors.to" class="mt-1 block text-sm text-red-600">{{ customForm.errors.to }}</span>
+                    </label>
+                </div>
+                <label class="inline-flex items-center gap-2 text-sm font-semibold">
+                    <input v-model="customForm.yearly" type="checkbox" class="size-5 accent-teal-600" /> {{ t('Every year on these days') }}
+                </label>
+                <div class="flex justify-end gap-2">
+                    <button type="button" :class="buttonClass" class="ring-1 ring-slate-200 hover:bg-white dark:ring-slate-700 dark:hover:bg-slate-900" @click="customOpen = false">{{ t('Cancel') }}</button>
+                    <button type="submit" :class="buttonClass" class="bg-brand text-white hover:bg-brand-dark" :disabled="customForm.processing">{{ customId ? t('Save') : t('Add') }}</button>
+                </div>
+            </form>
+        </section>
 
         <!-- Gym tracker -->
         <section :class="cardClass" class="space-y-4">

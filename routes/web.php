@@ -324,6 +324,9 @@ Route::middleware(['auth', 'can:admin'])->prefix('admin/maintenance')->group(fun
     Route::post('/test-email', [MaintenanceController::class, 'testEmail']);
     Route::post('/album-posting', [MaintenanceController::class, 'albumPostingMode']);
     Route::put('/decorations', [MaintenanceController::class, 'saveDecorations']);
+    Route::post('/decorations/custom', [MaintenanceController::class, 'storeDecoration']);
+    Route::put('/decorations/custom/{id}', [MaintenanceController::class, 'updateDecoration']);
+    Route::delete('/decorations/custom/{id}', [MaintenanceController::class, 'destroyDecoration']);
     Route::put('/album-posting/everyone', [MaintenanceController::class, 'albumPostingEveryone']);
     Route::put('/gym/everyone', [MaintenanceController::class, 'gymEveryone']);
     Route::put('/gym/{user}', [MaintenanceController::class, 'gymAccess']);

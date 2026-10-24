@@ -94,6 +94,76 @@ class DecorationsTest extends TestCase
         $this->actingAs($admin)->get('/admin/maintenance')->assertInertia(fn ($page) => $page->where('decorations.enabled', true)->has('decorations.list', count(Decorations::HOLIDAYS)));
     }
 
+    public function test_admins_add_their_own_decorations(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $user = User::factory()->create();
+        $anniversary = ['label' => 'TheBoise anniversary', 'icon' => '', 'snow' => false, 'falling' => '🎈 🎉🥳 🎈', 'greeting' => 'Happy anniversary!', 'from' => '2026-11-07', 'to' => '2026-11-07', 'yearly' => true];
+
+        $this->actingAs($user)->post('/admin/maintenance/decorations/custom', $anniversary)->assertForbidden();
+        $this->actingAs($admin)->post('/admin/maintenance/decorations/custom', $anniversary)->assertSessionHas('message', 'Decoration added');
+        $custom = Decorations::settings()['custom'][0];
+        // Each emoji once; without an icon, the first one
+        $this->assertSame(['🎈', '🎉', '🥳'], $custom['falling']);
+        $this->assertSame('🎈', $custom['icon']);
+        $key = Decorations::CUSTOM . $custom['id'];
+
+        // Every year, only on the day at first; then a week before, saved with the other switches
+        $this->assertSame([$key, ['🎈', '🎉', '🥳'], '🎈 Happy anniversary!'], $this->summary(Decorations::today($user, $this->day('2027-11-07'))));
+        $this->assertNull(Decorations::today($user, $this->day('2027-11-06')));
+        $this->actingAs($admin)->put('/admin/maintenance/decorations', $this->form([$key => ['on' => true, 'weeks' => 1]]))->assertSessionHas('message');
+        $this->assertSame('🎈 TheBoise anniversary in 6 days', Decorations::today($user, $this->day('2027-11-01'))['message']);
+        // The switches don't change what it is
+        $this->assertSame('Happy anniversary!', Decorations::settings()['custom'][0]['greeting']);
+
+        $this->actingAs($admin)->get('/admin/maintenance')->assertInertia(fn ($page) => $page
+            ->has('decorations.list', count(Decorations::HOLIDAYS) + 1)
+            ->where('decorations.list', fn ($list) => collect($list)->firstWhere('key', $key)['custom'] === true));
+        $this->actingAs($admin)->get("/?decoration={$key}")->assertInertia(fn ($page) => $page->where('decoration.message', '🎈 Happy anniversary!'));
+
+        // Changed to snow, two days, only once
+        $this->actingAs($admin)->put("/admin/maintenance/decorations/custom/{$custom['id']}", ['snow' => true, 'yearly' => false, 'from' => '2026-11-20', 'to' => '2026-11-21'] + $anniversary)
+            ->assertSessionHas('message', 'Decoration saved');
+        $this->assertSame([$key, 'snow', '❄️ Happy anniversary!'], $this->summary(Decorations::today($user, $this->day('2026-11-21'))));
+        $this->assertNull(Decorations::today($user, $this->day('2027-11-21')));
+        $this->assertSame(1, Decorations::settings()['custom'][0]['weeks']);
+
+        // Nothing falling, too many emojis, the end before the start: not saved
+        $this->actingAs($admin)->post('/admin/maintenance/decorations/custom', ['falling' => ''] + $anniversary)->assertSessionHasErrors('falling');
+        $this->actingAs($admin)->post('/admin/maintenance/decorations/custom', ['falling' => '1 2 3 4 5 6 7 8 9'] + $anniversary)->assertSessionHasErrors('falling');
+        $this->actingAs($admin)->post('/admin/maintenance/decorations/custom', ['to' => '2026-11-01'] + $anniversary)->assertSessionHasErrors('to');
+        $this->assertCount(1, Decorations::settings()['custom']);
+
+        $this->actingAs($admin)->delete("/admin/maintenance/decorations/custom/{$custom['id']}")->assertSessionHas('message', 'Decoration deleted');
+        $this->assertSame([], Decorations::settings()['custom']);
+        $this->assertNull(Decorations::preview($key, $admin));
+    }
+
+    public function test_emojis_written_side_by_side_stay_whole(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin)->post('/admin/maintenance/decorations/custom', [
+            'label' => 'Family day', 'falling' => '🇮🇹🎉👨‍👩‍👧👍🏽❤️🇮🇹', 'greeting' => 'Hi!', 'from' => '2026-05-10', 'to' => '2026-05-10',
+        ])->assertSessionHasNoErrors();
+
+        $this->assertSame(['🇮🇹', '🎉', '👨‍👩‍👧', '👍🏽', '❤️'], Decorations::settings()['custom'][0]['falling']);
+    }
+
+    public function test_an_own_decoration_across_new_year_comes_back_every_year(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin)->post('/admin/maintenance/decorations/custom', [
+            'label' => 'Ski week', 'icon' => '⛷️', 'falling' => '⛷️🏂', 'greeting' => 'Off to the mountains!', 'from' => '2026-12-27', 'to' => '2027-01-03', 'yearly' => true,
+        ])->assertSessionHasNoErrors();
+        $key = Decorations::CUSTOM . Decorations::settings()['custom'][0]['id'];
+
+        $this->assertSame(['2030-12-27', '2031-01-03'], $this->dates($key, 2030));
+        // Last year's still going on in January (New Year's Eve is shorter: it wins on its days)
+        $this->assertSame($key, Decorations::today($admin, $this->day('2028-01-02'))['key']);
+        $this->assertSame('new_year', Decorations::today($admin, $this->day('2027-12-31'))['key']);
+        $this->assertSame('⛷️ Off to the mountains!', Decorations::today($admin, $this->day('2027-12-28'))['message']);
+    }
+
     private function save(array $changes): void
     {
         $settings = array_replace_recursive(Decorations::settings(), $changes);

@@ -11,11 +11,14 @@ use App\Support\Settings;
 use App\Support\Decorations;
 use App\Support\Media;
 use App\Support\MailSamples;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 // Lets admins run a fixed set of artisan commands, since the shared hosting has no SSH
 class MaintenanceController extends Controller
@@ -191,18 +194,19 @@ class MaintenanceController extends Controller
         return back();
     }
 
-    // Home page decorations: the switches and, for each holiday, its next dates
+    // Home page decorations: the switches and, for each holiday (the admins' own too), its next dates
     private function decorations(): array
     {
         $settings = Decorations::settings();
         $today = now()->startOfDay()->toImmutable();
 
-        return $settings + [
-            'list' => collect(Decorations::HOLIDAYS)->map(function ($holiday, $key) use ($settings, $today) {
+        return collect($settings)->except('custom')->all() + [
+            'list' => collect(Decorations::all())->map(function ($holiday, $key) use ($today) {
                 [$first, $last] = Decorations::days($key, $today->year);
                 if ($last->lt($today)) {
                     [$first, $last] = Decorations::days($key, $today->year + 1);
                 }
+                $custom = ! empty($holiday['custom']);
 
                 return [
                     'key' => $key,
@@ -211,7 +215,12 @@ class MaintenanceController extends Controller
                     'falling' => $holiday['falling'] === 'snow' ? '❄️ snow' : implode('', $holiday['falling']),
                     'first' => $first->toDateString(),
                     'last' => $last->toDateString(),
-                ] + $settings['holidays'][$key];
+                    'on' => $holiday['on'],
+                    'weeks' => $holiday['weeks'],
+                    'custom' => $custom,
+                    // Only once and already over
+                    'past' => $custom && ! $holiday['yearly'] && $last->lt($today),
+                ] + ($custom ? ['id' => $holiday['id'], 'greeting' => $holiday['greeting'], 'from' => $holiday['from'], 'to' => $holiday['to'], 'yearly' => $holiday['yearly'], 'snow' => $holiday['falling'] === 'snow'] : []);
             })->values(),
         ];
     }
@@ -219,15 +228,125 @@ class MaintenanceController extends Controller
     public function saveDecorations(Request $request)
     {
         abort_unless(Schema::hasTable('settings'), 409, 'Run the pending migrations first');
+        $settings = Decorations::settings();
         $rules = ['enabled' => 'required|boolean', 'birthdays' => 'required|boolean'];
         foreach (array_keys(Decorations::HOLIDAYS) as $key) {
             $rules["holidays.{$key}.on"] = 'required|boolean';
             $rules["holidays.{$key}.weeks"] = 'required|integer|min:0|max:8';
         }
+        foreach ($settings['custom'] as $custom) {
+            $key = Decorations::CUSTOM . $custom['id'];
+            $rules["holidays.{$key}.on"] = 'sometimes|boolean';
+            $rules["holidays.{$key}.weeks"] = 'sometimes|integer|min:0|max:8';
+        }
         $data = $request->validate($rules);
-        Settings::set(Decorations::SETTING, $data);
+
+        // The admins' own keep what they are, with their switch and weeks before from the form
+        $custom = collect($settings['custom'])->map(fn ($custom) => array_merge($custom, $data['holidays'][Decorations::CUSTOM . $custom['id']] ?? []))->all();
+        $holidays = collect($data['holidays'])->only(array_keys(Decorations::HOLIDAYS))->all();
+        Settings::set(Decorations::SETTING, ['enabled' => $data['enabled'], 'birthdays' => $data['birthdays'], 'holidays' => $holidays, 'custom' => $custom]);
 
         return back()->with('message', 'Decorations saved');
+    }
+
+    // An admin's own decoration: on from now, only on its day(s) until someone picks weeks before
+    public function storeDecoration(Request $request)
+    {
+        abort_unless(Schema::hasTable('settings'), 409, 'Run the pending migrations first');
+        $settings = Decorations::settings();
+        abort_if(count($settings['custom']) >= 30, 422, 'Too many decorations: delete some first');
+        $settings['custom'][] = ['id' => Str::lower(Str::random(8))] + $this->customDecoration($request) + ['on' => true, 'weeks' => 0];
+        Settings::set(Decorations::SETTING, $settings);
+
+        return back()->with('message', 'Decoration added');
+    }
+
+    public function updateDecoration(Request $request, string $id)
+    {
+        $settings = Decorations::settings();
+        $index = collect($settings['custom'])->search(fn ($custom) => $custom['id'] === $id);
+        abort_if($index === false, 404);
+        $settings['custom'][$index] = array_merge($settings['custom'][$index], $this->customDecoration($request));
+        Settings::set(Decorations::SETTING, $settings);
+
+        return back()->with('message', 'Decoration saved');
+    }
+
+    public function destroyDecoration(string $id)
+    {
+        $settings = Decorations::settings();
+        $settings['custom'] = collect($settings['custom'])->reject(fn ($custom) => $custom['id'] === $id)->values()->all();
+        Settings::set(Decorations::SETTING, $settings);
+
+        return back()->with('message', 'Decoration deleted');
+    }
+
+    // What an admin's own decoration is: name, icon, what falls (emojis, or snow), the greeting
+    // on the day, its dates and whether it comes back every year
+    private function customDecoration(Request $request): array
+    {
+        $data = $request->validate([
+            'label' => 'required|string|max:40',
+            'icon' => 'nullable|string|max:20',
+            'snow' => 'boolean',
+            'falling' => 'nullable|string|max:200',
+            'greeting' => 'required|string|max:100',
+            'from' => 'required|date',
+            'to' => 'required|date|after_or_equal:from',
+            'yearly' => 'boolean',
+        ]);
+        $falling = $this->emojis($data['falling'] ?? '');
+        $snow = (bool) ($data['snow'] ?? false);
+        $from = CarbonImmutable::parse($data['from']);
+        $to = CarbonImmutable::parse($data['to']);
+        $errors = array_filter([
+            'falling' => match (true) {
+                ! $snow && ! $falling => __('Choose what falls: some emojis, or snow.'),
+                ! $snow && count($falling) > 8 => __('Up to 8 emojis.'),
+                default => null,
+            },
+            'to' => $from->diffInDays($to) > 365 ? __('At most one year.') : null,
+        ]);
+        if ($errors) {
+            throw ValidationException::withMessages($errors);
+        }
+
+        return [
+            'label' => trim($data['label']),
+            'icon' => trim($data['icon'] ?? '') ?: ($snow ? '❄️' : $falling[0]),
+            'falling' => $snow ? 'snow' : $falling,
+            'greeting' => trim($data['greeting']),
+            'from' => $from->toDateString(),
+            'to' => $to->toDateString(),
+            'yearly' => (bool) ($data['yearly'] ?? false),
+        ];
+    }
+
+    // The emojis typed, each once, also written without spaces: one emoji is the character with
+    // what joins it (👨‍👩‍👧, 👍🏽, ❤️, 1️⃣, the two letters of a flag 🇮🇹, 🏴󠁧󠁢󠁳󠁣󠁴󠁿). PCRE's \X joins
+    // two emojis side by side on some versions, so it's done by hand
+    private function emojis(string $text): array
+    {
+        $list = [];
+        $afterJoiner = false;
+        foreach (preg_split('//u', $text, -1, PREG_SPLIT_NO_EMPTY) as $character) {
+            $code = mb_ord($character);
+            $last = $list ? $list[array_key_last($list)] : null;
+            $regional = fn (int $c) => $c >= 0x1F1E6 && $c <= 0x1F1FF;
+            $joins = $afterJoiner
+                || in_array($code, [0x200D, 0xFE0F, 0x20E3], true)
+                || ($code >= 0x1F3FB && $code <= 0x1F3FF) // skin tones
+                || ($code >= 0xE0020 && $code <= 0xE007F) // the letters of the flags of Scotland, Wales...
+                || ($regional($code) && $last !== null && mb_strlen($last) === 1 && $regional(mb_ord($last)));
+            if ($joins && $last !== null) {
+                $list[array_key_last($list)] .= $character;
+            } else {
+                $list[] = $character;
+            }
+            $afterJoiner = $code === 0x200D;
+        }
+
+        return array_values(array_unique(array_filter($list, fn ($emoji) => trim($emoji) !== '')));
     }
 
     // Sends one email with sample data to the admin, to see how it looks

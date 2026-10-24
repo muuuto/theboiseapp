@@ -7,7 +7,8 @@ use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 
 // Home page decorations: things falling from the sky on holidays (snow at Christmas, pumpkins at
-// Halloween...) and on someone's birthday. Switched on/off and timed from the maintenance page
+// Halloween...) and on someone's birthday. Switched on/off and timed from the maintenance page,
+// where admins also add their own (a party, a trip...), every year or only once
 class Decorations
 {
     public const SETTING = 'decorations';
@@ -32,7 +33,11 @@ class Decorations
 
     public const BIRTHDAY = ['🥳', '🎂', '🎉', '🎁'];
 
-    // The saved choices, filled in with the defaults
+    // The admins' own decorations (added on the maintenance page) have keys "custom-<id>"
+    public const CUSTOM = 'custom-';
+
+    // The saved choices, filled in with the defaults. custom: the admins' own decorations, each
+    // [id, label, icon, falling, greeting, from, to (dates), yearly, on, weeks]
     public static function settings(): array
     {
         $saved = Settings::get(self::SETTING, []);
@@ -44,12 +49,39 @@ class Decorations
                 'on' => (bool) ($saved['holidays'][$key]['on'] ?? $holiday['on']),
                 'weeks' => (int) ($saved['holidays'][$key]['weeks'] ?? $holiday['weeks']),
             ])->all(),
+            'custom' => array_values($saved['custom'] ?? []),
         ];
     }
 
-    // [first day, last day] of a holiday in a year (the moving ones calculated)
+    // Every decoration, the holidays and the admins' own, with their switches:
+    // key => label, icon, falling, greeting, on, weeks (+ custom: true and its dates)
+    public static function all(): array
+    {
+        $settings = self::settings();
+        $all = collect(self::HOLIDAYS)->map(fn ($holiday, $key) => array_merge($holiday, $settings['holidays'][$key]))->all();
+        foreach ($settings['custom'] as $custom) {
+            $all[self::CUSTOM . $custom['id']] = $custom + ['custom' => true];
+        }
+
+        return $all;
+    }
+
+    // [first day, last day] of a holiday in a year (the moving ones calculated). The admins' own:
+    // their dates moved to that year when they come back every year, as they are otherwise
     public static function days(string $key, int $year): array
     {
+        if (str_starts_with($key, self::CUSTOM)) {
+            $custom = self::all()[$key];
+            $from = CarbonImmutable::parse($custom['from']);
+            $to = CarbonImmutable::parse($custom['to']);
+            if (! $custom['yearly']) {
+                return [$from, $to];
+            }
+            $first = CarbonImmutable::create($year, $from->month, $from->day);
+
+            return [$first, $first->addDays((int) $from->diffInDays($to))];
+        }
+
         $date = fn (int $month, int $day) => CarbonImmutable::create($year, $month, $day);
         $easter = self::easter($year);
 
@@ -88,13 +120,13 @@ class Decorations
 
         // Every holiday on now (this year's, or last year's New Year still going on 1 January)
         $candidates = collect();
-        foreach (self::HOLIDAYS as $key => $holiday) {
-            if (! $settings['holidays'][$key]['on']) {
+        foreach (self::all() as $key => $holiday) {
+            if (! $holiday['on']) {
                 continue;
             }
             foreach ([$today->year, $today->year - 1] as $year) {
                 [$first, $last] = self::days($key, $year);
-                $from = $first->subWeeks($settings['holidays'][$key]['weeks']);
+                $from = $first->subWeeks($holiday['weeks']);
                 if ($today->betweenIncluded($from, $last)) {
                     $candidates->push(['key' => $key, 'first' => $first, 'last' => $last]);
                 }
@@ -112,7 +144,7 @@ class Decorations
         if ($key === 'birthday') {
             return ['key' => 'birthday', 'falling' => self::BIRTHDAY, 'message' => '🎂 ' . __("Today is :names's birthday!", ['names' => $viewer->name]), 'season' => 'preview'];
         }
-        if (! isset(self::HOLIDAYS[$key])) {
+        if (! isset(self::all()[$key])) {
             return null;
         }
         [$first, $last] = self::days($key, now()->year);
@@ -120,17 +152,19 @@ class Decorations
         return self::holiday($key, $first, $last, $first);
     }
 
+    // The admins' own name and greeting are shown as they wrote them
     private static function holiday(string $key, CarbonImmutable $first, CarbonImmutable $last, CarbonImmutable $today): array
     {
-        $holiday = self::HOLIDAYS[$key];
+        $holiday = self::all()[$key];
+        $custom = ! empty($holiday['custom']);
         $daysLeft = (int) $today->diffInDays($first);
 
         return [
             'key' => $key,
             'falling' => $holiday['falling'],
             'message' => $holiday['icon'] . ' ' . ($today->lt($first)
-                ? trans_choice(':holiday in :count day|:holiday in :count days', $daysLeft, ['holiday' => __($holiday['label'])])
-                : __($holiday['greeting'])),
+                ? trans_choice(':holiday in :count day|:holiday in :count days', $daysLeft, ['holiday' => $custom ? $holiday['label'] : __($holiday['label'])])
+                : ($custom ? $holiday['greeting'] : __($holiday['greeting']))),
             // To remember "hidden" until this holiday is over
             'season' => $key . '-' . $last->toDateString(),
         ];
