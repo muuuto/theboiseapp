@@ -139,6 +139,7 @@ const recordRow = (exercise) => {
 const isRecord = (exercise, row) => recordRow(exercise) === row;
 
 // --- Repeat, share ---
+const canRepeat = computed(() => form.date !== props.today && form.exercises.length > 0);
 const repeating = ref(false);
 async function repeatToday() {
     repeating.value = true;
@@ -346,22 +347,26 @@ const inputClass = 'h-12 w-full rounded-xl border-0 bg-slate-50 px-2 text-center
         </label>
         <p class="mt-1 text-xs text-slate-500">{{ t('Leave kg empty for bodyweight exercises. A different weight or number of reps: add a row.') }}</p>
 
-        <div class="mt-6 flex flex-wrap items-center gap-2">
-            <button type="button" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold text-red-600 ring-1 ring-slate-200 hover:bg-red-50 dark:ring-slate-700 dark:hover:bg-red-950/40" @click="destroy">
+        <!-- Phones: Done first and full width, Repeat and Share side by side, Delete last.
+             Wider: one row, Delete on the left and Done on the right -->
+        <div class="mt-6 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
+            <button type="button" class="order-last col-span-2 inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold text-red-600 ring-1 ring-slate-200 hover:bg-red-50 sm:order-none dark:ring-slate-700 dark:hover:bg-red-950/40" @click="destroy">
                 <Trash2 class="size-4" /> {{ t('Delete workout') }}
             </button>
             <button
-                v-if="form.date !== today && form.exercises.length"
+                v-if="canRepeat"
                 type="button"
                 :disabled="repeating"
                 :title="t('A new workout for today with these exercises, sets and reps')"
-                class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold ring-1 ring-slate-200 hover:bg-slate-100 disabled:opacity-60 dark:ring-slate-700 dark:hover:bg-slate-800"
+                class="inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold ring-1 ring-slate-200 hover:bg-slate-100 disabled:opacity-60 dark:ring-slate-700 dark:hover:bg-slate-800"
                 @click="repeatToday"
             >
                 <Repeat class="size-4" /> {{ t('Repeat today') }}
             </button>
-            <WorkoutShare :date="form.date" :name="page.props.auth.user?.name" :focus="shownFocus" :exercises="shareExercises" />
-            <button type="button" class="ml-auto inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200" @click="finish">
+            <div :class="!canRepeat && 'col-span-2'">
+                <WorkoutShare :date="form.date" :name="page.props.auth.user?.name" :focus="shownFocus" :exercises="shareExercises" />
+            </div>
+            <button type="button" class="order-first col-span-2 inline-flex items-center justify-center gap-1.5 rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-700 sm:order-none sm:ml-auto sm:py-2.5 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200" @click="finish">
                 <Check class="size-4" /> {{ t('Done') }}
             </button>
         </div>
