@@ -142,6 +142,19 @@ Route::post('/notifications/read', function (Illuminate\Http\Request $request) {
     return $request->header('X-Inertia') ? back() : response()->noContent();
 })->middleware('auth');
 
+// A like or reaction clicked in the bell: it's been seen, so it leaves the bell, then on to what
+// it's about. The bell links here with the #comment-12 of the comment, preserveFragment keeps it
+Route::get('/notifications/{id}', function (Illuminate\Http\Request $request, string $id) {
+    $notification = $request->user()->notifications()->find($id);
+    if (! $notification) {
+        // Already opened (a second click, an old tab)
+        return redirect('/');
+    }
+    $notification->delete();
+
+    return redirect(strtok($notification->data['url'], '#'))->preserveFragment();
+})->middleware('auth')->whereUuid('id');
+
 // TheBoise Wrapped: your year in albums
 Route::get('/wrapped', [App\Http\Controllers\WrappedController::class, 'index'])->middleware('auth');
 Route::get('/wrapped/{year}', [App\Http\Controllers\WrappedController::class, 'show'])->middleware('auth')->whereNumber('year');
@@ -242,7 +255,8 @@ Route::delete('/forum/{category}/{post}/pin', [PostController::class, 'pin'])->m
 // Send Post
 Route::post('/forum/{category}/{post}/notify', [PostController::class, 'notify'])->middleware(['auth', 'not-demo'])->name('forum.posts.notify');
 
-// Gym tracker: for the people the admins allow; everyone sees only their own
+// Gym tracker: for the people the admins allow; everyone sees only their own workouts, the
+// exercises are the same for everyone
 Route::middleware(['auth', 'not-demo'])->prefix('gym')->group(function () {
     Route::get('/', [App\Http\Controllers\GymController::class, 'index']);
     Route::post('/workouts', [App\Http\Controllers\GymController::class, 'store']);
@@ -250,10 +264,18 @@ Route::middleware(['auth', 'not-demo'])->prefix('gym')->group(function () {
     Route::put('/workouts/{workout}', [App\Http\Controllers\GymController::class, 'update']);
     Route::delete('/workouts/{workout}', [App\Http\Controllers\GymController::class, 'destroy']);
     Route::post('/exercises', [App\Http\Controllers\GymController::class, 'storeExercise']);
-    Route::get('/exercises/{exercise}', [App\Http\Controllers\GymController::class, 'exercise']);
-    Route::post('/exercises/{exercise}/photo', [App\Http\Controllers\GymController::class, 'exercisePhoto']);
+    Route::get('/exercises/{exercise}', [App\Http\Controllers\GymController::class, 'exercise'])->whereNumber('exercise');
     Route::get('/records', [App\Http\Controllers\GymController::class, 'records']);
     Route::put('/share', [App\Http\Controllers\GymController::class, 'share']);
+
+    // Managing the exercises: names (English, Italian), group, photo, default sets and reps
+    Route::middleware('can:admin')->group(function () {
+        Route::get('/exercises', [App\Http\Controllers\GymController::class, 'exercises']);
+        Route::put('/exercises/{exercise}', [App\Http\Controllers\GymController::class, 'updateExercise']);
+        Route::post('/exercises/{exercise}/photo', [App\Http\Controllers\GymController::class, 'exercisePhoto']);
+        Route::delete('/exercises/{exercise}/photo', [App\Http\Controllers\GymController::class, 'removeExercisePhoto']);
+        Route::delete('/exercises/{exercise}', [App\Http\Controllers\GymController::class, 'destroyExercise']);
+    });
 });
 
 // Upcoming trips: only the people going see one, never the demo account

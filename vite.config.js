@@ -23,5 +23,7 @@ export default defineConfig({
         // Inside Sail: listen on all interfaces, the browser reaches Vite on localhost
         host: '0.0.0.0',
         hmr: { host: 'localhost' },
+        // Uploaded images: nothing to reload, and the storage/app/public/app/public link loops
+        watch: { ignored: ['**/storage/**'] },
     },
 });

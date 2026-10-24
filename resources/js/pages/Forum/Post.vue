@@ -1,7 +1,7 @@
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ArrowLeft, Check, Eye, FileText, History, Link2, Lock, Mail, Pencil, Pin, PinOff, Trash2 } from 'lucide-vue-next';
+import { ArrowLeft, Eye, FileText, History, Lock, Mail, Pencil, Pin, PinOff, Trash2 } from 'lucide-vue-next';
 import CommentBox from '../../components/CommentBox.vue';
 import LikeButton from '../../components/LikeButton.vue';
 import QrCodeButton from '../../components/QrCodeButton.vue';
@@ -31,13 +31,6 @@ function onKeydown(event) {
     if (event.key === 'Escape') viewing.value = null;
     if (event.key === 'ArrowRight') viewing.value = (viewing.value + 1) % props.post.images.length;
     if (event.key === 'ArrowLeft') viewing.value = (viewing.value - 1 + props.post.images.length) % props.post.images.length;
-}
-
-const copied = ref(false);
-async function copyLink() {
-    await navigator.clipboard.writeText(window.location.href.split('#')[0]);
-    copied.value = true;
-    setTimeout(() => (copied.value = false), 1500);
 }
 
 function destroy() {
@@ -74,9 +67,6 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown));
         </Link>
         <div class="ml-auto flex flex-wrap gap-2">
             <QrCodeButton :path="`/forum/${category.id}/${post.id}`" :title="post.title" />
-            <button class="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-sm font-semibold shadow-sm ring-1 ring-slate-200 hover:ring-slate-300 dark:bg-slate-800 dark:ring-slate-700" @click="copyLink">
-                <component :is="copied ? Check : Link2" class="size-4" /> {{ copied ? t('Copied!') : t('Share') }}
-            </button>
             <button v-if="can.notify" class="inline-flex items-center gap-1.5 rounded-xl bg-white px-3 py-1.5 text-sm font-semibold shadow-sm ring-1 ring-slate-200 hover:ring-slate-300 dark:bg-slate-800 dark:ring-slate-700" @click="notifyAll">
                 <Mail class="size-4" /> {{ t('Notify all') }}
             </button>

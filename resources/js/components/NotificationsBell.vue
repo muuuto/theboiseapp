@@ -13,6 +13,10 @@ const likes = computed(() => page.props.notifications?.likes ?? []);
 const unreadLikes = computed(() => likes.value.some((like) => !like.read));
 const hasNews = computed(() => memories.value.length > 0 || unseen.value.length > 0 || unreadLikes.value);
 
+// Clicking a like goes through /notifications/{id}, which takes it out of the bell (memories and
+// new albums stay until their day is over / the album is opened)
+const openUrl = (like) => `/notifications/${like.id}${new URL(like.url, window.location.origin).hash}`;
+
 // Opening the bell marks the likes as read (they stay in the list, without the highlight)
 function toggle() {
     open.value = !open.value;
@@ -55,7 +59,7 @@ onBeforeUnmount(() => document.removeEventListener('click', closeOnOutsideClick)
                     <Link
                         v-for="like in likes"
                         :key="like.id"
-                        :href="like.url"
+                        :href="openUrl(like)"
                         class="flex items-start gap-3 rounded-xl px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700"
                         :class="!like.read && 'bg-red-50 dark:bg-red-950/30'"
                         @click="open = false"

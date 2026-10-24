@@ -94,6 +94,34 @@ class LikeNotificationsTest extends TestCase
         $this->assertCount(0, $this->author->fresh()->unreadNotifications);
     }
 
+    public function test_clicking_a_like_in_the_bell_removes_it_and_opens_the_comment(): void
+    {
+        $this->like($this->friend);
+        $notification = $this->author->notifications->first();
+
+        $this->actingAs($this->author)->get("/notifications/{$notification->id}")
+            ->assertRedirect("/listings/{$this->comment->listing_id}")
+            // the #comment-12 of the bell's link stays
+            ->assertSessionHas('inertia.preserve_fragment', true);
+
+        $this->assertCount(0, $this->author->fresh()->notifications);
+        $this->actingAs($this->author)->get('/')
+            ->assertInertia(fn ($page) => $page->where('notifications.likes', []));
+    }
+
+    public function test_a_like_already_opened_or_of_someone_else_goes_home(): void
+    {
+        $this->like($this->friend);
+        $notification = $this->author->notifications->first();
+
+        // Someone else can't open (and remove) it
+        $this->actingAs($this->friend)->get("/notifications/{$notification->id}")->assertRedirect('/');
+        $this->assertCount(1, $this->author->fresh()->notifications);
+
+        $this->actingAs($this->author)->get("/notifications/{$notification->id}");
+        $this->actingAs($this->author)->get("/notifications/{$notification->id}")->assertRedirect('/');
+    }
+
     public function test_the_bell_shows_likes_on_every_page(): void
     {
         $this->like($this->friend);

@@ -57,7 +57,7 @@ const medal = (index) => ['🥇', '🥈', '🥉'][index] ?? '';
                     <span class="w-5 shrink-0 text-center">{{ medal(index) }}</span>
                     <Link :href="`/gym/exercises/${lift.exerciseId}`" class="min-w-0 flex-1 hover:text-accent">{{ lift.exercise }}</Link>
                     <strong class="shrink-0 tabular-nums">{{ kg(lift.weight) }}</strong>
-                    <span class="w-20 shrink-0 text-right text-xs text-slate-500 tabular-nums" :title="t('Estimated 1-rep max')">1RM {{ kg(lift.oneRepMax) }}</span>
+                    <span class="w-20 shrink-0 text-right text-xs text-slate-500 tabular-nums" :title="t('Estimated 1-rep max')"><template v-if="lift.oneRepMax">1RM {{ kg(lift.oneRepMax) }}</template></span>
                 </li>
             </ol>
             <p v-else class="text-sm text-slate-500">{{ t('No lifts with weights yet.') }}</p>

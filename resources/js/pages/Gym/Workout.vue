@@ -1,43 +1,52 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
-import { ArrowLeft, Check, CircleAlert, Copy, LoaderCircle, Plus, Search, Trash2, X } from 'lucide-vue-next';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { ArrowLeft, Check, CircleAlert, Copy, LoaderCircle, Plus, Repeat, Search, Trash2, X } from 'lucide-vue-next';
 import { locale, t } from '../../i18n.js';
 import { formatDate } from '../../time.js';
 import { request } from '../../http.js';
-import { groupLabel, groupNames, kg, number, setText } from '../../gym.js';
+import { autoFocus, focusLabel, focusNames, groupLabel, groupNames, kg, number, rowText } from '../../gym.js';
 import ExercisePhoto from '../../components/ExercisePhoto.vue';
 import RequiredMark from '../../components/RequiredMark.vue';
+import WorkoutShare from '../../components/WorkoutShare.vue';
 
-// One workout: exercises with their sets (kg × reps). Saved by itself as you type
+// One workout: exercises with their rows (kg × sets × reps). Saved by itself as you type
 const props = defineProps({
     workout: Object,
-    exercises: Array, // the ready list and your own
+    today: String,
+    exercises: Array, // every exercise, the same for everyone
     previousBest: Object, // exercise id → heaviest weight before this workout
-    lastTime: Object, // exercise id → { date, sets } of the last workout with it
+    lastTime: Object, // exercise id → { date, rows } of the last workout with it (or of the one this was repeated from)
 });
+const page = usePage();
 
 const list = ref([...props.exercises]);
 const exerciseById = computed(() => Object.fromEntries(list.value.map((exercise) => [exercise.id, exercise])));
 
 let nextKey = 0;
 const weightText = (weight) => (weight === null || weight === undefined ? '' : locale.value === 'it' ? String(weight).replace('.', ',') : String(weight));
-const newSet = (set = {}) => ({ key: nextKey++, weight: weightText(set.weight), reps: set.reps ? String(set.reps) : '' });
+const newRow = (row = {}) => ({ key: nextKey++, weight: weightText(row.weight), sets: row.sets ? String(row.sets) : '', reps: row.reps ? String(row.reps) : '' });
 
 const form = reactive({
     date: props.workout.date,
+    focus: props.workout.focus, // null: from the exercises
     notes: props.workout.notes,
-    exercises: props.workout.exercises.map((exercise) => ({ key: nextKey++, exerciseId: exercise.exerciseId, sets: exercise.sets.map(newSet) })),
+    exercises: props.workout.exercises.map((exercise) => ({ key: nextKey++, exerciseId: exercise.exerciseId, rows: exercise.rows.map(newRow) })),
 });
 
 const payload = () => ({
     date: form.date,
+    focus: form.focus,
     notes: form.notes,
     exercises: form.exercises.map((exercise) => ({
         exerciseId: exercise.exerciseId,
-        sets: exercise.sets.map((set) => ({ weight: number(set.weight), reps: parseInt(set.reps, 10) || null })),
+        rows: exercise.rows.map((row) => ({ weight: number(row.weight), sets: parseInt(row.sets, 10) || null, reps: parseInt(row.reps, 10) || null })),
     })),
 });
+
+// Upper body, lower body, mixed: from the exercises until you pick one (tap it again: automatic)
+const shownFocus = computed(() => form.focus ?? autoFocus(form.exercises.map((exercise) => exerciseById.value[exercise.exerciseId]?.group)));
+const chooseFocus = (focus) => (form.focus = form.focus === focus ? null : focus);
 
 // --- Saving: a moment after the last change, one save at a time ---
 const status = ref('saved'); // saved | waiting | saving | error
@@ -92,38 +101,56 @@ function destroy() {
     router.delete(`/gym/workouts/${props.workout.id}`);
 }
 
-// --- Sets ---
-function addSet(exercise) {
-    const last = exercise.sets.at(-1);
-    exercise.sets.push(newSet(last ? { weight: number(last.weight), reps: last.reps } : {}));
-    nextTick(() => document.getElementById(`reps-${exercise.sets.at(-1).key}`)?.focus());
+// --- Rows ---
+// A new exercise starts with its default sets (3 when it has none) and reps; they change only
+// when you change them
+const firstRow = (exercise) => newRow({ sets: exercise.defaultSets ?? 3, reps: exercise.defaultReps });
+
+function addRow(exercise) {
+    const last = exercise.rows.at(-1);
+    exercise.rows.push(last ? newRow({ weight: number(last.weight), sets: last.sets, reps: last.reps }) : firstRow(exerciseById.value[exercise.exerciseId] ?? {}));
+    nextTick(() => document.getElementById(`weight-${exercise.rows.at(-1).key}`)?.focus());
 }
 
 function removeExercise(index) {
     const exercise = form.exercises[index];
-    if (exercise.sets.some((set) => set.reps) && !window.confirm(t('Remove :name and its sets from this workout?', { name: exerciseById.value[exercise.exerciseId]?.label }))) return;
+    if (exercise.rows.some((row) => row.weight || row.reps) && !window.confirm(t('Remove :name and its sets from this workout?', { name: exerciseById.value[exercise.exerciseId]?.label }))) return;
     form.exercises.splice(index, 1);
 }
 
 // What last time looked like, as a hint in the empty boxes
 const hint = (exercise, index) => {
-    const sets = props.lastTime[exercise.exerciseId]?.sets ?? [];
-    return sets[index] ?? sets.at(-1) ?? null;
+    const rows = props.lastTime[exercise.exerciseId]?.rows ?? [];
+    return rows[index] ?? rows.at(-1) ?? null;
 };
 
-// 🏆 on the set that beat the record: the heaviest one (the first if tied), when it's heavier
+// 🏆 on the row that beat the record: the heaviest one (the first if tied), when it's heavier
 // than ever before this workout
-const recordSet = (exercise) => {
+const recordRow = (exercise) => {
     const best = props.previousBest[exercise.exerciseId];
     if (best === undefined || best === null) return null;
     let record = null;
-    for (const set of exercise.sets) {
-        const weight = number(set.weight);
-        if (weight !== null && weight > best && parseInt(set.reps, 10) > 0 && (!record || weight > number(record.weight))) record = set;
+    for (const row of exercise.rows) {
+        const weight = number(row.weight);
+        if (weight !== null && weight > best && (!record || weight > number(record.weight))) record = row;
     }
     return record;
 };
-const isRecord = (exercise, set) => recordSet(exercise) === set;
+const isRecord = (exercise, row) => recordRow(exercise) === row;
+
+// --- Repeat, share ---
+const repeating = ref(false);
+async function repeatToday() {
+    repeating.value = true;
+    if (unsaved() || status.value === 'saving') await save();
+    router.post('/gym/workouts', { from: props.workout.id }, { onFinish: () => (repeating.value = false) });
+}
+
+const shareExercises = computed(() => form.exercises.map((exercise) => ({
+    label: exerciseById.value[exercise.exerciseId]?.label ?? '',
+    rows: payload().exercises.find((sent) => sent.exerciseId === exercise.exerciseId)?.rows ?? [],
+    record: !!recordRow(exercise),
+})));
 
 // --- Picking an exercise ---
 const picking = ref(false);
@@ -151,12 +178,12 @@ function openPicker() {
 }
 
 function pick(exercise) {
-    form.exercises.push({ key: nextKey++, exerciseId: exercise.id, sets: [newSet()] });
+    form.exercises.push({ key: nextKey++, exerciseId: exercise.id, rows: [firstRow(exercise)] });
     picking.value = false;
     nextTick(() => document.getElementById(`exercise-${form.exercises.at(-1).key}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
 }
 
-// Your own exercise (only you see it)
+// A new exercise (everyone sees it)
 const own = reactive({ open: false, name: '', group: '', photo: null, sending: false, error: '' });
 function openOwn() {
     Object.assign(own, { open: true, name: search.value.trim(), group: group.value ?? '', photo: null, error: '' });
@@ -212,6 +239,21 @@ const inputClass = 'h-12 w-full rounded-xl border-0 bg-slate-50 px-2 text-center
             <input v-model="form.date" type="date" required class="h-10 rounded-xl border-0 bg-white px-3 ring-1 ring-slate-200 focus:ring-2 focus:ring-accent focus:outline-none dark:bg-slate-950 dark:ring-slate-700" />
         </label>
 
+        <div class="mb-4 flex flex-wrap items-center gap-1.5" role="group" :aria-label="t('Focus')">
+            <button
+                v-for="focus in focusNames"
+                :key="focus"
+                type="button"
+                :aria-pressed="shownFocus === focus"
+                class="rounded-full px-3 py-1.5 text-sm font-semibold ring-1 transition"
+                :class="shownFocus === focus ? 'bg-accent text-white ring-accent' : 'ring-slate-200 hover:bg-slate-100 dark:ring-slate-700 dark:hover:bg-slate-800'"
+                @click="chooseFocus(focus)"
+            >
+                {{ focusLabel(focus) }}
+            </button>
+            <span v-if="!form.focus && shownFocus" class="text-xs text-slate-500">{{ t('from the exercises') }}</span>
+        </div>
+
         <!-- The exercises -->
         <div class="space-y-3">
             <section v-for="(exercise, index) in form.exercises" :id="`exercise-${exercise.key}`" :key="exercise.key" :class="cardClass" class="p-3 sm:p-4">
@@ -227,7 +269,7 @@ const inputClass = 'h-12 w-full rounded-xl border-0 bg-slate-50 px-2 text-center
                         </p>
                         <p v-if="lastTime[exercise.exerciseId]" class="mt-0.5 text-xs text-slate-500">
                             {{ t('Last time (:date):', { date: formatDate(lastTime[exercise.exerciseId].date, { day: 'numeric', month: 'short' }) }) }}
-                            {{ lastTime[exercise.exerciseId].sets.map(setText).join(', ') }}
+                            {{ lastTime[exercise.exerciseId].rows.map(rowText).join(', ') }}
                         </p>
                     </div>
                     <button type="button" class="-mt-1 -mr-1 rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-red-600 dark:hover:bg-slate-800" :aria-label="t('Remove :name', { name: exerciseById[exercise.exerciseId]?.label })" @click="removeExercise(index)">
@@ -235,47 +277,57 @@ const inputClass = 'h-12 w-full rounded-xl border-0 bg-slate-50 px-2 text-center
                     </button>
                 </div>
 
-                <div class="grid grid-cols-[1.5rem_1fr_1fr_2.5rem] items-center gap-x-2 gap-y-2">
+                <div class="grid grid-cols-[1.5rem_1fr_1fr_1fr_2.5rem] items-center gap-x-2 gap-y-2">
                     <span />
                     <span class="text-center text-xs font-semibold text-slate-500">kg</span>
+                    <span class="text-center text-xs font-semibold text-slate-500">{{ t('Sets') }}</span>
                     <span class="text-center text-xs font-semibold text-slate-500">{{ t('Reps') }}</span>
                     <span />
-                    <template v-for="(set, setIndex) in exercise.sets" :key="set.key">
-                        <span class="text-center text-sm font-bold text-slate-400">{{ isRecord(exercise, set) ? '🏆' : setIndex + 1 }}</span>
+                    <template v-for="(row, rowIndex) in exercise.rows" :key="row.key">
+                        <span class="text-center text-sm font-bold text-slate-400">{{ isRecord(exercise, row) ? '🏆' : rowIndex + 1 }}</span>
                         <input
-                            v-model="set.weight"
+                            :id="`weight-${row.key}`"
+                            v-model="row.weight"
                             type="text"
                             inputmode="decimal"
                             enterkeyhint="next"
-                            :aria-label="t('Set :number, kg', { number: setIndex + 1 })"
-                            :placeholder="hint(exercise, setIndex)?.weight ? weightText(hint(exercise, setIndex).weight) : '–'"
-                            :class="[inputClass, isRecord(exercise, set) && 'ring-2 ring-amber-400 dark:ring-amber-500']"
+                            :aria-label="t('Row :number, kg', { number: rowIndex + 1 })"
+                            :placeholder="hint(exercise, rowIndex)?.weight ? weightText(hint(exercise, rowIndex).weight) : '–'"
+                            :class="[inputClass, isRecord(exercise, row) && 'ring-2 ring-amber-400 dark:ring-amber-500']"
                         />
                         <input
-                            :id="`reps-${set.key}`"
-                            v-model="set.reps"
+                            v-model="row.sets"
+                            type="text"
+                            inputmode="numeric"
+                            enterkeyhint="next"
+                            :aria-label="t('Row :number, sets', { number: rowIndex + 1 })"
+                            placeholder="1"
+                            :class="inputClass"
+                        />
+                        <input
+                            v-model="row.reps"
                             type="text"
                             inputmode="numeric"
                             enterkeyhint="done"
-                            :aria-label="t('Set :number, reps', { number: setIndex + 1 })"
-                            :placeholder="hint(exercise, setIndex)?.reps ? String(hint(exercise, setIndex).reps) : ''"
+                            :aria-label="t('Row :number, reps per set', { number: rowIndex + 1 })"
+                            :placeholder="hint(exercise, rowIndex)?.reps ? String(hint(exercise, rowIndex).reps) : ''"
                             :class="inputClass"
                         />
-                        <button type="button" class="flex size-10 items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-red-600 dark:hover:bg-slate-800" :aria-label="t('Remove set :number', { number: setIndex + 1 })" @click="exercise.sets.splice(setIndex, 1)">
+                        <button type="button" class="flex size-10 items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-red-600 dark:hover:bg-slate-800" :aria-label="t('Remove row :number', { number: rowIndex + 1 })" @click="exercise.rows.splice(rowIndex, 1)">
                             <Trash2 class="size-4" />
                         </button>
                     </template>
                 </div>
-                <p v-if="recordSet(exercise)" class="mt-2 text-sm font-semibold text-amber-600 dark:text-amber-400">🏆 {{ t('New record!') }}</p>
+                <p v-if="recordRow(exercise)" class="mt-2 text-sm font-semibold text-amber-600 dark:text-amber-400">🏆 {{ t('New record!') }}</p>
 
-                <button type="button" class="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-xl py-2.5 text-sm font-semibold text-accent ring-1 ring-slate-200 hover:bg-teal-50 dark:ring-slate-700 dark:hover:bg-slate-800" @click="addSet(exercise)">
-                    <component :is="exercise.sets.length ? Copy : Plus" class="size-4" /> {{ exercise.sets.length ? t('Add a set like the last one') : t('Add set') }}
+                <button type="button" class="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-xl py-2.5 text-sm font-semibold text-accent ring-1 ring-slate-200 hover:bg-teal-50 dark:ring-slate-700 dark:hover:bg-slate-800" @click="addRow(exercise)">
+                    <component :is="exercise.rows.length ? Copy : Plus" class="size-4" /> {{ exercise.rows.length ? t('Add a row like the last one') : t('Add a row') }}
                 </button>
             </section>
         </div>
 
         <p v-if="!form.exercises.length" class="rounded-2xl border-2 border-dashed border-slate-200 px-4 py-8 text-center text-sm text-slate-500 dark:border-slate-800">
-            {{ t('Add the first exercise, then the weight and reps of each set.') }}
+            {{ t('Add the first exercise, then the weight, the sets and the reps of each set.') }}
         </p>
 
         <button type="button" class="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark" @click="openPicker">
@@ -292,12 +344,23 @@ const inputClass = 'h-12 w-full rounded-xl border-0 bg-slate-50 px-2 text-center
                 class="w-full rounded-xl border-0 bg-white px-3 py-2 ring-1 ring-slate-200 focus:ring-2 focus:ring-accent focus:outline-none dark:bg-slate-950 dark:ring-slate-700"
             />
         </label>
-        <p class="mt-1 text-xs text-slate-500">{{ t('Sets without reps aren\'t saved. Leave kg empty for bodyweight exercises.') }}</p>
+        <p class="mt-1 text-xs text-slate-500">{{ t('Leave kg empty for bodyweight exercises. A different weight or number of reps: add a row.') }}</p>
 
         <div class="mt-6 flex flex-wrap items-center gap-2">
             <button type="button" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold text-red-600 ring-1 ring-slate-200 hover:bg-red-50 dark:ring-slate-700 dark:hover:bg-red-950/40" @click="destroy">
                 <Trash2 class="size-4" /> {{ t('Delete workout') }}
             </button>
+            <button
+                v-if="form.date !== today && form.exercises.length"
+                type="button"
+                :disabled="repeating"
+                :title="t('A new workout for today with these exercises, sets and reps')"
+                class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold ring-1 ring-slate-200 hover:bg-slate-100 disabled:opacity-60 dark:ring-slate-700 dark:hover:bg-slate-800"
+                @click="repeatToday"
+            >
+                <Repeat class="size-4" /> {{ t('Repeat today') }}
+            </button>
+            <WorkoutShare :date="form.date" :name="page.props.auth.user?.name" :focus="shownFocus" :exercises="shareExercises" />
             <button type="button" class="ml-auto inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200" @click="finish">
                 <Check class="size-4" /> {{ t('Done') }}
             </button>
@@ -340,7 +403,7 @@ const inputClass = 'h-12 w-full rounded-xl border-0 bg-slate-50 px-2 text-center
                                 <button type="button" class="flex min-h-14 min-w-0 flex-1 items-center gap-2 text-left disabled:opacity-50" :disabled="inWorkout.has(exercise.id)" @click="pick(exercise)">
                                     <span class="min-w-0 flex-1">
                                         <span class="block font-medium">{{ exercise.label }}</span>
-                                        <span v-if="exercise.custom" class="text-xs text-slate-500">{{ t('your own') }}</span>
+                                        <span v-if="exercise.defaultReps" class="text-xs text-slate-500">{{ exercise.defaultSets ?? 3 }} × {{ exercise.defaultReps }}</span>
                                     </span>
                                     <Check v-if="inWorkout.has(exercise.id)" class="size-5 shrink-0 text-teal-600" />
                                     <Plus v-else class="size-5 shrink-0 text-accent" />
@@ -350,13 +413,13 @@ const inputClass = 'h-12 w-full rounded-xl border-0 bg-slate-50 px-2 text-center
                     </div>
                     <p v-if="!shown.length" class="py-6 text-center text-sm text-slate-500">{{ t('No exercise called ":name".', { name: search.trim() }) }}</p>
 
-                    <!-- Your own -->
+                    <!-- A new one -->
                     <div class="rounded-2xl bg-slate-50 p-3 dark:bg-slate-950">
                         <button v-if="!own.open" type="button" class="inline-flex w-full items-center justify-center gap-1.5 py-1.5 text-sm font-semibold text-accent" @click="openOwn">
-                            <Plus class="size-4" /> {{ search.trim() && !shown.length ? t('Add ":name" as your own exercise', { name: search.trim() }) : t('Add your own exercise') }}
+                            <Plus class="size-4" /> {{ search.trim() && !shown.length ? t('Add ":name" as a new exercise', { name: search.trim() }) : t('Add a new exercise') }}
                         </button>
                         <form v-else class="space-y-3" @submit.prevent="addOwn">
-                            <p class="text-xs text-slate-500">{{ t('Only you see your own exercises.') }}</p>
+                            <p class="text-xs text-slate-500">{{ t('Everyone in the gym will find it in the list.') }}</p>
                             <label class="block">
                                 <span class="mb-1 block text-sm font-semibold">{{ t('Name') }}<RequiredMark /></span>
                                 <input v-model="own.name" required maxlength="100" aria-required="true" class="h-11 w-full rounded-xl border-0 bg-white px-3 ring-1 ring-slate-200 focus:ring-2 focus:ring-accent focus:outline-none dark:bg-slate-900 dark:ring-slate-700" />

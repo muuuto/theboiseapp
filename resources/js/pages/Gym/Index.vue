@@ -1,17 +1,19 @@
 <script setup>
 import { ref } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
-import { Dumbbell, Plus, Trophy } from 'lucide-vue-next';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { Dumbbell, ListChecks, Plus, Repeat, Trophy } from 'lucide-vue-next';
 import { formatDate } from '../../time.js';
-import { total } from '../../gym.js';
+import { focusLabel, total } from '../../gym.js';
 import Pagination from '../../components/Pagination.vue';
 
-defineProps({ workouts: Object, done: Array, stats: Object });
+defineProps({ workouts: Object, done: Array, stats: Object, today: String });
+const isAdmin = usePage().props.auth.user?.isAdmin;
 
+// A new workout for today: empty, or with the exercises, sets and reps of another one
 const starting = ref(false);
-function newWorkout() {
+function newWorkout(from = null) {
     starting.value = true;
-    router.post('/gym/workouts', {}, { onFinish: () => (starting.value = false) });
+    router.post('/gym/workouts', from ? { from } : {}, { onFinish: () => (starting.value = false) });
 }
 
 const cardClass = 'rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800';
@@ -25,7 +27,10 @@ const cardClass = 'rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 dark:bg-
             <h1 class="text-3xl font-extrabold tracking-tight">{{ t('Gym') }}</h1>
             <p class="text-sm text-slate-500 dark:text-slate-400">{{ t('Your workouts, the weights you lift and your records.') }}</p>
         </div>
-        <div class="flex gap-2 sm:ml-auto">
+        <div class="flex flex-wrap gap-2 sm:ml-auto">
+            <Link v-if="isAdmin" href="/gym/exercises" class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold ring-1 ring-slate-200 transition hover:bg-slate-100 sm:flex-none sm:py-2 dark:ring-slate-700 dark:hover:bg-slate-800">
+                <ListChecks class="size-4" /> {{ t('Exercises') }}
+            </Link>
             <Link href="/gym/records" class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold ring-1 ring-slate-200 transition hover:bg-slate-100 sm:flex-none sm:py-2 dark:ring-slate-700 dark:hover:bg-slate-800">
                 <Trophy class="size-4" /> {{ t('Records') }}
             </Link>
@@ -33,7 +38,7 @@ const cardClass = 'rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 dark:bg-
                 type="button"
                 :disabled="starting"
                 class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark disabled:opacity-60 sm:flex-none sm:py-2"
-                @click="newWorkout"
+                @click="newWorkout()"
             >
                 <Plus class="size-4" /> {{ t('New workout') }}
             </button>
@@ -95,9 +100,21 @@ const cardClass = 'rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 dark:bg-
                 </div>
                 <p v-if="workout.notes" class="line-clamp-2 text-xs text-slate-500 italic">{{ workout.notes }}</p>
                 <p class="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+                    <span v-if="workout.focus" class="rounded-full bg-slate-100 px-2 py-0.5 font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-300">{{ focusLabel(workout.focus) }}</span>
                     <span>{{ tc(':count set|:count sets', workout.sets) }}</span>
                     <span v-if="workout.volume" :title="t('Weight × reps of every set')">{{ total(workout.volume) }}</span>
                     <span v-if="workout.records" class="font-semibold text-amber-600 dark:text-amber-400">🏆 {{ tc(':count record|:count records', workout.records) }}</span>
+                    <!-- Above the card's link -->
+                    <button
+                        v-if="workout.date !== today && workout.exercises.length"
+                        type="button"
+                        :disabled="starting"
+                        :title="t('A new workout for today with these exercises, sets and reps')"
+                        class="relative z-10 ml-auto inline-flex items-center gap-1 rounded-lg px-2 py-1 font-semibold text-accent hover:bg-teal-50 disabled:opacity-60 dark:hover:bg-slate-800"
+                        @click="newWorkout(workout.id)"
+                    >
+                        <Repeat class="size-3.5" /> {{ t('Repeat today') }}
+                    </button>
                 </p>
             </article>
         </div>

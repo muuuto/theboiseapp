@@ -7,11 +7,10 @@ use App\Models\GymSet;
 use App\Models\GymWorkout;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\File;
 use Tests\TestCase;
 
 // Gym tracker: only for the people the admins allow, each person sees only their own workouts,
-// records shared only by choice
+// the exercises are the same for everyone (admins manage them), records shared only by choice
 class GymTest extends TestCase
 {
     use RefreshDatabase;
@@ -26,15 +25,16 @@ class GymTest extends TestCase
 
     private function exercise(string $name): GymExercise
     {
-        return GymExercise::whereNull('user_id')->where('name', $name)->firstOrFail();
+        return GymExercise::where('name', $name)->firstOrFail();
     }
 
-    // A workout with the sets of one exercise: [[kg, reps], …]
-    private function workout(User $user, string $date, string $exercise, array $sets): GymWorkout
+    // A workout with the rows of one exercise: [[kg, reps, sets = 1], …]
+    private function workout(User $user, string $date, string $exercise, array $rows): GymWorkout
     {
         $workout = GymWorkout::create(['user_id' => $user->id, 'date' => $date]);
-        foreach ($sets as $position => [$weight, $reps]) {
-            $workout->sets()->create(['gym_exercise_id' => $this->exercise($exercise)->id, 'position' => $position, 'weight' => $weight, 'reps' => $reps]);
+        foreach ($rows as $position => $row) {
+            [$weight, $reps, $sets] = $row + [2 => 1];
+            $workout->sets()->create(['gym_exercise_id' => $this->exercise($exercise)->id, 'position' => $position, 'weight' => $weight, 'sets' => $sets, 'reps' => $reps]);
         }
 
         return $workout;
@@ -47,13 +47,14 @@ class GymTest extends TestCase
 
         $this->actingAs($bob)->get('/gym')->assertForbidden();
         $this->actingAs($bob)->post('/gym/workouts')->assertForbidden();
+        $this->actingAs($bob)->postJson('/gym/exercises', ['name' => 'Sled push'])->assertForbidden();
         $this->actingAs($bob)->get('/expenses')->assertInertia(fn ($page) => $page->where('auth.user.canUseGym', false));
         $this->actingAs($demo)->get('/gym')->assertForbidden();
 
         $this->actingAs($this->anna)->get('/gym')->assertOk()->assertInertia(fn ($page) => $page->component('Gym/Index')->where('auth.user.canUseGym', true));
     }
 
-    public function test_a_workout_with_sets_saved_as_you_type(): void
+    public function test_a_workout_saved_as_you_type(): void
     {
         $this->actingAs($this->anna)->post('/gym/workouts')->assertRedirect();
         $workout = GymWorkout::where('user_id', $this->anna->id)->sole();
@@ -63,74 +64,177 @@ class GymTest extends TestCase
         $pullUp = $this->exercise('Pull-up')->id;
         $this->actingAs($this->anna)->putJson("/gym/workouts/{$workout->id}", [
             'date' => '2026-10-20',
+            'focus' => 'upper',
             'notes' => 'Good one',
             'exercises' => [
-                ['exerciseId' => $bench, 'sets' => [['weight' => 60, 'reps' => 8], ['weight' => 62.5, 'reps' => 6], ['weight' => 65, 'reps' => null]]],
-                ['exerciseId' => $pullUp, 'sets' => [['weight' => null, 'reps' => 10]]],
+                ['exerciseId' => $bench, 'rows' => [['weight' => 60, 'sets' => 3, 'reps' => 8], ['weight' => 62.5, 'sets' => 1, 'reps' => 6], ['weight' => 65, 'sets' => 2, 'reps' => null]]],
+                // Not done yet: only the sets, still saved (the exercise keeps its place)
+                ['exerciseId' => $pullUp, 'rows' => [['weight' => null, 'sets' => 3, 'reps' => null]]],
             ],
         ])->assertOk()->assertJson(['saved' => true]);
 
         $workout->refresh();
         $this->assertSame('2026-10-20', $workout->date->toDateString());
+        $this->assertSame('upper', $workout->focus);
         $this->assertSame('Good one', $workout->notes);
-        // The set without reps isn't done yet; bodyweight has no kg
-        $this->assertSame([[60.0, 8], [62.5, 6], [null, 10]], $workout->sets->map(fn ($set) => [$set->weight, $set->reps])->all());
+        $this->assertSame(
+            [[60.0, 3, 8], [62.5, 1, 6], [65.0, 2, null], [null, 3, null]],
+            $workout->sets->map(fn ($set) => [$set->weight, $set->sets, $set->reps])->all()
+        );
 
         $this->actingAs($this->anna)->get("/gym/workouts/{$workout->id}")->assertInertia(fn ($page) => $page->component('Gym/Workout')
             ->where('workout.exercises.0.exerciseId', $bench)
-            ->has('workout.exercises.0.sets', 2)
-            ->where('workout.exercises.1.sets.0.weight', null));
+            ->has('workout.exercises.0.rows', 3)
+            ->where('workout.exercises.0.rows.0', ['weight' => 60, 'sets' => 3, 'reps' => 8])
+            ->where('workout.exercises.1.rows.0.weight', null)
+            ->where('workout.focus', 'upper'));
 
-        $this->actingAs($this->anna)->putJson("/gym/workouts/{$workout->id}", ['date' => '2026-10-20', 'exercises' => [['exerciseId' => $bench, 'sets' => [['weight' => 'heavy', 'reps' => 5]]]]])
+        // 60 × 8 × 3 + 62.5 × 6 = 1815 kg
+        $this->actingAs($this->anna)->get('/gym')->assertInertia(fn ($page) => $page
+            ->where('workouts.data.0.volume', 1815)
+            ->where('workouts.data.0.sets', 9));
+
+        $this->actingAs($this->anna)->putJson("/gym/workouts/{$workout->id}", ['date' => '2026-10-20', 'exercises' => [['exerciseId' => $bench, 'rows' => [['weight' => 'heavy', 'sets' => 3, 'reps' => 5]]]]])
             ->assertUnprocessable();
+        $this->actingAs($this->anna)->putJson("/gym/workouts/{$workout->id}", ['date' => '2026-10-20', 'focus' => 'cardio'])->assertJsonValidationErrors('focus');
 
         $this->actingAs($this->anna)->delete("/gym/workouts/{$workout->id}")->assertRedirect('/gym');
         $this->assertDatabaseCount('gym_sets', 0);
     }
 
-    public function test_nobody_sees_someone_elses_workouts_or_exercises(): void
+    public function test_the_focus_comes_from_the_exercises_until_chosen(): void
+    {
+        $legs = $this->workout($this->anna, '2026-10-01', 'Squat', [[100, 5]]);
+        $legs->sets()->create(['gym_exercise_id' => $this->exercise('Crunch')->id, 'position' => 1, 'sets' => 3, 'reps' => 20]);
+        $mixed = $this->workout($this->anna, '2026-10-02', 'Squat', [[100, 5]]);
+        $mixed->sets()->create(['gym_exercise_id' => $this->exercise('Bench press')->id, 'position' => 1, 'weight' => 60, 'sets' => 3, 'reps' => 8]);
+        $chosen = $this->workout($this->anna, '2026-10-03', 'Squat', [[100, 5]]);
+        $chosen->update(['focus' => 'upper']);
+        GymWorkout::create(['user_id' => $this->anna->id, 'date' => '2026-10-04']);
+
+        $this->actingAs($this->anna)->get('/gym')->assertInertia(fn ($page) => $page
+            ->where('workouts.data.0.focus', null) // nothing in it yet
+            ->where('workouts.data.1.focus', 'upper')
+            ->where('workouts.data.2.focus', 'mixed')
+            ->where('workouts.data.3.focus', 'lower')); // core doesn't count
+    }
+
+    public function test_repeat_a_workout_as_todays(): void
+    {
+        $this->travelTo('2026-10-24 18:00');
+        $old = $this->workout($this->anna, '2026-10-20', 'Bench press', [[60, 8, 3], [65, 5, 1]]);
+        $old->update(['focus' => 'upper']);
+        // A later workout with the bench press: the hints come from the day repeated, not this one
+        $this->workout($this->anna, '2026-10-22', 'Bench press', [[50, 10, 3]]);
+
+        $this->actingAs($this->anna)->post('/gym/workouts', ['from' => $old->id])->assertRedirect();
+        $today = GymWorkout::where('date', '2026-10-24')->sole();
+        $this->assertSame($old->id, $today->copied_from_id);
+        $this->assertSame('upper', $today->focus);
+        // The plan: exercises, sets and reps; the kg to write again
+        $this->assertSame([[null, 3, 8], [null, 1, 5]], $today->sets->map(fn ($set) => [$set->weight, $set->sets, $set->reps])->all());
+
+        $bench = $this->exercise('Bench press')->id;
+        $this->actingAs($this->anna)->get("/gym/workouts/{$today->id}")->assertInertia(fn ($page) => $page
+            ->where("lastTime.{$bench}.date", '2026-10-20')
+            ->where("lastTime.{$bench}.rows.0.weight", 60)
+            ->where('previousBest.' . $bench, 65)
+            ->where('today', '2026-10-24'));
+
+        // Only your own workouts
+        $bob = User::factory()->create(['can_use_gym' => true]);
+        $this->actingAs($bob)->post('/gym/workouts', ['from' => $old->id])->assertNotFound();
+        $this->assertSame(0, GymWorkout::where('user_id', $bob->id)->count());
+    }
+
+    public function test_nobody_sees_someone_elses_workouts(): void
     {
         $bob = User::factory()->create(['can_use_gym' => true]);
         $workout = $this->workout($this->anna, '2026-10-01', 'Squat', [[100, 5]]);
-        $own = GymExercise::create(['name' => 'Sled push', 'user_id' => $this->anna->id]);
 
         $this->actingAs($bob)->get("/gym/workouts/{$workout->id}")->assertNotFound();
         $this->actingAs($bob)->putJson("/gym/workouts/{$workout->id}", ['date' => '2026-10-01'])->assertNotFound();
         $this->actingAs($bob)->delete("/gym/workouts/{$workout->id}")->assertNotFound();
-        $this->actingAs($bob)->get("/gym/exercises/{$own->id}")->assertNotFound();
 
-        // Bob can't put Anna's exercise in his workout, nor sees it in his list
         $bobs = GymWorkout::create(['user_id' => $bob->id, 'date' => '2026-10-02']);
-        $this->actingAs($bob)->putJson("/gym/workouts/{$bobs->id}", ['date' => '2026-10-02', 'exercises' => [['exerciseId' => $own->id, 'sets' => [['weight' => 50, 'reps' => 5]]]]])
-            ->assertJsonValidationErrors('exercises.0.exerciseId');
-        $this->actingAs($bob)->get("/gym/workouts/{$bobs->id}")->assertInertia(fn ($page) => $page
-            ->where('exercises', fn ($list) => collect($list)->pluck('id')->doesntContain($own->id) && count($list) === 48));
         $this->actingAs($bob)->get('/gym')->assertInertia(fn ($page) => $page->has('workouts.data', 1)->where('workouts.data.0.id', $bobs->id));
+        // Anna's squats aren't in Bob's progress
+        $this->actingAs($bob)->get("/gym/exercises/{$this->exercise('Squat')->id}")->assertInertia(fn ($page) => $page->where('records', null));
     }
 
-    public function test_your_own_exercises_with_a_photo(): void
+    public function test_an_exercise_someone_adds_is_there_for_everyone(): void
     {
-        $this->actingAs($this->anna)->postJson('/gym/exercises', ['name' => 'Sled push', 'group' => 'Legs', 'photo' => $this->fakeCover()])
-            ->assertOk()->assertJson(['label' => 'Sled push', 'group' => 'Legs', 'custom' => true]);
-        $exercise = GymExercise::where('user_id', $this->anna->id)->sole();
-        $this->assertNotNull($exercise->photo);
-        // The same name again: the same exercise, not a copy (the ready list too)
+        $this->actingAs($this->anna)->postJson('/gym/exercises', ['name' => 'Sled push', 'group' => 'Legs', 'photo' => $this->fakeCover(), 'defaultReps' => 12])
+            ->assertOk()->assertJson(['label' => 'Sled push', 'group' => 'Legs', 'defaultReps' => null]); // defaults: admins only
+        $exercise = GymExercise::where('name', 'Sled push')->sole();
+        $this->assertSame($this->anna->id, $exercise->user_id);
+        $this->assertCount(1, $exercise->photos());
+        // The same name again (also the Italian one): the same exercise, not a copy
         $this->actingAs($this->anna)->postJson('/gym/exercises', ['name' => 'sled PUSH'])->assertJson(['id' => $exercise->id]);
-        $this->actingAs($this->anna)->postJson('/gym/exercises', ['name' => 'bench press'])->assertJson(['id' => $this->exercise('Bench press')->id, 'custom' => false]);
+        $this->actingAs($this->anna)->postJson('/gym/exercises', ['name' => 'panca PIANA'])->assertJson(['id' => $this->exercise('Bench press')->id]);
         $this->actingAs($this->anna)->postJson('/gym/exercises', ['name' => 'Yoga', 'group' => 'Mind'])->assertJsonValidationErrors('group');
         $this->assertSame(1, GymExercise::whereNotNull('user_id')->count());
 
-        $this->actingAs($this->anna)->post("/gym/exercises/{$exercise->id}/photo", ['photo' => $this->fakeCover()])->assertSessionHasNoErrors();
-        $this->actingAs(User::factory()->create(['can_use_gym' => true]))->post("/gym/exercises/{$exercise->id}/photo", ['photo' => $this->fakeCover()])->assertNotFound();
-        $this->actingAs($this->anna)->post("/gym/exercises/{$this->exercise('Squat')->id}/photo", ['photo' => $this->fakeCover()])->assertNotFound();
+        // Bob finds it and uses it
+        $bob = User::factory()->create(['can_use_gym' => true]);
+        $bobs = GymWorkout::create(['user_id' => $bob->id, 'date' => '2026-10-02']);
+        $this->actingAs($bob)->get("/gym/workouts/{$bobs->id}")->assertInertia(fn ($page) => $page
+            ->where('exercises', fn ($list) => collect($list)->pluck('id')->contains($exercise->id) && count($list) === 52));
+        $this->actingAs($bob)->putJson("/gym/workouts/{$bobs->id}", ['date' => '2026-10-02', 'exercises' => [['exerciseId' => $exercise->id, 'rows' => [['weight' => 50, 'sets' => 3, 'reps' => 5]]]]])
+            ->assertOk();
+        $this->actingAs($bob)->get("/gym/exercises/{$exercise->id}")->assertOk();
+        $this->actingAs($bob)->putJson("/gym/workouts/{$bobs->id}", ['date' => '2026-10-02', 'exercises' => [['exerciseId' => 9999, 'rows' => []]]])
+            ->assertJsonValidationErrors('exercises.0.exerciseId');
+    }
+
+    public function test_admins_manage_the_exercises(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $squat = $this->exercise('Squat');
+        $this->workout($this->anna, '2026-10-01', 'Squat', [[100, 5]]);
+
+        // Not for the other gym users
+        $this->actingAs($this->anna)->get('/gym/exercises')->assertForbidden();
+        $this->actingAs($this->anna)->put("/gym/exercises/{$squat->id}", ['name' => 'Squat'])->assertForbidden();
+        $this->actingAs($this->anna)->post("/gym/exercises/{$squat->id}/photo", ['photo' => $this->fakeCover()])->assertForbidden();
+
+        $this->actingAs($admin)->get('/gym/exercises')->assertInertia(fn ($page) => $page->component('Gym/Exercises')
+            ->has('exercises', 51) // the ready list
+            ->where('exercises', fn ($list) => collect($list)->firstWhere('id', $squat->id)['uses'] === 1 && collect($list)->firstWhere('id', $squat->id)['nameIt'] === 'Squat'));
+
+        $this->actingAs($admin)->put("/gym/exercises/{$squat->id}", ['name' => 'Back squat', 'nameIt' => 'Squat con bilanciere', 'group' => 'Legs', 'defaultSets' => 5, 'defaultReps' => 5])
+            ->assertSessionHas('message', 'Exercise saved');
+        $squat->refresh();
+        $this->assertSame([5, 5], [$squat->default_sets, $squat->default_reps]);
+        // Renamed, it keeps its ready-made photos
+        $this->assertCount(2, $squat->photos());
+        app()->setLocale('it');
+        $this->assertSame('Squat con bilanciere', $squat->label());
+        app()->setLocale('en');
+        $this->assertSame('Back squat', $squat->label());
+        $this->actingAs($admin)->put("/gym/exercises/{$squat->id}", ['name' => '', 'defaultSets' => 0])->assertSessionHasErrors(['name', 'defaultSets']);
+
+        // A photo of its own, and back to the ready-made ones
+        $this->actingAs($admin)->post("/gym/exercises/{$squat->id}/photo", ['photo' => $this->fakeCover()])->assertSessionHasNoErrors();
+        $this->assertCount(1, $squat->fresh()->photos());
+        $this->actingAs($admin)->delete("/gym/exercises/{$squat->id}/photo");
+        $this->assertCount(2, $squat->fresh()->photos());
+
+        // A new one, with everything; deleted only while nobody used it
+        $this->actingAs($admin)->post('/gym/exercises', ['name' => 'Sled push', 'nameIt' => 'Spinta della slitta', 'group' => 'Legs', 'defaultSets' => 4, 'defaultReps' => 10])
+            ->assertSessionHas('message', 'Exercise added');
+        $sled = $this->exercise('Sled push');
+        $this->assertSame(['Spinta della slitta', 4, 10], [$sled->name_it, $sled->default_sets, $sled->default_reps]);
+        $this->actingAs($admin)->delete("/gym/exercises/{$squat->id}")->assertStatus(422);
+        $this->actingAs($admin)->delete("/gym/exercises/{$sled->id}")->assertSessionHas('message', 'Exercise deleted');
+        $this->assertNull(GymExercise::find($sled->id));
     }
 
     public function test_every_ready_exercise_has_its_photos_and_italian_name(): void
     {
-        $italian = json_decode(File::get(lang_path('it.json')), true);
         foreach (GymExercise::whereNull('user_id')->get() as $exercise) {
             $this->assertCount(2, $exercise->photos(), "{$exercise->name}: start and end photos in public/images/exercises");
-            $this->assertArrayHasKey($exercise->name, $italian, "{$exercise->name}: Italian name in lang/it.json");
+            $this->assertNotEmpty($exercise->name_it, "{$exercise->name}: Italian name");
             $this->assertContains($exercise->muscle_group, GymExercise::GROUPS);
         }
         app()->setLocale('it');
@@ -140,38 +244,45 @@ class GymTest extends TestCase
 
     public function test_progress_and_personal_records(): void
     {
-        $this->workout($this->anna, '2026-09-01', 'Bench press', [[60, 8], [60, 6]]);
+        $this->workout($this->anna, '2026-09-01', 'Bench press', [[60, 8, 3], [60, 6]]);
         $this->workout($this->anna, '2026-09-08', 'Bench press', [[65, 5], [70, 2]]);
         $this->workout($this->anna, '2026-09-15', 'Bench press', [[62.5, 10]]);
+        // Kg written, reps not yet: counts for the heaviest, not for the estimated max
+        $this->workout($this->anna, '2026-09-20', 'Bench press', [[72.5, null, 3]]);
         $bench = $this->exercise('Bench press')->id;
 
         $this->actingAs($this->anna)->get("/gym/exercises/{$bench}")->assertInertia(fn ($page) => $page->component('Gym/Exercise')
-            ->where('records.heaviest.weight', 70)
-            ->where('records.heaviest.date', '2026-09-08')
+            ->where('records.heaviest.weight', 72.5)
+            ->where('records.heaviest.reps', null)
             // Epley: 62.5 × (1 + 10/30) = 83.3 beats 70 × (1 + 2/30) = 74.7
             ->where('records.oneRepMax.value', 83.3)
             ->where('records.mostReps.reps', 10)
-            ->has('chart', 3)
+            ->has('chart', 4)
             ->where('chart.0.best', 60)
-            ->where('days.0.date', '2026-09-15'));
+            ->where('days.0.date', '2026-09-20')
+            ->where('days.3.rows.0', ['weight' => 60, 'sets' => 3, 'reps' => 8]));
 
-        // The second workout beat the bench press record (once, however many sets); the first time isn't a record
+        // The second and the fourth workout beat the bench press record (once, however many rows);
+        // the first time isn't a record
         $this->actingAs($this->anna)->get('/gym')->assertInertia(fn ($page) => $page
-            ->where('workouts.data.0.records', 0)
-            ->where('workouts.data.1.records', 1)
-            ->where('workouts.data.2.records', 0)
-            ->where('workouts.data.1.volume', 465)
+            ->where('workouts.data.0.records', 1)
+            ->where('workouts.data.1.records', 0)
+            ->where('workouts.data.2.records', 1)
+            ->where('workouts.data.3.records', 0)
+            ->where('workouts.data.2.volume', 465)
+            ->where('workouts.data.3.volume', 1800)
             ->where('done.0.id', $bench));
 
-        // The editor of the last one knows the best before it and how it went last time
-        $last = GymWorkout::where('date', '2026-09-15')->sole();
-        $this->actingAs($this->anna)->get("/gym/workouts/{$last->id}")->assertInertia(fn ($page) => $page
+        // The editor of the third one knows the best before it and how it went last time
+        $third = GymWorkout::where('date', '2026-09-15')->sole();
+        $this->actingAs($this->anna)->get("/gym/workouts/{$third->id}")->assertInertia(fn ($page) => $page
             ->where("previousBest.{$bench}", 70)
             ->where("lastTime.{$bench}.date", '2026-09-08')
-            ->has("lastTime.{$bench}.sets", 2));
+            ->has("lastTime.{$bench}.rows", 2));
 
         $this->assertSame(60.0, GymSet::oneRepMax(60, 1));
         $this->assertNull(GymSet::oneRepMax(null, 12));
+        $this->assertNull(GymSet::oneRepMax(60, null));
     }
 
     public function test_records_are_shared_only_by_choice(): void
