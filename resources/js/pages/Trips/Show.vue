@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import {
-    ArrowLeft, CalendarClock, Check, Crown, Hand, Images, ListChecks, MapPin, Pencil, Plus, Trash2, Users, Vote, Wallet,
+    ArrowLeft, CalendarClock, Check, Crown, FileText, Hand, Image as ImageIcon, Images, ListChecks, Loader2, MapPin, Paperclip, Pencil, Plus, Trash2, Upload, Users, Vote, Wallet,
 } from 'lucide-vue-next';
 import Countdown from '../../components/Countdown.vue';
 import RequiredMark from '../../components/RequiredMark.vue';
@@ -15,6 +15,7 @@ const props = defineProps({
     members: Array,
     options: Array,
     items: Array,
+    documents: { type: Array, default: null }, // null until its migration runs
     can: Object,
 });
 
@@ -53,6 +54,32 @@ function addItem() {
 }
 const updateItem = (item, data) => router.put(`/trips/${props.trip.id}/items/${item.id}`, data, keep);
 const deleteItem = (item) => router.delete(`/trips/${props.trip.id}/items/${item.id}`, keep);
+
+// --- Documents: tickets, bookings, PDFs ---
+const upload = useForm({ file: null, name: '', for: null });
+const fileInput = ref(null);
+function pickFile(event) {
+    upload.file = event.target.files[0] ?? null;
+    // The file's name as a start, without the extension
+    if (upload.file && !upload.name) upload.name = upload.file.name.replace(/\.[^.]+$/, '').slice(0, 150);
+}
+function addDocument() {
+    upload.post(`/trips/${props.trip.id}/documents`, {
+        ...keep,
+        forceFormData: true,
+        onSuccess: () => {
+            upload.reset();
+            if (fileInput.value) fileInput.value.value = '';
+        },
+    });
+}
+function deleteDocument(document) {
+    if (window.confirm(t('Remove ":name"?', { name: document.name }))) router.delete(`/trips/${props.trip.id}/documents/${document.id}`, keep);
+}
+// Mine first, then everyone's, then the others'
+const sortedDocuments = computed(() => [...(props.documents ?? [])].sort((a, b) => rank(a) - rank(b)));
+const rank = (document) => (document.forUser === props.me ? 0 : document.forUser === null ? 1 : 2);
+const fileSize = (bytes) => (bytes >= 1048576 ? `${(bytes / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`);
 
 const statusLine = {
     planning: 'Voting the dates',
@@ -226,6 +253,53 @@ const inputClass = 'h-10 w-full rounded-xl border-0 bg-white px-3 text-sm ring-1
                         </button>
                     </li>
                 </ul>
+            </section>
+
+            <!-- Documents: tickets, bookings, PDFs (private: only the people going open them) -->
+            <section v-if="documents" :class="cardClass">
+                <h2 class="mb-1 flex items-center gap-2 text-lg font-bold"><Paperclip class="size-5 text-accent" /> {{ t('Documents') }}</h2>
+                <p class="mb-3 text-sm text-slate-500">{{ t('Tickets, bookings, PDFs: all here, so nobody digs through WhatsApp at the airport. Only the people going can open them.') }}</p>
+
+                <ul v-if="documents.length" class="mb-4 divide-y divide-slate-100 dark:divide-slate-800">
+                    <li v-for="document in sortedDocuments" :key="document.id" class="flex items-center gap-3 py-2">
+                        <a :href="document.url" target="_blank" rel="noopener" class="flex min-w-0 flex-1 items-center gap-3 rounded-xl hover:text-accent">
+                            <span class="flex size-10 shrink-0 items-center justify-center rounded-xl" :class="document.image ? 'bg-sky-50 text-sky-600 dark:bg-sky-950 dark:text-sky-400' : 'bg-red-50 text-red-600 dark:bg-red-950 dark:text-red-400'">
+                                <ImageIcon v-if="document.image" class="size-5" /><FileText v-else class="size-5" />
+                            </span>
+                            <span class="min-w-0">
+                                <span class="block truncate font-medium">{{ document.name }}</span>
+                                <span class="block truncate text-xs text-slate-500">
+                                    <span v-if="document.forUser" class="mr-1 rounded-full px-1.5 py-0.5 font-semibold" :class="document.forUser === me ? 'bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300' : 'bg-slate-100 dark:bg-slate-800'">{{ document.forUser === me ? t('Yours') : t('For :name', { name: nameOf(document.forUser) }) }}</span>
+                                    {{ fileSize(document.size) }} · {{ t('added by :name', { name: document.uploadedBy ?? t('Someone') }) }}
+                                </span>
+                            </span>
+                        </a>
+                        <button v-if="document.canDelete" type="button" class="rounded-lg p-2 text-slate-400 hover:text-red-600" :aria-label="t('Remove :name', { name: document.name })" @click="deleteDocument(document)">
+                            <Trash2 class="size-4" />
+                        </button>
+                    </li>
+                </ul>
+
+                <form class="space-y-2 rounded-2xl bg-slate-50 p-3 dark:bg-slate-950" @submit.prevent="addDocument">
+                    <label class="flex cursor-pointer items-center gap-2 rounded-xl border-2 border-dashed border-slate-300 px-3 py-3 text-sm font-medium text-slate-600 hover:border-accent hover:text-accent dark:border-slate-700 dark:text-slate-300">
+                        <Upload class="size-4 shrink-0" />
+                        <span class="truncate">{{ upload.file ? upload.file.name : t('Choose a PDF or a photo') }}</span>
+                        <input ref="fileInput" type="file" accept="application/pdf,image/*" class="sr-only" @change="pickFile" />
+                    </label>
+                    <template v-if="upload.file">
+                        <div class="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_12rem]">
+                            <input v-model="upload.name" maxlength="150" :placeholder="t('Name, e.g. Ryanair boarding pass')" :aria-label="t('Name')" :class="inputClass" />
+                            <select v-model="upload.for" :aria-label="t('Whose is it?')" :class="inputClass">
+                                <option :value="null">{{ t('For everyone') }}</option>
+                                <option v-for="member in members" :key="member.id" :value="member.id">{{ member.id === me ? t('Mine') : t('For :name', { name: member.name }) }}</option>
+                            </select>
+                        </div>
+                        <button type="submit" :disabled="upload.processing" class="inline-flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-50">
+                            <Loader2 v-if="upload.processing" class="size-4 animate-spin" /><Plus v-else class="size-4" /> {{ t('Add document') }}
+                        </button>
+                    </template>
+                    <p v-if="upload.errors.file" class="text-sm text-red-600">{{ upload.errors.file }}</p>
+                </form>
             </section>
         </div>
 

@@ -15,6 +15,7 @@
         "laravel/framework": "^13.37",
         "laravel/sanctum": "^4.3",
         "laravel/tinker": "^3.0",
+        "lbuchs/webauthn": "^2.2",
         "minishlink/web-push": "^11.0",
         "symfony/html-sanitizer": "^8.1"
     },

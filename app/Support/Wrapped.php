@@ -77,6 +77,7 @@ class Wrapped
             'name' => trim(Str::before((string) $place->place_name, ',')) ?: $album->location,
             'country' => trim((string) Str::afterLast((string) $place->place_name, ',')),
             'km' => self::distance($home['point'], [(float) $place->latitude, (float) $place->longitude]),
+            'elevation' => $place->elevation,
         ]));
 
         $countries = $places->pluck('country')->filter()->unique()->values()->map(fn ($name) => [
@@ -84,6 +85,9 @@ class Wrapped
             'flag' => self::flag(self::COUNTRIES[$name] ?? null),
         ]);
         $farthest = $places->sortByDesc('km')->first();
+        // Only worth a slide from 500 m up
+        $highest = $places->whereNotNull('elevation')->sortByDesc('elevation')->first();
+        $highest = $highest && $highest['elevation'] >= 500 ? $highest : null;
         $longest = $albums->sortByDesc($days)->first();
         $months = $albums->groupBy(fn (Listing $album) => Carbon::parse($album->dateFrom)->month)->map->count()->sortDesc();
 
@@ -113,6 +117,7 @@ class Wrapped
             'countries' => $countries,
             'placeCount' => $places->pluck('name')->unique()->count(),
             'farthest' => $farthest ? ['name' => $farthest['name'], 'album' => $farthest['album'], 'km' => (int) round($farthest['km'])] : null,
+            'highest' => $highest ? ['name' => $highest['name'], 'album' => $highest['album'], 'meters' => $highest['elevation']] : null,
             'longest' => ['title' => $longest->title, 'days' => $days($longest)],
             'busiestMonth' => $months->isNotEmpty() ? ['name' => ucfirst(Carbon::create($year, $months->keys()->first())->translatedFormat('F')), 'albums' => $months->first()] : null,
             'friends' => $friends,

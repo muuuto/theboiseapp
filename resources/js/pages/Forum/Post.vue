@@ -14,9 +14,17 @@ const props = defineProps({
     post: Object,
     comments: Array,
     reactions: Object,
+    mentionable: { type: Array, default: () => [] }, // who can be @mentioned in a comment
     can: Object,
     pinned: Boolean, // linked at the top of the home page
 });
+
+// A comment's text in pieces, the @names (found by the server) in bold
+function withMentions(comment) {
+    if (!comment.mentions?.length) return [{ text: comment.text }];
+    const names = [...comment.mentions].sort((a, b) => b.length - a.length).map((name) => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    return comment.text.split(new RegExp(`(@(?:${names.join('|')}))`, 'giu')).filter(Boolean).map((text) => ({ text, mention: text.startsWith('@') && comment.mentions.some((name) => `@${name}`.toLowerCase() === text.toLowerCase()) }));
+}
 
 // Admins: pin this post at the top of the home page (it replaces the one pinned before)
 function togglePin() {
@@ -142,7 +150,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown));
                 {{ t('Comments') }} <span class="text-sm font-medium text-slate-500">{{ comments.length }}</span>
             </h2>
 
-            <CommentBox :url="`/forum/${category.id}/${post.id}/comment`" :placeholder="t('Write a comment...')" />
+            <CommentBox :url="`/forum/${category.id}/${post.id}/comment`" :placeholder="t('Write a comment...')" :people="mentionable" />
 
             <p v-if="!comments.length" class="text-sm text-slate-500">{{ t('No comments yet, be the first.') }}</p>
 
@@ -161,7 +169,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown));
                     <div class="rounded-2xl rounded-tl-sm bg-white px-4 py-2.5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
                         <p class="text-sm font-semibold">{{ comment.author }}</p>
                         <!-- Plain text: shown as text, line breaks kept -->
-                        <p class="text-[15px] break-words whitespace-pre-line">{{ comment.text }}</p>
+                        <p class="text-[15px] break-words whitespace-pre-line"><template v-for="(part, index) in withMentions(comment)" :key="index"><strong v-if="part.mention">{{ part.text }}</strong><template v-else>{{ part.text }}</template></template></p>
                     </div>
                     <div class="mt-1 flex items-center gap-2 pl-2 text-xs text-slate-500">
                         <time :datetime="comment.createdAt" :title="fullDate(comment.createdAt)">{{ ago(comment.createdAt) }}</time>

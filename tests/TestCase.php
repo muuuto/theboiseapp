@@ -20,7 +20,21 @@ abstract class TestCase extends BaseTestCase
 
         // Uploaded photos never land in the real storage folder
         \Illuminate\Support\Facades\Storage::fake('public');
+
+        // Never the real internet (exchange rates, altitudes): each test says what the services
+        // answer in $fakeHttp (a piece of the address => the JSON); anything else is "unavailable"
+        \Illuminate\Support\Facades\Http::fake(function ($request) {
+            foreach ($this->fakeHttp as $address => $json) {
+                if (str_contains($request->url(), $address)) {
+                    return \Illuminate\Support\Facades\Http::response(is_callable($json) ? $json($request) : $json);
+                }
+            }
+
+            return \Illuminate\Support\Facades\Http::response([], 503);
+        });
     }
+
+    protected array $fakeHttp = [];
 
     // A small photo to upload, e.g. an album's cover (required)
     protected function fakeCover(): \Illuminate\Http\UploadedFile

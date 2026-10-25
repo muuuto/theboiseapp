@@ -22,6 +22,7 @@ const slides = computed(() => {
     if (!w) return [];
     const list = ['intro', 'albums', 'days', 'world'];
     if (w.farthest && w.farthest.km > 50) list.push('farthest');
+    if (w.highest) list.push('highest');
     if (w.busiestMonth && w.albumCount > 2) list.push('month');
     if (w.friends.length) list.push('crew');
     if (w.comments.best || w.comments.written) list.push('comment');
@@ -34,6 +35,7 @@ const backgrounds = {
     days: 'from-amber-400 via-orange-500 to-rose-600',
     world: 'from-sky-500 via-indigo-600 to-violet-700',
     farthest: 'from-emerald-500 via-teal-600 to-cyan-700',
+    highest: 'from-sky-400 via-blue-600 to-slate-900',
     month: 'from-fuchsia-500 via-purple-600 to-indigo-700',
     crew: 'from-orange-400 via-rose-500 to-fuchsia-600',
     comment: 'from-slate-800 via-slate-900 to-black',
@@ -83,6 +85,7 @@ watch(current, (slide) => {
     if (slide === 'days') countUp('days', w.daysAway);
     if (slide === 'world') countUp('km', w.km);
     if (slide === 'farthest') countUp('farthest', w.farthest.km);
+    if (slide === 'highest') countUp('highest', w.highest.meters);
 });
 
 // Tap: left third back, the rest forward. Swipe works the same
@@ -322,6 +325,14 @@ async function shareImage() {
                     </template>
 
                     <!-- Farthest -->
+                    <template v-else-if="current === 'highest'">
+                        <p class="text-6xl">🏔️</p>
+                        <p class="mt-4 text-xl font-semibold text-white/80">{{ t('The highest you got') }}</p>
+                        <p class="mt-2 text-5xl leading-none font-black">{{ wrapped.highest.name }}</p>
+                        <p class="mt-4 text-6xl font-black tabular-nums">{{ number.format(shown.highest ?? 0) }} m</p>
+                        <p class="text-lg text-white/85">{{ t('above sea level, for ":album".', { album: wrapped.highest.album }) }}</p>
+                        <p class="mt-3 text-base text-white/75">{{ tc('That\'s :count Eiffel Tower stacked up 🗼|That\'s :count Eiffel Towers stacked up 🗼', Math.round(wrapped.highest.meters / 330)) }}</p>
+                    </template>
                     <template v-else-if="current === 'farthest'">
                         <p class="text-xl font-semibold text-white/80">{{ t('The farthest you went') }}</p>
                         <p class="mt-2 text-6xl leading-none font-black">{{ wrapped.farthest.name }}</p>

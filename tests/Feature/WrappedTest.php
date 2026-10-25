@@ -82,6 +82,31 @@ class WrappedTest extends TestCase
         $this->assertNull($demo->fresh()->home_name);
     }
 
+    public function test_the_highest_place_from_500_metres(): void
+    {
+        $me = User::factory()->create();
+        $this->fakeHttp['api.open-meteo.com'] = fn ($request) => ['elevation' => array_map(fn ($lat) => (float) $lat > 46.4 ? 2244.6 : 14.0, explode(',', $request['latitude']))];
+
+        // Saving an album looks up the altitude of its places
+        $me->update(['isAdmin' => 1]);
+        $this->actingAs($me)->post('/listings', [
+            'title' => 'Seceda', 'dateFrom' => '2025-07-01', 'dateTo' => '2025-07-01', 'location' => 'Val Gardena',
+            'albumLink' => 'https://www.amazon.it/photos/share/abc', 'tags' => ['montagna'], 'description' => '<p>x</p>', 'cover' => $this->fakeCover(),
+            'people' => [$me->id], 'places' => [['latitude' => 46.6008, 'longitude' => 11.7244, 'placeName' => 'Seceda, Alto Adige, Italia']],
+        ])->assertSessionHasNoErrors();
+        $this->assertSame(2245, \App\Models\ListingPlace::sole()->elevation);
+
+        $this->album('Mare', '2025-08-01', '2025-08-03', [[38.1157, 13.3615, 'Palermo, Sicilia, Italia']], [$me]);
+        $w = Wrapped::for($me->fresh(), 2025);
+        $this->assertSame(['name' => 'Seceda', 'album' => 'Seceda', 'meters' => 2245], $w['highest']);
+
+        // The nightly job fills in the old ones; below 500 m there's no slide
+        $this->artisan('albums:import-elevations')->expectsOutputToContain('1 of 1')->assertSuccessful();
+        $this->assertSame(14, \App\Models\ListingPlace::where('place_name', 'like', 'Palermo%')->value('elevation'));
+        \App\Models\Listing::where('title', 'Seceda')->delete();
+        $this->assertNull(Wrapped::for($me->fresh(), 2025)['highest']);
+    }
+
     public function test_the_current_year_opens_in_december(): void
     {
         $me = User::factory()->create();

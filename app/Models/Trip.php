@@ -6,11 +6,18 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 // A trip being planned: who's going, a date poll, a checklist, shared expenses; then its album
 class Trip extends Model
 {
     protected $casts = ['date_from' => 'date', 'date_to' => 'date'];
+
+    // The rows go with the trip (database), the files with this
+    protected static function booted(): void
+    {
+        static::deleted(fn (Trip $trip) => Storage::disk(TripDocument::DISK)->deleteDirectory("trip-documents/{$trip->id}"));
+    }
 
     public function members(): BelongsToMany
     {
@@ -25,6 +32,12 @@ class Trip extends Model
     public function items(): HasMany
     {
         return $this->hasMany(TripItem::class)->orderBy('done')->orderBy('id');
+    }
+
+    // Tickets, bookings, PDFs
+    public function documents(): HasMany
+    {
+        return $this->hasMany(TripDocument::class)->latest('id');
     }
 
     public function creator(): BelongsTo

@@ -11,6 +11,7 @@ use App\Models\PostComment;
 use App\Models\User;
 use App\Support\AlbumCover;
 use App\Support\Media;
+use App\Support\Mentions;
 use App\Support\SafeHtml;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -129,6 +130,9 @@ class PostController extends Controller
         $attachments = collect(json_decode($post->attachments ?? '', true) ?? []);
         [$pdfs, $images] = $attachments->partition(fn ($path) => strtolower(pathinfo($path, PATHINFO_EXTENSION)) === 'pdf');
 
+        $mentionable = $this->mentionable($post, $user);
+        $named = $mentionable->concat([$user]);
+
         return Inertia::render('Forum/Post', [
             'category' => ['id' => $category->id, 'title' => $category->title],
             'post' => [
@@ -148,11 +152,15 @@ class PostController extends Controller
                 'pdfs' => $pdfs->values()->map(fn ($path, $index) => ['url' => Media::url($path), 'name' => 'Attachment ' . ($index + 1)]),
             ],
             'reactions' => $post->reactionSummary($user, ! $user->is_demo),
+            // Who can be @mentioned in a comment: whoever can see the post
+            'mentionable' => $mentionable->map(fn (User $person) => ['id' => $person->id, 'name' => $person->name, 'avatar' => Media::url($person->profilePicture)])->values(),
             'comments' => $post->comments->sortByDesc('created_at')->map(fn (PostComment $comment) => [
                 'id' => $comment->id,
                 'author' => $comment->user?->name ?? 'Deleted user',
                 'avatar' => Media::url($comment->user?->profilePicture),
                 'text' => $comment->comment,
+                // The @names in it, shown in bold
+                'mentions' => Mentions::find($comment->comment, $named)->pluck('name')->values(),
                 'createdAt' => $comment->created_at?->toIso8601String(),
                 'likes' => $comment->likeSummary($user),
             ])->values(),
@@ -188,7 +196,11 @@ class PostController extends Controller
 
         $comment = PostComment::create($formFields);
 
-        Notify::push($recipients, 'forum', fn () => [
+        // @Anna B: someone who can see the post (who was mentioned gets that instead of "replied")
+        $mentioned = Mentions::find($formFields['comment'], $this->mentionable($post, auth()->user()));
+        Mentions::notify($mentioned, auth()->user(), e($formFields['comment']), $post->title, "/forum/{$category->id}/{$post->id}#comment-{$comment->id}");
+
+        Notify::push($recipients->whereNotIn('id', $mentioned->pluck('id')), 'forum', fn () => [
             'title' => __(':name replied in :title', ['name' => auth()->user()->name, 'title' => $post->title]),
             'body' => __('Tap to read it and answer.'),
             'url' => "/forum/{$category->id}/{$post->id}#comment-{$comment->id}",
@@ -349,6 +361,13 @@ class PostController extends Controller
     }
 
     // Author and admins, or anyone who can see the post if "others can edit" is on
+    // Who can be @mentioned under a post: whoever can see it, except the writer and the demo account
+    private function mentionable(Post $post, User $writer)
+    {
+        return User::where('is_demo', false)->where('id', '!=', $writer->id)->orderBy('name')->get()
+            ->filter(fn (User $person) => $post->isVisibleTo($person))->values();
+    }
+
     private function canEdit(Post $post, User $user): bool
     {
         return ($post->canEdit && $post->isVisibleTo($user)) || $post->isManagedBy($user);

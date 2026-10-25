@@ -18,14 +18,16 @@ class ExpenseMath
         return (int) $match[1] * 100 + (int) str_pad($match[2] ?? '0', 2, '0');
     }
 
-    // "€12.50" in English, "12,50 €" in Italian
-    public static function format(int $cents): string
+    // "€12.50" in English, "12,50 €" in Italian; another currency: "£45.00", "45,00 CHF"
+    public static function format(int $cents, ?string $currency = null): string
     {
         $sign = $cents < 0 ? '-' : '';
+        $symbol = ['GBP' => '£', 'USD' => '$', 'JPY' => '¥', 'CNY' => '¥'][$currency] ?? $currency ?? '€';
+        $glued = mb_strlen($symbol) < 3; // "£45.00" but "CHF 45.00"
 
         return app()->getLocale() === 'it'
-            ? $sign . number_format(abs($cents) / 100, 2, ',', '.') . ' €'
-            : $sign . '€' . number_format(abs($cents) / 100, 2);
+            ? $sign . number_format(abs($cents) / 100, 2, ',', '.') . ' ' . $symbol
+            : $sign . $symbol . ($glued ? '' : ' ') . number_format(abs($cents) / 100, 2);
     }
 
     // What each person owes for an expense, adding up exactly to the total:

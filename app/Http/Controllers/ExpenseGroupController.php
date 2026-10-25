@@ -64,6 +64,8 @@ class ExpenseGroupController extends Controller
             'id' => $expense->id,
             'description' => $expense->description,
             'amount' => $expense->amount,
+            // In another currency: as written ("£45.00")
+            'original' => $expense->currency ? ExpenseMath::format($expense->original_amount, $expense->currency) : null,
             'date' => $expense->spent_on->toDateString(),
             'createdAt' => $expense->created_at?->toIso8601String(),
             'paidBy' => $expense->payer?->name ?? 'Deleted user',

@@ -79,6 +79,17 @@ Route::get('/demo/{secret}', [UserController::class, 'demo'])->middleware(['gues
 Route::put('/account/album-filter', [AccountController::class, 'albumFilter'])->middleware(['auth', 'not-demo']);
 Route::put('/account/home', [AccountController::class, 'home'])->middleware(['auth', 'not-demo']);
 
+// Passkeys: log in with Face ID / fingerprint on the phone (the password stays as a backup)
+Route::middleware(['auth', 'not-demo'])->group(function () {
+    Route::post('/account/passkeys/options', [App\Http\Controllers\PasskeyController::class, 'registerOptions']);
+    Route::post('/account/passkeys', [App\Http\Controllers\PasskeyController::class, 'register']);
+    Route::delete('/account/passkeys/{passkey}', [App\Http\Controllers\PasskeyController::class, 'destroy']);
+});
+Route::middleware(['guest', 'throttle:20,1'])->group(function () {
+    Route::post('/passkeys/login/options', [App\Http\Controllers\PasskeyController::class, 'loginOptions']);
+    Route::post('/passkeys/login', [App\Http\Controllers\PasskeyController::class, 'login']);
+});
+
 // Phone notifications: this device on/off, test, remove a device, what to receive
 Route::middleware(['auth', 'not-demo'])->prefix('push')->group(function () {
     Route::post('/subscriptions', [App\Http\Controllers\PushController::class, 'store']);
@@ -295,12 +306,17 @@ Route::middleware(['auth', 'not-demo'])->prefix('trips')->scopeBindings()->group
     Route::put('/{trip}/items/{item}', [App\Http\Controllers\TripController::class, 'updateItem']);
     Route::delete('/{trip}/items/{item}', [App\Http\Controllers\TripController::class, 'deleteItem']);
     Route::post('/{trip}/expenses', [App\Http\Controllers\TripController::class, 'expenses']);
+    Route::post('/{trip}/documents', [App\Http\Controllers\TripDocumentController::class, 'store']);
+    Route::get('/{trip}/documents/{document}', [App\Http\Controllers\TripDocumentController::class, 'show']);
+    Route::delete('/{trip}/documents/{document}', [App\Http\Controllers\TripDocumentController::class, 'destroy']);
     Route::get('/{trip}/album', [App\Http\Controllers\TripController::class, 'makeAlbum']);
 });
 
 // Shared expenses (like Splitwise): only the members of a group see it, never the demo account
 Route::middleware(['auth', 'not-demo'])->prefix('expenses')->scopeBindings()->group(function () {
     Route::get('/', [ExpenseGroupController::class, 'index']);
+    // The day's exchange rate, while filling in an expense in another currency
+    Route::get('/rate', [ExpenseController::class, 'rate']);
     Route::get('/create', [ExpenseGroupController::class, 'create']);
     Route::post('/', [ExpenseGroupController::class, 'store']);
     Route::get('/{group}', [ExpenseGroupController::class, 'show']);

@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
-import { Bell, CalendarHeart, Heart, ImagePlus } from 'lucide-vue-next';
+import { AtSign, Bell, CalendarHeart, Heart, ImagePlus } from 'lucide-vue-next';
 
 const page = usePage();
 const open = ref(false);
@@ -57,7 +57,7 @@ onBeforeUnmount(() => document.removeEventListener('click', closeOnOutsideClick)
                 class="fixed inset-x-4 top-[4.5rem] max-h-[75vh] overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-xl sm:absolute sm:inset-x-auto sm:top-full sm:right-0 sm:mt-2 sm:w-80 dark:border-slate-700 dark:bg-slate-800"
             >
                 <section v-if="likes.length" class="border-b border-slate-100 p-2 dark:border-slate-700">
-                    <h3 class="px-3 pt-2 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-400">{{ t('Likes and reactions') }}</h3>
+                    <h3 class="px-3 pt-2 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-400">{{ t('For you') }}</h3>
                     <Link
                         v-for="like in likes"
                         :key="like.id"
@@ -67,10 +67,11 @@ onBeforeUnmount(() => document.removeEventListener('click', closeOnOutsideClick)
                         @click="open = false"
                     >
                         <span v-if="like.emoji" class="w-4 shrink-0 text-center leading-5">{{ like.emoji }}</span>
+                        <AtSign v-else-if="like.kind === 'mention'" class="mt-0.5 size-4 shrink-0 text-accent" />
                         <Heart v-else class="mt-0.5 size-4 shrink-0 fill-current text-brand" />
                         <span class="min-w-0 text-sm">
                             <strong>{{ like.liker }}</strong>
-                            {{ like.kind === 'album' ? t('reacted to your album') : like.kind === 'post' ? t('reacted to your post') : t('liked your comment') }}
+                            {{ like.kind === 'mention' ? t('mentioned you') : like.kind === 'album' ? t('reacted to your album') : like.kind === 'post' ? t('reacted to your post') : t('liked your comment') }}
                             <span class="block truncate text-xs text-slate-500"><template v-if="like.excerpt">"{{ like.excerpt }}" · </template>{{ like.title }}</span>
                         </span>
                     </Link>

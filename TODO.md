@@ -356,6 +356,30 @@ Steps (one release each):
     counts the kilometres (home → places → home) and the farthest place from there, and the slide
     says "from <hometown> and back". Without one: Bolzano, as before. Never the demo account.
     **To deploy** (quick release, one migration): push, cPanel Git deploy, **Backup + run migrations**.
+24. **Trip documents, foreign currency, passkeys, altitude in Wrapped, @mentions**: ✅ Done
+    locally, 259 tests passing, tried in a real browser (phone and computer, before and after the
+    migrations).
+    - **Trip documents**: a *Documents* card on the trip: PDFs and photos of tickets and bookings,
+      optionally someone's ("Yours" / "For Anna", who's told). Private files in
+      `storage/app/trip-documents` (never in `public`), opened only by the people going; deleted
+      with the trip.
+    - **Foreign currency**: a currency next to the amount; converted at the ECB rate of the
+      expense's day (frankfurter.app, cached) or at what the card charged ("Charged in euro").
+      Keeps "£45.00" next to the euro; balances in euro as before.
+    - **Passkeys** (Face ID / fingerprint): turned on from the phone in Account → under *Change
+      password*; the login page shows *Sign in with Face ID / fingerprint* only on phones and
+      tablets (computers keep the password, as Matteo prefers). Password always works.
+      Package `lbuchs/webauthn` (tiny, no dependencies).
+    - **Altitude**: album places get their altitude from Open-Meteo when saved (nightly job
+      `albums:import-elevations` at 04:00 fills the rest); Wrapped shows *The highest you got*
+      from 500 m up.
+    - **@mentions** in album and forum comments: "@" suggests who can see it, bold in the comment;
+      they get "Muto mentioned you" in the bell and on the phone (new notification setting
+      *Mentions*).
+    **To deploy: FULL release** (new package `lbuchs/webauthn`, see `deploy/DEPLOY.md` → *Full
+    release*), then **Backup + run migrations** (4 migrations), then *One-time album jobs* →
+    **Look up the altitude of album places** (fills the old albums right away instead of
+    waiting for the night). Then try Face ID on your phone: Account → *Turn on for this phone*.
 15. **Announcement post** (done, written in the chat): write for Matteo an announcement of all these changes, to
     publish as a new post in the forum (what's new, in the site's tone: redesign, maps, likes,
     emails, QR codes, expenses, the app and notifications...).

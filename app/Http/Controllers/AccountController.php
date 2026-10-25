@@ -32,6 +32,13 @@ class AccountController extends Controller
             'wallet' => $wallet ? ['name' => $wallet['name'], 'url' => Media::url($wallet['path'])] : null,
             // Which albums the list and the map start with (for who posted some)
             'ownFilter' => ListingController::ownFilter($user),
+            // Phones that log in with Face ID / fingerprint (null until its migration runs, never the demo)
+            'passkeys' => ! $user->is_demo && Schema::hasTable('passkeys') ? $user->passkeys()->latest()->get()->map(fn ($passkey) => [
+                'id' => $passkey->id,
+                'name' => $passkey->name,
+                'createdAt' => $passkey->created_at->toIso8601String(),
+                'lastUsedAt' => $passkey->last_used_at?->toIso8601String(),
+            ]) : null,
             // Where their trips start from (null until its migration runs)
             'home' => Schema::hasColumn('users', 'home_name') ? ['name' => $user->home()['name'], 'custom' => $user->home_latitude !== null] : null,
             // Phone notifications (null until their migration runs; never for the demo account).

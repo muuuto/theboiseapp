@@ -17,6 +17,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('notifications:birthday')->dailyAt('00:00');
         $schedule->command('backup:database')->dailyAt('03:00');
         $schedule->command('trips:remind')->dailyAt('09:30');
+        $schedule->command('albums:import-elevations')->dailyAt('04:00');
         // TheBoise Wrapped: everyone's year, just after Christmas
         $schedule->command('wrapped:send')->yearlyOn(12, 27, '10:00');
         $schedule->command('backup:database --mail')->weeklyOn(0, '03:30');

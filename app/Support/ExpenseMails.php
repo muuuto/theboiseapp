@@ -36,7 +36,7 @@ class ExpenseMails
                     'name' => $share->user->name,
                     'addedBy' => $addedBy,
                     'description' => $expense->description,
-                    'total' => ExpenseMath::format($expense->amount),
+                    'total' => ExpenseMath::format($expense->amount) . ($expense->currency ? ' (' . ExpenseMath::format($expense->original_amount, $expense->currency) . ')' : ''),
                     'paidBy' => $expense->paid_by == $share->user_id ? __('you') : ($expense->payer?->name ?? __('someone')),
                     'yourShare' => $yourShare,
                     'date' => $expense->spent_on->translatedFormat('j F Y'),

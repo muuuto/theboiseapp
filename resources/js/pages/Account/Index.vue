@@ -1,7 +1,9 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
-import { Cake, Camera, Home, ImagePlus, KeyRound, Loader2, MapPin, Monitor, Moon, Search, Sun, Wallet } from 'lucide-vue-next';
+import { Cake, Camera, Fingerprint, Home, ImagePlus, KeyRound, Loader2, MapPin, Monitor, Moon, Search, Smartphone, Sun, Trash2, Wallet } from 'lucide-vue-next';
+import { addPasskey, isPhone, passkeysAvailable } from '../../passkeys.js';
+import { ago } from '../../time.js';
 import { t } from '../../i18n.js';
 import FormField from '../../components/FormField.vue';
 import RequiredNote from '../../components/RequiredNote.vue';
@@ -10,7 +12,7 @@ import AppNotifications from '../../components/AppNotifications.vue';
 import LanguageSwitch from '../../components/LanguageSwitch.vue';
 import OwnAlbumsToggle from '../../components/OwnAlbumsToggle.vue';
 
-const props = defineProps({ profile: Object, wallet: Object, push: Object, ownFilter: Object, home: Object });
+const props = defineProps({ profile: Object, wallet: Object, push: Object, ownFilter: Object, home: Object, passkeys: Array });
 
 const user = computed(() => usePage().props.auth.user);
 const readOnly = computed(() => user.value.isDemo);
@@ -81,6 +83,30 @@ function pickHome(result) {
     });
 }
 const resetHome = () => router.put('/account/home', { reset: true }, { preserveScroll: true });
+
+// Face ID / fingerprint login: turned on from the phone itself (computers keep the password)
+const canAddPasskey = ref(false);
+const onPhone = isPhone();
+const passkeyBusy = ref(false);
+const passkeyError = ref('');
+onMounted(async () => (canAddPasskey.value = await passkeysAvailable()));
+async function turnOnPasskey() {
+    passkeyBusy.value = true;
+    passkeyError.value = '';
+    try {
+        await addPasskey();
+        router.reload({ only: ['passkeys', 'flash'] });
+    } catch (error) {
+        if (error.name !== 'NotAllowedError' && error.name !== 'AbortError') passkeyError.value = error.message;
+    } finally {
+        passkeyBusy.value = false;
+    }
+}
+function removePasskey(passkey) {
+    if (window.confirm(t('Stop logging in with Face ID / fingerprint on ":name"? The password keeps working.', { name: passkey.name }))) {
+        router.delete(`/account/passkeys/${passkey.id}`, { preserveScroll: true });
+    }
+}
 
 // Wallet: one personal photo with a name
 const wallet = useForm({ mediaName: props.wallet?.name ?? '', addWallet: null });
@@ -231,6 +257,32 @@ const buttonClass = 'inline-flex items-center justify-center gap-2 rounded-xl bg
                 <Loader2 v-if="password.processing" class="size-4 animate-spin" />
                 <KeyRound v-else class="size-4" /> {{ t('Change password') }}
             </button>
+
+            <!-- Face ID / fingerprint on the phone (password as the backup) -->
+            <div v-if="passkeys" class="space-y-3 border-t border-slate-100 pt-4 dark:border-slate-800">
+                <div>
+                    <h3 class="flex items-center gap-2 font-bold"><Fingerprint class="size-5 text-accent" /> {{ t('Face ID / fingerprint on the phone') }}</h3>
+                    <p class="text-sm text-slate-500">{{ t('Log in on your phone with a glance or a touch. The password keeps working everywhere.') }}</p>
+                </div>
+                <ul v-if="passkeys.length" class="divide-y divide-slate-100 dark:divide-slate-800">
+                    <li v-for="passkey in passkeys" :key="passkey.id" class="flex items-center gap-3 py-2">
+                        <Smartphone class="size-5 shrink-0 text-slate-400" />
+                        <span class="min-w-0 flex-1">
+                            <span class="block text-sm font-medium">{{ passkey.name }}</span>
+                            <span class="text-xs text-slate-500">{{ passkey.lastUsedAt ? t('Last used :when', { when: ago(passkey.lastUsedAt) }) : t('Added :when', { when: ago(passkey.createdAt) }) }}</span>
+                        </span>
+                        <button type="button" class="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40" :aria-label="t('Remove :name', { name: passkey.name })" @click="removePasskey(passkey)">
+                            <Trash2 class="size-4" />
+                        </button>
+                    </li>
+                </ul>
+                <button v-if="canAddPasskey" type="button" class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-accent ring-1 ring-slate-200 hover:bg-teal-50 disabled:opacity-50 dark:ring-slate-700 dark:hover:bg-slate-800" :disabled="passkeyBusy" @click="turnOnPasskey">
+                    <Loader2 v-if="passkeyBusy" class="size-4 animate-spin" /><Fingerprint v-else class="size-4" /> {{ t('Turn on for this phone') }}
+                </button>
+                <p v-else-if="!onPhone" class="rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-500 dark:bg-slate-800/60">{{ t('Open this page on your phone to turn it on there.') }}</p>
+                <p v-else class="text-xs text-slate-500">{{ t('This phone has no Face ID, fingerprint or screen lock to use.') }}</p>
+                <p v-if="passkeyError" class="text-sm text-red-600">{{ passkeyError }}</p>
+            </div>
         </form>
 
         <!-- Wallet -->

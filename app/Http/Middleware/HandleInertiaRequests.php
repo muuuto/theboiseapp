@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Console\Commands\GenerateAnniversaryNotifications;
 use App\Models\ListingUser;
 use App\Notifications\CommentLiked;
+use App\Notifications\Mentioned;
 use App\Notifications\Reacted;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
@@ -76,15 +77,24 @@ class HandleInertiaRequests extends Middleware
             return [];
         }
 
-        // Likes on your comments and reactions to your albums and posts
+        // Likes on your comments, reactions to your albums and posts, @mentions
         return $user->notifications()
-            ->whereIn('type', [CommentLiked::class, Reacted::class])
+            ->whereIn('type', [CommentLiked::class, Reacted::class, Mentioned::class])
             ->where('created_at', '>=', now()->subDays(30))
             ->latest()
             ->limit(10)
             ->get()
-            ->map(fn ($notification) => $notification->type === Reacted::class
-                ? [
+            ->map(fn ($notification) => match ($notification->type) {
+                Mentioned::class => [
+                    'id' => $notification->id,
+                    'kind' => 'mention',
+                    'liker' => $notification->data['author_name'],
+                    'excerpt' => $notification->data['excerpt'],
+                    'title' => $notification->data['title'],
+                    'url' => $notification->data['url'],
+                    'read' => ! is_null($notification->read_at),
+                ],
+                Reacted::class => [
                     'id' => $notification->id,
                     'kind' => $notification->data['target_type'], // album or post
                     'liker' => $notification->data['reactor_name'],
@@ -92,8 +102,8 @@ class HandleInertiaRequests extends Middleware
                     'title' => $notification->data['title'],
                     'url' => $notification->data['url'],
                     'read' => ! is_null($notification->read_at),
-                ]
-                : [
+                ],
+                default => [
                     'id' => $notification->id,
                     'kind' => 'comment',
                     'liker' => $notification->data['liker_name'],
@@ -101,7 +111,8 @@ class HandleInertiaRequests extends Middleware
                     'title' => $notification->data['title'],
                     'url' => $notification->data['url'],
                     'read' => ! is_null($notification->read_at),
-                ])
+                ],
+            })
             ->all();
     }
 

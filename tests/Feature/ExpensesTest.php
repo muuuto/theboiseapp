@@ -271,6 +271,55 @@ class ExpensesTest extends TestCase
     }
 
     // A group created by $me with Anna and Bob: [group, me, anna, bob]
+    // --- Another currency ---
+
+    public function test_pounds_turned_into_euro_at_the_days_ecb_rate(): void
+    {
+        [$group, $me, $anna, $bob] = $this->group();
+        $this->fakeHttp['api.frankfurter.app/2026-08-02'] = ['amount' => 1, 'base' => 'EUR', 'date' => '2026-07-31', 'rates' => ['GBP' => 0.8]];
+
+        // £45 for three at 0.80 £/€ = €56.25: 1875 each
+        $this->actingAs($me)->post("/expenses/{$group->id}/expenses", $this->expense([$me->id => true, $anna->id => true, $bob->id => true], amount: '45') + ['currency' => 'GBP'])
+            ->assertSessionHasNoErrors();
+        $expense = Expense::with('shares')->sole();
+        $this->assertSame([5625, 'GBP', 4500, 0.8, false], [$expense->amount, $expense->currency, $expense->original_amount, (float) $expense->exchange_rate, (bool) $expense->rate_manual]);
+        $this->assertSame([1875, 1875, 1875], $expense->shares->pluck('amount')->all());
+        $this->assertSame([1500, 1500, 1500], $expense->shares->pluck('original_amount')->all());
+        $this->assertSame([$me->id => 3750, $anna->id => -1875, $bob->id => -1875], $this->balances($group));
+        $this->actingAs($anna)->get("/expenses/{$group->id}")->assertInertia(fn ($page) => $page->where('activity.0.original', '£45.00'));
+
+        // The form while typing gets the same rate
+        $this->actingAs($me)->getJson('/expenses/rate?currency=GBP&date=2026-08-02')->assertJson(['rate' => 0.8, 'date' => '2026-07-31']);
+
+        // Editing shows it as written
+        $this->actingAs($me)->get("/expenses/{$group->id}/expenses/{$expense->id}/edit")->assertInertia(fn ($page) => $page
+            ->where('expense.amount', '45.00')
+            ->where('expense.currency', 'GBP')
+            ->where('expense.amount_eur', ''));
+    }
+
+    public function test_what_the_card_charged_and_exact_amounts_in_another_currency(): void
+    {
+        [$group, $me, $anna] = $this->group();
+
+        // CHF 30 + CHF 10, the card charged €42: shares in proportion, adding up exactly
+        $this->actingAs($me)->post("/expenses/{$group->id}/expenses", $this->expense([$me->id => '30', $anna->id => '10'], amount: '40', type: 'exact') + ['currency' => 'CHF', 'amount_eur' => '42'])
+            ->assertSessionHasNoErrors();
+        $expense = Expense::with('shares')->sole();
+        $this->assertSame([4200, true], [$expense->amount, (bool) $expense->rate_manual]);
+        $this->assertSame([3150, 1050], $expense->shares->sortBy('user_id')->pluck('amount')->values()->all());
+        $this->actingAs($me)->get("/expenses/{$group->id}/expenses/{$expense->id}/edit")->assertInertia(fn ($page) => $page
+            ->where('expense.amount_eur', '42.00')
+            ->where("expense.shares.{$anna->id}.amount", '10.00'));
+
+        // No rate from the bank and nothing written: asked for the euro amount
+        $this->actingAs($me)->post("/expenses/{$group->id}/expenses", $this->expense([$me->id => true], amount: '10') + ['currency' => 'USD'])
+            ->assertSessionHasErrors('amount_eur');
+        $this->actingAs($me)->post("/expenses/{$group->id}/expenses", $this->expense([$me->id => true], amount: '10') + ['currency' => 'XYZ'])
+            ->assertSessionHasErrors('currency');
+        $this->assertSame(1, Expense::count());
+    }
+
     private function group(): array
     {
         [$me, $anna, $bob] = User::factory()->count(3)->create();

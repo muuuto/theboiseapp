@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\ExpenseGroup;
 use App\Models\Trip;
 use App\Models\TripDateOption;
+use App\Models\TripDocument;
 use App\Models\TripItem;
 use App\Models\User;
 use App\Support\Media;
 use App\Support\TripNotices;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
@@ -61,6 +63,18 @@ class TripController extends Controller
                 'assignedTo' => $item->assigned_to,
                 'canDelete' => $managed || $item->created_by == $user->id,
             ]),
+            // null until its migration runs
+            'documents' => Schema::hasTable('trip_documents') ? $trip->documents()->with('uploader')->get()->map(fn (TripDocument $document) => [
+                'id' => $document->id,
+                'name' => $document->name,
+                'image' => str_starts_with($document->mime, 'image/'),
+                'size' => $document->size,
+                'forUser' => $document->for_user_id,
+                'uploadedBy' => $document->uploader?->name,
+                'createdAt' => $document->created_at->toIso8601String(),
+                'url' => "/trips/{$trip->id}/documents/{$document->id}",
+                'canDelete' => $managed || in_array($user->id, [$document->uploaded_by, $document->for_user_id]),
+            ]) : null,
             'can' => [
                 'manage' => $managed,
                 // After the start, who can post albums turns it into one

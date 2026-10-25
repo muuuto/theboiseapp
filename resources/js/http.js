@@ -7,13 +7,15 @@ export async function request(method, url, body, { keepalive = false } = {}) {
         method,
         headers: { ...(form ? {} : { 'Content-Type': 'application/json' }), Accept: 'application/json', 'X-XSRF-TOKEN': token, 'X-Requested-With': 'XMLHttpRequest' },
         credentials: 'same-origin',
-        body: form ? body : JSON.stringify(body),
+        body: method === 'GET' ? undefined : form ? body : JSON.stringify(body),
         keepalive,
     });
     if (!response.ok) {
         const error = new Error(`Request failed (${response.status})`);
         error.status = response.status;
-        error.errors = (await response.json().catch(() => null))?.errors ?? {};
+        const body = await response.json().catch(() => null);
+        error.errors = body?.errors ?? {};
+        error.message = body?.message ?? error.message;
         throw error;
     }
     return response.json();

@@ -1,8 +1,13 @@
-// Money of shared expenses: always cents (integers) in the data, euro only
+// Money of shared expenses: always cents (integers) in the data, in euro (an expense in another
+// currency keeps its own amount too: hundredths of that currency)
 import { locale } from './i18n.js';
 
-// "€12.50" in English, "12,50 €" in Italian
-export const money = (cents) => new Intl.NumberFormat(locale.value === 'it' ? 'it-IT' : 'en-IE', { style: 'currency', currency: 'EUR' }).format(cents / 100);
+// "€12.50" in English, "12,50 €" in Italian; moneyIn(4500, 'GBP') → "£45.00"
+export const moneyIn = (cents, currency = 'EUR') => new Intl.NumberFormat(locale.value === 'it' ? 'it-IT' : 'en-IE', { style: 'currency', currency }).format(cents / 100);
+export const money = (cents) => moneyIn(cents, 'EUR');
+
+// "£", "$", "CHF"
+export const currencySymbol = (currency) => new Intl.NumberFormat(locale.value === 'it' ? 'it-IT' : 'en-IE', { style: 'currency', currency }).formatToParts(0).find((part) => part.type === 'currency')?.value ?? currency;
 
 // "12,50" or "12.5" → 1250; null if it isn't an amount (same rules as the server)
 export function parseEuros(text) {

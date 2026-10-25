@@ -94,6 +94,12 @@ class User extends Authenticatable implements HasLocalePreference
             || ($this->can_post_albums && Settings::get(Settings::MEMBERS_CAN_POST_ALBUMS, false));
     }
 
+    // Phones that log in with Face ID / fingerprint
+    public function passkeys(): HasMany
+    {
+        return $this->hasMany(Passkey::class);
+    }
+
     // Where their trips start from (Wrapped kilometres): the hometown they set, or Bolzano
     public function home(): array
     {

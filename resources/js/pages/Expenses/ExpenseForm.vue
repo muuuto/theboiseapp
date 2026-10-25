@@ -1,17 +1,20 @@
 <script setup>
 import RequiredMark from '../../components/RequiredMark.vue';
 import RequiredNote from '../../components/RequiredNote.vue';
-import { computed, reactive } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ArrowLeft, Trash2 } from 'lucide-vue-next';
-import { money, parseEuros, split } from '../../money.js';
+import { currencySymbol, money, moneyIn, parseEuros, split } from '../../money.js';
 import { t } from '../../i18n.js';
+import { formatDate } from '../../time.js';
+import { request } from '../../http.js';
 
 const props = defineProps({
     group: Object,
     me: Number,
     members: Array,
     expense: Object, // null when adding
+    currencies: { type: Array, default: () => [] }, // besides euro (empty before its migration runs)
 });
 
 const editing = computed(() => !!props.expense);
@@ -20,6 +23,8 @@ const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD, local time
 const form = useForm({
     description: props.expense?.description ?? '',
     amount: props.expense?.amount ?? '',
+    currency: props.expense?.currency ?? 'EUR',
+    amount_eur: props.expense?.amount_eur ?? '',
     spent_on: props.expense?.spent_on ?? today,
     paid_by: props.expense?.paid_by ?? props.me,
     split_type: props.expense?.split_type ?? 'equal',
@@ -35,6 +40,31 @@ const values = reactive({
 });
 
 const total = computed(() => parseEuros(form.amount));
+
+// Another currency: everything is written in it, the site turns it into euro at the day's ECB rate
+// (or at what the card charged, when given)
+const foreign = computed(() => form.currency !== 'EUR');
+const symbol = computed(() => currencySymbol(form.currency));
+const inCurrency = (cents) => moneyIn(cents, form.currency);
+const rate = ref(null); // { rate, date }
+const rateError = ref(false);
+const showCharged = ref(!!form.amount_eur);
+watch(() => [form.currency, form.spent_on], async ([currency, date]) => {
+    rate.value = null;
+    rateError.value = false;
+    if (currency === 'EUR' || !date) return;
+    try {
+        rate.value = await request('GET', `/expenses/rate?currency=${currency}&date=${date}`);
+    } catch {
+        rateError.value = true;
+        showCharged.value = true;
+    }
+}, { immediate: true });
+const inEuro = computed(() => {
+    if (!foreign.value) return null;
+    if (String(form.amount_eur).trim()) return parseEuros(form.amount_eur);
+    return total.value && rate.value ? Math.max(1, Math.round(total.value / rate.value.rate)) : null;
+});
 
 // What each person owes with the current choices (null = can't tell yet)
 const preview = computed(() => {
@@ -108,24 +138,50 @@ const smallInputClass = 'h-10 rounded-xl border-0 bg-white px-2 ring-1 ring-slat
             </label>
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <label class="block">
-                    <span :class="labelClass">{{ t('Amount') }}<RequiredMark /></span>
-                    <span class="relative block">
-                        <span class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 font-semibold text-slate-500">€</span>
-                        <input
-                            v-model="form.amount"
-                            inputmode="decimal"
-                            required
-                            placeholder="0.00"
-                            :class="[inputClass, 'pl-8 text-lg font-semibold', form.errors.amount && 'ring-2 ring-red-500']"
-                        />
+                <div class="block">
+                    <label for="expense-amount" :class="labelClass">{{ t('Amount') }}<RequiredMark /></label>
+                    <span class="flex">
+                        <!-- Currency: euro, or the one of the trip -->
+                        <select v-if="currencies.length" v-model="form.currency" :aria-label="t('Currency')" class="h-11 shrink-0 rounded-l-xl border-0 bg-slate-50 pr-7 pl-3 font-semibold ring-1 ring-slate-200 focus:ring-2 focus:ring-accent focus:outline-none dark:bg-slate-800 dark:ring-slate-700">
+                            <option value="EUR">€ EUR</option>
+                            <option v-for="code in currencies" :key="code" :value="code">{{ currencySymbol(code) === code ? code : `${currencySymbol(code)} ${code}` }}</option>
+                        </select>
+                        <span class="relative block min-w-0 flex-1">
+                            <span v-if="!currencies.length" class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 font-semibold text-slate-500">€</span>
+                            <input
+                                id="expense-amount"
+                                v-model="form.amount"
+                                inputmode="decimal"
+                                required
+                                placeholder="0.00"
+                                :class="[inputClass, 'text-lg font-semibold', currencies.length ? 'rounded-l-none' : 'pl-8', form.errors.amount && 'ring-2 ring-red-500']"
+                            />
+                        </span>
                     </span>
                     <span v-if="form.errors.amount" class="mt-1 block text-sm text-red-600">{{ form.errors.amount }}</span>
-                </label>
+                </div>
                 <label class="block">
                     <span :class="labelClass">{{ t('Date') }}<RequiredMark /></span>
                     <input v-model="form.spent_on" type="date" required :class="inputClass" />
                 </label>
+            </div>
+
+            <!-- In euro: at the day's rate, or what the card charged -->
+            <div v-if="foreign" class="space-y-2 rounded-2xl bg-sky-50 px-4 py-3 text-sm dark:bg-sky-950/40">
+                <p v-if="inEuro" class="font-semibold text-sky-900 dark:text-sky-200">≈ {{ money(inEuro) }}</p>
+                <p v-if="rate && !String(form.amount_eur).trim()" class="text-xs text-sky-800 dark:text-sky-300">
+                    {{ t('1 € = :rate :currency (European Central Bank, :date)', { rate: rate.rate.toLocaleString(), currency: form.currency, date: formatDate(rate.date, { day: 'numeric', month: 'short' }) }) }}
+                </p>
+                <p v-else-if="rateError" class="text-xs text-amber-800 dark:text-amber-300">{{ t('The exchange rate isn\'t available right now: write what it cost in euro.') }}</p>
+                <button v-if="!showCharged" type="button" class="text-xs font-semibold text-sky-800 underline dark:text-sky-300" @click="showCharged = true">{{ t('Your card charged a different amount in euro?') }}</button>
+                <label v-else class="block">
+                    <span class="mb-1 block text-xs font-semibold text-sky-900 dark:text-sky-200">{{ t('Charged in euro (optional)') }}</span>
+                    <span class="relative block sm:w-48">
+                        <span class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 font-semibold text-slate-500">€</span>
+                        <input v-model="form.amount_eur" inputmode="decimal" placeholder="0.00" :class="[inputClass, 'pl-8', form.errors.amount_eur && 'ring-2 ring-red-500']" />
+                    </span>
+                </label>
+                <span v-if="form.errors.amount_eur" class="block text-sm text-red-600">{{ form.errors.amount_eur }}</span>
             </div>
 
             <label class="block">
@@ -172,8 +228,8 @@ const smallInputClass = 'h-10 rounded-xl border-0 bg-white px-2 ring-1 ring-slat
                     </label>
 
                     <span v-if="form.split_type === 'exact'" class="relative w-28 shrink-0">
-                        <span class="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-sm text-slate-500">€</span>
-                        <input v-model="values.exact[member.id]" inputmode="decimal" placeholder="0.00" :aria-label="t(':name\'s amount', { name: member.name })" :class="smallInputClass" class="w-full pl-6 text-right" />
+                        <span class="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-sm text-slate-500">{{ symbol }}</span>
+                        <input v-model="values.exact[member.id]" inputmode="decimal" placeholder="0.00" :aria-label="t(':name\'s amount', { name: member.name })" :class="smallInputClass" class="w-full pl-9 text-right" />
                     </span>
                     <template v-else>
                         <input
@@ -187,14 +243,14 @@ const smallInputClass = 'h-10 rounded-xl border-0 bg-white px-2 ring-1 ring-slat
                             :class="smallInputClass" class="w-20 shrink-0 text-center"
                         />
                         <span class="w-20 shrink-0 text-right text-sm tabular-nums" :class="preview[member.id] ? 'font-semibold' : 'text-slate-400'">
-                            {{ preview[member.id] ? money(preview[member.id]) : '—' }}
+                            {{ preview[member.id] ? inCurrency(preview[member.id]) : '—' }}
                         </span>
                     </template>
                 </li>
             </ul>
 
             <p v-if="exactLeft !== null && exactLeft !== 0" class="rounded-xl px-3 py-2 text-sm font-medium" :class="exactLeft > 0 ? 'bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300' : 'bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300'">
-                {{ exactLeft > 0 ? t(':amount still to assign', { amount: money(exactLeft) }) : t(':amount too much', { amount: money(-exactLeft) }) }}
+                {{ exactLeft > 0 ? t(':amount still to assign', { amount: inCurrency(exactLeft) }) : t(':amount too much', { amount: inCurrency(-exactLeft) }) }}
             </p>
             <p v-if="form.errors.split" class="text-sm text-red-600">{{ form.errors.split }}</p>
         </section>

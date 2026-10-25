@@ -2,7 +2,7 @@
 import { computed, nextTick, ref, watch } from 'vue';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import {
-    Brush, Check, CheckCircle2, Copy, Crop, Database, Download, Eye, Dumbbell, History, ImagePlus, Sparkles, Mail, MapPin, MapPinned, Pencil, Play, Plus, Trash2, UserPlus, XCircle,
+    Brush, Check, CheckCircle2, Copy, Crop, Database, Download, Eye, Dumbbell, History, ImagePlus, Sparkles, Mail, MapPin, MapPinned, Mountain, Pencil, Play, Plus, Trash2, UserPlus, XCircle,
 } from 'lucide-vue-next';
 import { formatDate, fullDate } from '../../time.js';
 import AlbumHistory from '../../components/AlbumHistory.vue';
@@ -524,6 +524,9 @@ const buttonClass = 'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-
                 </button>
                 <button :class="buttonClass" class="ring-1 ring-slate-200 hover:bg-slate-50 dark:ring-slate-700 dark:hover:bg-slate-800" :disabled="!!running" @click="run('import-album-coordinates')">
                     <MapPin class="size-4" /> {{ t('Import suggested album locations') }}
+                </button>
+                <button :class="buttonClass" class="ring-1 ring-slate-200 hover:bg-slate-50 dark:ring-slate-700 dark:hover:bg-slate-800" :disabled="!!running" @click="run('import-album-elevations')">
+                    <Mountain class="size-4" /> {{ t('Look up the altitude of album places') }}
                 </button>
                 <Link href="/admin/locations" :class="buttonClass" class="text-accent hover:underline">
                     <MapPinned class="size-4" /> {{ t('Review album locations') }}

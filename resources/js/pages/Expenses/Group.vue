@@ -190,7 +190,9 @@ const inputClass = 'h-11 w-full rounded-xl border-0 bg-white px-3 ring-1 ring-sl
                             <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-500 dark:bg-slate-800"><Receipt class="size-5" /></span>
                             <span class="min-w-0 flex-1">
                                 <span class="block truncate font-semibold">{{ item.description }}</span>
-                                <span class="block truncate text-xs text-slate-500">{{ item.paidByMe ? t('You paid :amount', { amount: money(item.amount) }) : t(':who paid :amount', { who: item.paidBy, amount: money(item.amount) }) }}</span>
+                                <span class="line-clamp-2 block text-xs text-slate-500">
+                                    {{ item.paidByMe ? t('You paid :amount', { amount: money(item.amount) }) : t(':who paid :amount', { who: item.paidBy, amount: money(item.amount) }) }}<template v-if="item.original"> ({{ item.original }})</template>
+                                </span>
                             </span>
                             <span class="shrink-0 text-right text-xs">
                                 <span class="block text-slate-500">{{ mine(item).label }}</span>

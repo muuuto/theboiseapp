@@ -30,6 +30,7 @@ class MaintenanceController extends Controller
         // One-time jobs of the album redesign (safe to run again: they skip what's already done)
         'trim-album-covers' => ['albums:trim-cover-bars'],
         'import-album-coordinates' => ['albums:import-coordinates'],
+        'import-album-elevations' => ['albums:import-elevations'],
     ];
 
     public function index()

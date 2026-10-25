@@ -17,6 +17,7 @@ const props = defineProps({
     album: Object,
     comments: Array,
     reactions: Object,
+    mentionable: { type: Array, default: () => [] }, // who can be @mentioned in a comment
     can: Object,
     expenseGroups: { type: Array, default: () => [] },
     history: { type: Array, default: () => [] }, // admins only
@@ -249,6 +250,7 @@ onMounted(() => {
                 v-if="can.comment"
                 url="/listings/comments"
                 :extra="{ listing_id: album.id }"
+                :people="mentionable"
                 :placeholder="t('Write a comment... my favorite photo is')"
             />
 

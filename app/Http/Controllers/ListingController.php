@@ -16,7 +16,9 @@ use App\Support\AlbumHistory;
 use App\Support\Notify;
 use App\Support\Locale;
 use App\Support\AlbumCover;
+use App\Support\Elevation;
 use App\Support\Media;
+use App\Support\Mentions;
 use App\Support\SafeHtml;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Schema;
@@ -130,6 +132,8 @@ class ListingController extends Controller
                 ])->values(),
             ],
             'reactions' => $listing->reactionSummary($user, ! $user->is_demo && $membership !== null),
+            // Who can be @mentioned in a comment: the others in the album
+            'mentionable' => $listing->users->where('id', '!=', $user->id)->where('is_demo', false)->map(fn (User $person) => ['id' => $person->id, 'name' => $person->name, 'avatar' => Media::url($person->profilePicture)])->values(),
             'comments' => $listing->comments->map(fn (Comment $comment) => [
                 'id' => $comment->id,
                 'author' => $comment->user?->name ?? 'Deleted user',
@@ -305,16 +309,19 @@ class ListingController extends Controller
         $author = auth()->user();
         abort_unless($listing->users->contains('id', $author->id), 403, 'Unauthorized Action');
 
-        $html = '<p>' . nl2br(e(trim($formFields['comment'])), false) . '</p>';
+        // @Anna B: someone in the album, in bold, told separately
+        $mentioned = Mentions::find($formFields['comment'], $listing->users->where('id', '!=', $author->id));
+        $html = Mentions::bold('<p>' . nl2br(e(trim($formFields['comment'])), false) . '</p>', $mentioned);
 
         $comment = Comment::create([
             'listing_id' => $listing->id,
             'user_id' => $author->id,
             'comment' => $html,
         ]);
+        Mentions::notify($mentioned, $author, $html, $listing->title, "/listings/{$listing->id}#comment-{$comment->id}");
 
-        // Short on purpose: it can show on a locked screen
-        Notify::push($listing->users->where('id', '!=', $author->id), 'comment', fn () => [
+        // Short on purpose: it can show on a locked screen (who was mentioned already got one)
+        Notify::push($listing->users->where('id', '!=', $author->id)->whereNotIn('id', $mentioned->pluck('id')), 'comment', fn () => [
             'title' => __(':name commented on :title', ['name' => $author->name, 'title' => $listing->title]),
             'body' => __('Tap to read it and answer.'),
             'url' => "/listings/{$listing->id}#comment-{$comment->id}",
@@ -538,6 +545,8 @@ class ListingController extends Controller
                 'position' => $position,
             ]);
         }
+        // Their altitude, for Wrapped (if the service is slow, the nightly job fills it in)
+        Elevation::fill($listing->places()->get());
     }
 
     // Each person's own link/description (the people not in the list get the general ones again)

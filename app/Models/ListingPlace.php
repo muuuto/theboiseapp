@@ -11,6 +11,7 @@ class ListingPlace extends Model
     protected $casts = [
         'latitude' => 'float',
         'longitude' => 'float',
+        'elevation' => 'integer', // metres, null until looked up
     ];
 
     public function listing(): BelongsTo
