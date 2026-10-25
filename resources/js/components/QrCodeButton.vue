@@ -1,4 +1,5 @@
 <script setup>
+import { fileFromDataUrl } from '../shareImage.js';
 import { onBeforeUnmount, ref } from 'vue';
 import QRCode from 'qrcode';
 import { Check, Copy, Download, QrCode, Share2, X } from 'lucide-vue-next';
@@ -83,13 +84,13 @@ const onKey = (event) => event.key === 'Escape' && close();
 window.addEventListener('keydown', onKey);
 onBeforeUnmount(() => window.removeEventListener('keydown', onKey));
 
-// Phones: share the image itself (WhatsApp, Telegram...)
-const canShareFile = typeof navigator !== 'undefined' && !!navigator.canShare;
+// Phones: share the image itself (WhatsApp, Telegram...), or at least the link. Nothing slow
+// before navigator.share: phones only allow it right after the tap (see shareImage.js)
+const canShareFile = typeof navigator !== 'undefined' && !!navigator.share;
 async function share() {
-    const blob = await (await fetch(image.value)).blob();
-    const file = new File([blob], fileName(), { type: 'image/png' });
+    const file = fileFromDataUrl(image.value, fileName());
     try {
-        if (navigator.canShare({ files: [file] })) {
+        if (navigator.canShare?.({ files: [file] })) {
             await navigator.share({ files: [file], title: props.title });
         } else {
             await navigator.share({ title: props.title, url: url() });

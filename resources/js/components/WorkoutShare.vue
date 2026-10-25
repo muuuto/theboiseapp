@@ -4,6 +4,7 @@ import { Download, Share2, X } from 'lucide-vue-next';
 import { t, tc } from '../i18n.js';
 import { formatDate } from '../time.js';
 import { focusLabel, rowText, total } from '../gym.js';
+import { canShareFile, fileFromDataUrl, shareFile } from '../shareImage.js';
 
 // The day's workout as a picture (1080×1920, story size) to share or save: date, focus, totals
 // and every exercise with its rows (🏆 on the records)
@@ -16,6 +17,7 @@ const props = defineProps({
 
 const open = ref(false);
 const image = ref(null);
+const file = ref(null); // the same picture, ready to share (see shareImage.js)
 
 const W = 1080;
 const H = 1920;
@@ -109,6 +111,7 @@ function draw() {
     text('theboise.it', W - 90, H - 80, 800, 40, soft, 'right');
 
     image.value = canvas.toDataURL('image/png');
+    file.value = fileFromDataUrl(image.value, fileName());
 }
 
 const fileName = () => `theboise-gym-${props.date}.png`;
@@ -123,16 +126,7 @@ watch(open, (on) => (on ? window.addEventListener('keydown', onKey) : window.rem
 onBeforeUnmount(() => window.removeEventListener('keydown', onKey));
 
 // Phones: the image itself goes to WhatsApp, Instagram...
-const canShareFile = typeof navigator !== 'undefined' && !!navigator.canShare;
-async function share() {
-    const blob = await (await fetch(image.value)).blob();
-    const file = new File([blob], fileName(), { type: 'image/png' });
-    try {
-        if (navigator.canShare({ files: [file] })) await navigator.share({ files: [file], title: t('My workout') });
-    } catch {
-        // Closed the share sheet: nothing to do
-    }
-}
+const share = () => shareFile(file.value, t('My workout'));
 
 const actionClass = 'inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-sm font-semibold transition';
 </script>
@@ -158,7 +152,7 @@ const actionClass = 'inline-flex flex-1 items-center justify-center gap-1.5 roun
                 </div>
                 <img :src="image" :alt="t('Summary of the workout')" class="mx-auto min-h-0 w-auto max-w-full flex-1 rounded-2xl object-contain" />
                 <div class="mt-4 flex flex-wrap gap-2">
-                    <button v-if="canShareFile" type="button" :class="actionClass" class="bg-brand text-white hover:bg-brand-dark" @click="share">
+                    <button v-if="canShareFile(file)" type="button" :class="actionClass" class="bg-brand text-white hover:bg-brand-dark" @click="share">
                         <Share2 class="size-4" /> {{ t('Share') }}
                     </button>
                     <a :href="image" :download="fileName()" :class="actionClass" class="bg-slate-900 text-white hover:bg-black dark:bg-white dark:text-slate-900">

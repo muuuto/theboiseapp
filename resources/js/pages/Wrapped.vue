@@ -1,4 +1,5 @@
 <script setup>
+import { canShareFile, shareFile } from '../shareImage.js';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { Download, Heart, Pause, Play, RotateCcw, Share2, X } from 'lucide-vue-next';
@@ -203,7 +204,13 @@ async function summaryImage() {
     return new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
 }
 const fileName = () => `theboise-wrapped-${w.year}.png`;
-const canShare = typeof navigator !== 'undefined' && !!navigator.canShare;
+// Ready before the last slide's buttons can be tapped: phones only open the share sheet right
+// after a tap, with nothing slow in between (see shareImage.js)
+const summaryFile = ref(null);
+watch(current, async (slide) => {
+    if (slide === 'summary' && !summaryFile.value) summaryFile.value = new File([await summaryImage()], fileName(), { type: 'image/png' });
+});
+const canShare = computed(() => canShareFile(summaryFile.value));
 async function saveImage() {
     saving.value = true;
     const blob = await summaryImage();
@@ -212,14 +219,7 @@ async function saveImage() {
     setTimeout(() => URL.revokeObjectURL(link.href), 1000);
     saving.value = false;
 }
-async function shareImage() {
-    const file = new File([await summaryImage()], fileName(), { type: 'image/png' });
-    try {
-        if (navigator.canShare({ files: [file] })) await navigator.share({ files: [file], title: t('My :year on TheBoise', { year: w.year }) });
-    } catch {
-        // Share sheet closed
-    }
-}
+const shareImage = () => shareFile(summaryFile.value, t('My :year on TheBoise', { year: w.year }));
 </script>
 
 <template>
