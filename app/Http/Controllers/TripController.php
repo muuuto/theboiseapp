@@ -293,13 +293,14 @@ class TripController extends Controller
             'dates' => 'required|in:fixed,poll',
             'date_from' => 'required_if:dates,fixed|nullable|date',
             'date_to' => 'required_if:dates,fixed|nullable|date|after_or_equal:date_from',
-            // The poll's options are given when creating; afterwards they're added on the trip page
-            'options' => $trip ? 'nullable|array' : 'required_if:dates,poll|array|min:2|max:10',
-            'options.*.from' => 'required|date',
-            'options.*.to' => 'required|date|after_or_equal:options.*.from',
+            // The poll's options are given when creating; afterwards they're added on the trip page.
+            // With fixed dates they're ignored (the form still sends its empty poll rows)
+            'options' => $trip ? 'exclude_unless:dates,poll|nullable|array' : 'exclude_unless:dates,poll|required|array|min:2|max:10',
+            'options.*.from' => 'exclude_unless:dates,poll|required|date',
+            'options.*.to' => 'exclude_unless:dates,poll|required|date|after_or_equal:options.*.from',
         ], [
             'options.min' => __('Give at least two date options to vote on.'),
-            'options.required_if' => __('Give at least two date options to vote on.'),
+            'options.required' => __('Give at least two date options to vote on.'),
         ]);
 
         if (User::whereIn('id', $data['members'] ?? [])->where('is_demo', true)->exists()) {

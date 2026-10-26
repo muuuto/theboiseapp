@@ -27,6 +27,10 @@ const form = useForm({
     options: [{ from: '', to: '' }, { from: '', to: '' }],
 });
 
+// Errors shown next to their fields; anything else (a hidden part of the form) shows by the button
+const shownNextToField = (key) => ['title', 'date_from', 'date_to', 'members'].includes(key) || (form.dates === 'poll' && key.startsWith('options'));
+const hiddenError = computed(() => Object.entries(form.errors).find(([key]) => !shownNextToField(key))?.[1] ?? null);
+
 function submit() {
     const data = (values) => ({ ...values, members: [...new Set([...values.members, props.creator])] });
     if (editing.value) form.transform(data).put(`/trips/${props.trip.id}`, { preserveScroll: true });
@@ -120,6 +124,9 @@ const cardClass = 'space-y-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slat
             <PeoplePicker v-model="form.members" :users="users" />
             <p v-if="form.errors.members" class="text-sm text-red-600">{{ form.errors.members }}</p>
         </section>
+
+        <!-- An error on a part of the form that isn't showing (e.g. the poll, with fixed dates) -->
+        <p v-if="hiddenError" class="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300">{{ hiddenError }}</p>
 
         <div class="flex flex-wrap items-center gap-3">
             <button type="submit" class="rounded-2xl bg-brand px-6 py-3 font-semibold text-white shadow-sm transition hover:bg-brand-dark disabled:opacity-50" :disabled="form.processing">

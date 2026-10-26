@@ -37,6 +37,20 @@ class TripsTest extends TestCase
         $this->assertStringContainsString('Muto invited you to Sicilia 2027', $this->sentMessages()->first()->getSubject());
     }
 
+    public function test_fixed_dates_ignore_the_empty_poll_rows_the_form_sends(): void
+    {
+        [$me, $anna] = User::factory()->count(2)->create();
+
+        $this->actingAs($me)->post('/trips', [
+            'title' => 'Anniversario', 'destination' => '', 'notes' => '', 'members' => [$me->id, $anna->id], 'dates' => 'fixed',
+            'date_from' => '2026-12-16', 'date_to' => '2026-12-17', 'options' => [['from' => '', 'to' => ''], ['from' => '', 'to' => '']],
+        ])->assertSessionHasNoErrors();
+
+        $trip = Trip::sole();
+        $this->assertSame('2026-12-16', $trip->date_from->toDateString());
+        $this->assertCount(0, $trip->options);
+    }
+
     public function test_a_poll_needs_two_options_and_never_the_demo_account(): void
     {
         $me = User::factory()->create();
