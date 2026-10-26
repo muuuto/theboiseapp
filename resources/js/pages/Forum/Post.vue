@@ -1,6 +1,6 @@
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { ArrowLeft, Eye, FileText, History, Lock, Mail, Pencil, Pin, PinOff, Trash2 } from 'lucide-vue-next';
 import CommentBox from '../../components/CommentBox.vue';
 import LikeButton from '../../components/LikeButton.vue';
@@ -18,6 +18,21 @@ const props = defineProps({
     can: Object,
     pinned: Boolean, // linked at the top of the home page
 });
+
+// Replying: the box opens under the thread; to a reply, it starts with "@Name "
+const canReply = !usePage().props.auth.user?.isDemo;
+const replying = ref(null);
+let replyKey = 0;
+function startReply(thread, comment) {
+    const me = usePage().props.auth.user?.name;
+    replying.value = {
+        key: ++replyKey,
+        thread: thread.id,
+        comment: comment.id,
+        name: comment.author,
+        initial: comment.id !== thread.id && comment.author !== me ? `@${comment.author} ` : '',
+    };
+}
 
 // A comment's text in pieces, the @names (found by the server) in bold
 function withMentions(comment) {
@@ -147,7 +162,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown));
         <!-- Comments -->
         <section class="space-y-4">
             <h2 class="text-lg font-bold">
-                {{ t('Comments') }} <span class="text-sm font-medium text-slate-500">{{ comments.length }}</span>
+                {{ t('Comments') }} <span class="text-sm font-medium text-slate-500">{{ comments.reduce((count, thread) => count + 1 + thread.replies.length, 0) }}</span>
             </h2>
 
             <CommentBox :url="`/forum/${category.id}/${post.id}/comment`" :placeholder="t('Write a comment...')" :people="mentionable" />
@@ -155,25 +170,63 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown));
             <p v-if="!comments.length" class="text-sm text-slate-500">{{ t('No comments yet, be the first.') }}</p>
 
             <article
-                v-for="comment in comments"
-                :id="`comment-${comment.id}`"
-                :key="comment.id"
+                v-for="thread in comments"
+                :id="`comment-${thread.id}`"
+                :key="thread.id"
                 class="-mx-2 flex scroll-mt-24 gap-3 rounded-2xl p-2 transition-colors duration-700"
-                :class="highlighted === comment.id && 'bg-brand/10'"
+                :class="highlighted === thread.id && 'bg-brand/10'"
             >
-                <img v-if="comment.avatar" :src="comment.avatar" alt="" class="size-10 shrink-0 rounded-full object-cover" />
+                <img v-if="thread.avatar" :src="thread.avatar" alt="" class="size-10 shrink-0 rounded-full object-cover" />
                 <span v-else class="flex size-10 shrink-0 items-center justify-center rounded-full bg-forum font-bold text-white">
-                    {{ comment.author.charAt(0).toUpperCase() }}
+                    {{ thread.author.charAt(0).toUpperCase() }}
                 </span>
                 <div class="min-w-0 flex-1">
                     <div class="rounded-2xl rounded-tl-sm bg-white px-4 py-2.5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
-                        <p class="text-sm font-semibold">{{ comment.author }}</p>
+                        <p class="text-sm font-semibold">{{ thread.author }}</p>
                         <!-- Plain text: shown as text, line breaks kept -->
-                        <p class="text-[15px] break-words whitespace-pre-line"><template v-for="(part, index) in withMentions(comment)" :key="index"><strong v-if="part.mention">{{ part.text }}</strong><template v-else>{{ part.text }}</template></template></p>
+                        <p class="text-[15px] break-words whitespace-pre-line"><template v-for="(part, index) in withMentions(thread)" :key="index"><strong v-if="part.mention">{{ part.text }}</strong><template v-else>{{ part.text }}</template></template></p>
                     </div>
                     <div class="mt-1 flex items-center gap-2 pl-2 text-xs text-slate-500">
-                        <time :datetime="comment.createdAt" :title="fullDate(comment.createdAt)">{{ ago(comment.createdAt) }}</time>
-                        <LikeButton type="post_comment" :id="comment.id" :likes="comment.likes" />
+                        <time :datetime="thread.createdAt" :title="fullDate(thread.createdAt)">{{ ago(thread.createdAt) }}</time>
+                        <LikeButton type="post_comment" :id="thread.id" :likes="thread.likes" />
+                        <button v-if="canReply" type="button" class="rounded-full px-2 py-1 font-semibold hover:bg-slate-100 hover:text-slate-800 dark:hover:bg-slate-800 dark:hover:text-white" @click="startReply(thread, thread)">{{ t('Reply') }}</button>
+                    </div>
+
+                    <!-- Replies, oldest first -->
+                    <div v-if="thread.replies.length || replying?.thread === thread.id" class="mt-2 space-y-1 border-l-2 border-slate-200 pl-3 dark:border-slate-800">
+                        <div
+                            v-for="reply in thread.replies"
+                            :id="`comment-${reply.id}`"
+                            :key="reply.id"
+                            class="flex scroll-mt-24 gap-2 rounded-2xl p-1 transition-colors duration-700"
+                            :class="highlighted === reply.id && 'bg-brand/10'"
+                        >
+                            <img v-if="reply.avatar" :src="reply.avatar" alt="" class="size-7 shrink-0 rounded-full object-cover" />
+                            <span v-else class="flex size-7 shrink-0 items-center justify-center rounded-full bg-forum text-xs font-bold text-white">{{ reply.author.charAt(0).toUpperCase() }}</span>
+                            <div class="min-w-0 flex-1">
+                                <div class="rounded-2xl rounded-tl-sm bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
+                                    <p class="text-sm font-semibold">{{ reply.author }}</p>
+                                    <p class="text-[15px] break-words whitespace-pre-line"><template v-for="(part, index) in withMentions(reply)" :key="index"><strong v-if="part.mention">{{ part.text }}</strong><template v-else>{{ part.text }}</template></template></p>
+                                </div>
+                                <div class="mt-1 flex items-center gap-2 pl-2 text-xs text-slate-500">
+                                    <time :datetime="reply.createdAt" :title="fullDate(reply.createdAt)">{{ ago(reply.createdAt) }}</time>
+                                    <LikeButton type="post_comment" :id="reply.id" :likes="reply.likes" />
+                                    <button v-if="canReply" type="button" class="rounded-full px-2 py-1 font-semibold hover:bg-slate-100 hover:text-slate-800 dark:hover:bg-slate-800 dark:hover:text-white" @click="startReply(thread, reply)">{{ t('Reply') }}</button>
+                                </div>
+                            </div>
+                        </div>
+                        <CommentBox
+                            v-if="replying?.thread === thread.id"
+                            :key="replying.key"
+                            :url="`/forum/${category.id}/${post.id}/comment`"
+                            :extra="{ parent_id: replying.comment }"
+                            :people="mentionable"
+                            :initial="replying.initial"
+                            :placeholder="t('Reply to :name...', { name: replying.name })"
+                            reply
+                            @sent="replying = null"
+                            @cancel="replying = null"
+                        />
                     </div>
                 </div>
             </article>

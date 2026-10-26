@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, ref } from 'vue';
+import { computed, nextTick, onMounted, ref } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import { SendHorizontal } from 'lucide-vue-next';
 import EmojiPicker from './EmojiPicker.vue';
@@ -12,13 +12,23 @@ const props = defineProps({
     extra: { type: Object, default: () => ({}) },
     placeholder: { type: String, default: 'Write a comment...' },
     people: { type: Array, default: () => [] },
+    // A reply box: starts with this text ("@Anna "), focused, with Cancel
+    initial: { type: String, default: '' },
+    reply: Boolean,
 });
+const emit = defineEmits(['sent', 'cancel']);
 
-const form = useForm({ ...props.extra, comment: '' });
+const form = useForm({ ...props.extra, comment: props.initial });
 const textarea = ref(null);
+onMounted(() => {
+    if (!props.reply) return;
+    textarea.value.focus();
+    textarea.value.setSelectionRange(form.comment.length, form.comment.length);
+});
 
 function resize() {
     const field = textarea.value;
+    if (!field) return; // a reply box that just closed
     field.style.height = 'auto';
     field.style.height = `${Math.min(field.scrollHeight, 240)}px`;
 }
@@ -74,6 +84,7 @@ function submit() {
         onSuccess: () => {
             form.reset('comment');
             nextTick(resize);
+            emit('sent');
         },
     });
 }
@@ -105,7 +116,7 @@ function onKeydown(event) {
         <textarea
             ref="textarea"
             v-model="form.comment"
-            rows="2"
+            :rows="reply ? 1 : 2"
             maxlength="5000"
             :placeholder="t(placeholder)"
             class="block w-full resize-none border-0 bg-transparent px-1 focus:outline-none"
@@ -132,12 +143,13 @@ function onKeydown(event) {
         <p v-if="form.errors.comment" class="px-1 text-sm text-red-600">{{ form.errors.comment }}</p>
         <div class="mt-2 flex items-center justify-between">
             <EmojiPicker @pick="addEmoji" />
+            <button v-if="reply" type="button" class="mr-2 ml-auto rounded-xl px-3 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800" @click="emit('cancel')">{{ t('Cancel') }}</button>
             <button
                 type="submit"
                 class="inline-flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-dark disabled:opacity-40"
                 :disabled="form.processing || !form.comment.trim()"
             >
-                <SendHorizontal class="size-4" /> {{ t('Send') }}
+                <SendHorizontal class="size-4" /> {{ reply ? t('Reply') : t('Send') }}
             </button>
         </div>
     </form>

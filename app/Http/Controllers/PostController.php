@@ -154,7 +154,8 @@ class PostController extends Controller
             'reactions' => $post->reactionSummary($user, ! $user->is_demo),
             // Who can be @mentioned in a comment: whoever can see the post
             'mentionable' => $mentionable->map(fn (User $person) => ['id' => $person->id, 'name' => $person->name, 'avatar' => Media::url($person->profilePicture)])->values(),
-            'comments' => $post->comments->sortByDesc('created_at')->map(fn (PostComment $comment) => [
+            // Newest first, each with its replies (oldest first) underneath
+            'comments' => ListingController::threads($post->comments->sortByDesc('created_at'), fn (PostComment $comment) => [
                 'id' => $comment->id,
                 'author' => $comment->user?->name ?? 'Deleted user',
                 'avatar' => Media::url($comment->user?->profilePicture),
@@ -163,7 +164,7 @@ class PostController extends Controller
                 'mentions' => Mentions::find($comment->comment, $named)->pluck('name')->values(),
                 'createdAt' => $comment->created_at?->toIso8601String(),
                 'likes' => $comment->likeSummary($user),
-            ])->values(),
+            ]),
             'can' => [
                 'edit' => $this->canEdit($post, $user),
                 'delete' => $post->author == $user->id,
@@ -178,10 +179,19 @@ class PostController extends Controller
     public function comment(Request $request, Category $category, Post $post) {
         $user = auth()->id();
         $formFields = $request->validate([
-            'comment' => 'required|string|max:5000'
+            'comment' => 'required|string|max:5000',
+            'parent_id' => 'nullable|integer', // a reply
         ]);
         $formFields['user_id'] = $user;
         $formFields['post_id'] = $post->id;
+        // A reply: under the comment's thread, and who's answered is told
+        [, $thread, $answered] = \Illuminate\Support\Facades\Schema::hasColumn('post_comments', 'parent_id')
+            ? Mentions::replyTo($formFields['parent_id'] ?? null, PostComment::where('post_id', $post->id))
+            : [null, null, null];
+        unset($formFields['parent_id']);
+        if ($thread) {
+            $formFields['parent_id'] = $thread->id;
+        }
 
         if (! $post->isVisibleTo(auth()->user())) {
             abort(403, 'Unauthorized Action');
@@ -196,11 +206,15 @@ class PostController extends Controller
 
         $comment = PostComment::create($formFields);
 
-        // @Anna B: someone who can see the post (who was mentioned gets that instead of "replied")
-        $mentioned = Mentions::find($formFields['comment'], $this->mentionable($post, auth()->user()));
-        Mentions::notify($mentioned, auth()->user(), e($formFields['comment']), $post->title, "/forum/{$category->id}/{$post->id}#comment-{$comment->id}");
+        // Who's answered, and @Anna B (someone who can see the post): their own notification
+        // instead of "replied in"
+        $url = "/forum/{$category->id}/{$post->id}#comment-{$comment->id}";
+        $repliedTo = $answered && $answered->id !== $user && $post->isVisibleTo($answered) ? collect([$answered]) : collect();
+        $mentioned = Mentions::find($formFields['comment'], $this->mentionable($post, auth()->user()))->whereNotIn('id', $repliedTo->pluck('id'));
+        Mentions::notify($repliedTo, auth()->user(), e($formFields['comment']), $post->title, $url, 'reply');
+        Mentions::notify($mentioned, auth()->user(), e($formFields['comment']), $post->title, $url);
 
-        Notify::push($recipients->whereNotIn('id', $mentioned->pluck('id')), 'forum', fn () => [
+        Notify::push($recipients->whereNotIn('id', $mentioned->concat($repliedTo)->pluck('id')), 'forum', fn () => [
             'title' => __(':name replied in :title', ['name' => auth()->user()->name, 'title' => $post->title]),
             'body' => __('Tap to read it and answer.'),
             'url' => "/forum/{$category->id}/{$post->id}#comment-{$comment->id}",

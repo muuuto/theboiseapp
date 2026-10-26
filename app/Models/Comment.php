@@ -8,6 +8,7 @@ use App\Models\Concerns\HasLikes;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Comment extends Model
 {
@@ -30,5 +31,11 @@ class Comment extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    // Replies: one level deep, oldest first
+    public function replies(): HasMany
+    {
+        return $this->hasMany(self::class, 'parent_id')->oldest('id');
     }
 }

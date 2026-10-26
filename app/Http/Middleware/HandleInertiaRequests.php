@@ -87,7 +87,7 @@ class HandleInertiaRequests extends Middleware
             ->map(fn ($notification) => match ($notification->type) {
                 Mentioned::class => [
                     'id' => $notification->id,
-                    'kind' => 'mention',
+                    'kind' => $notification->data['kind'] ?? 'mention', // or reply
                     'liker' => $notification->data['author_name'],
                     'excerpt' => $notification->data['excerpt'],
                     'title' => $notification->data['title'],

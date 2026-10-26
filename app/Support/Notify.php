@@ -17,7 +17,7 @@ class Notify
         'album' => ['label' => 'New albums you\'re in', 'email' => true, 'push' => true],
         'comment' => ['label' => 'Comments on albums you\'re in', 'email' => true, 'push' => true],
         'forum' => ['label' => 'Forum: replies to your posts and shared posts', 'email' => true, 'push' => true],
-        'mention' => ['label' => 'Mentions: someone wrote @you in a comment', 'email' => null, 'push' => true],
+        'mention' => ['label' => 'Replies to your comments and mentions (@you)', 'email' => null, 'push' => true],
         'like' => ['label' => 'Likes on your comments, reactions to your albums and posts', 'email' => null, 'push' => true],
         'expenses' => ['label' => 'Shared expenses: new expenses and payments', 'email' => true, 'push' => true],
         'trips' => ['label' => 'Trips: invitations, dates decided, reminders', 'email' => true, 'push' => true],

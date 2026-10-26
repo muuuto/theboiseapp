@@ -20,6 +20,7 @@ use App\Support\Elevation;
 use App\Support\Media;
 use App\Support\Mentions;
 use App\Support\SafeHtml;
+use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Schema;
 
@@ -134,14 +135,15 @@ class ListingController extends Controller
             'reactions' => $listing->reactionSummary($user, ! $user->is_demo && $membership !== null),
             // Who can be @mentioned in a comment: the others in the album
             'mentionable' => $listing->users->where('id', '!=', $user->id)->where('is_demo', false)->map(fn (User $person) => ['id' => $person->id, 'name' => $person->name, 'avatar' => Media::url($person->profilePicture)])->values(),
-            'comments' => $listing->comments->map(fn (Comment $comment) => [
+            // Newest first, each with its replies (oldest first) underneath
+            'comments' => self::threads($listing->comments, fn (Comment $comment) => [
                 'id' => $comment->id,
                 'author' => $comment->user?->name ?? 'Deleted user',
                 'avatar' => Media::url($comment->user?->profilePicture),
                 'html' => SafeHtml::clean($comment->comment),
                 'createdAt' => $comment->created_at?->toIso8601String(),
                 'likes' => $comment->likeSummary($user),
-            ])->values(),
+            ]),
             'can' => [
                 'comment' => ! $user->is_demo && $membership,
                 'adminView' => is_null($membership),
@@ -302,12 +304,19 @@ class ListingController extends Controller
     {
         $formFields = $request->validate([
             'listing_id' => 'required|integer',
-            'comment' => 'required|string|max:5000'
+            'comment' => 'required|string|max:5000',
+            'parent_id' => 'nullable|integer', // a reply
         ]);
 
         $listing = Listing::findOrFail($formFields['listing_id']);
         $author = auth()->user();
         abort_unless($listing->users->contains('id', $author->id), 403, 'Unauthorized Action');
+
+        // A reply: under the comment's thread, and who's answered is told
+        [, $thread, $answered] = Schema::hasColumn('comments', 'parent_id')
+            ? Mentions::replyTo($formFields['parent_id'] ?? null, Comment::where('listing_id', $listing->id))
+            : [null, null, null];
+        $repliedTo = $answered && $answered->id !== $author->id && $listing->users->contains('id', $answered->id) ? collect([$answered]) : collect();
 
         // @Anna B: someone in the album, in bold, told separately
         $mentioned = Mentions::find($formFields['comment'], $listing->users->where('id', '!=', $author->id));
@@ -317,11 +326,13 @@ class ListingController extends Controller
             'listing_id' => $listing->id,
             'user_id' => $author->id,
             'comment' => $html,
-        ]);
-        Mentions::notify($mentioned, $author, $html, $listing->title, "/listings/{$listing->id}#comment-{$comment->id}");
+        ] + ($thread ? ['parent_id' => $thread->id] : []));
+        $url = "/listings/{$listing->id}#comment-{$comment->id}";
+        Mentions::notify($repliedTo, $author, $html, $listing->title, $url, 'reply');
+        Mentions::notify($mentioned->whereNotIn('id', $repliedTo->pluck('id')), $author, $html, $listing->title, $url);
 
-        // Short on purpose: it can show on a locked screen (who was mentioned already got one)
-        Notify::push($listing->users->where('id', '!=', $author->id)->whereNotIn('id', $mentioned->pluck('id')), 'comment', fn () => [
+        // Short on purpose: it can show on a locked screen (who was answered or mentioned already got one)
+        Notify::push($listing->users->where('id', '!=', $author->id)->whereNotIn('id', $mentioned->concat($repliedTo)->pluck('id')), 'comment', fn () => [
             'title' => __(':name commented on :title', ['name' => $author->name, 'title' => $listing->title]),
             'body' => __('Tap to read it and answer.'),
             'url' => "/listings/{$listing->id}#comment-{$comment->id}",
@@ -349,6 +360,18 @@ class ListingController extends Controller
         }
 
         return back()->with('message', 'Comment added!');
+    }
+
+    // Comments as threads: the top ones in their order, each with 'replies' (oldest first).
+    // A reply whose comment is gone shows as a top one. Also used by the forum
+    public static function threads(Collection $comments, callable $row): Collection
+    {
+        $ids = $comments->pluck('id')->flip();
+        $isReply = fn ($comment) => $comment->parent_id && isset($ids[$comment->parent_id]);
+
+        return $comments->reject($isReply)->map(fn ($comment) => $row($comment) + [
+            'replies' => $comments->filter(fn ($reply) => $isReply($reply) && $reply->parent_id == $comment->id)->sortBy('id')->map($row)->values(),
+        ])->values();
     }
 
     // A trip of mine without an album yet (null otherwise, also before the trips migration)

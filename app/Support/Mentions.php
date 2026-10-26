@@ -12,6 +12,19 @@ use Illuminate\Support\Str;
 // so "@Anna B" isn't taken for "@Anna"), and they're told
 class Mentions
 {
+    // A reply: the comment it answers (under the same album or post: $comments is that query),
+    // its thread (the top comment) and who's answered. [null, null, null] for a new comment
+    public static function replyTo($parentId, $comments): array
+    {
+        $parent = $parentId ? (clone $comments)->find($parentId) : null;
+        if (! $parent) {
+            return [null, null, null];
+        }
+        $thread = $parent->parent_id ? ((clone $comments)->find($parent->parent_id) ?? $parent) : $parent;
+
+        return [$parent, $thread, $parent->user];
+    }
+
     // The people of $candidates written as @Name in $text
     public static function find(string $text, Collection $candidates): Collection
     {
@@ -40,16 +53,17 @@ class Mentions
         return $html;
     }
 
-    // Bell and phone ("Muto mentioned you"), never to who wrote it or the demo account
-    public static function notify(Collection $users, User $author, string $text, string $title, string $url): void
+    // Bell and phone ("Muto mentioned you", or with $kind 'reply' "Muto replied to your comment"),
+    // never to who wrote it or the demo account
+    public static function notify(Collection $users, User $author, string $text, string $title, string $url, string $kind = 'mention'): void
     {
         $users = $users->reject(fn (User $user) => $user->id === $author->id || $user->is_demo);
         $excerpt = Str::limit(trim(preg_replace('/\s+/', ' ', strip_tags(str_replace(['<br>', '</p>'], ' ', $text)))), 80);
         foreach ($users as $user) {
-            $user->notify(new Mentioned($author, $excerpt, $title, $url));
+            $user->notify(new Mentioned($author, $excerpt, $title, $url, $kind));
         }
         Notify::push($users, 'mention', fn () => [
-            'title' => __(':name mentioned you', ['name' => $author->name]),
+            'title' => $kind === 'reply' ? __(':name replied to your comment', ['name' => $author->name]) : __(':name mentioned you', ['name' => $author->name]),
             'body' => "{$title}: \"{$excerpt}\"",
             'url' => $url,
             'tag' => 'mention-' . md5($url),

@@ -380,6 +380,12 @@ Steps (one release each):
     release*), then **Backup + run migrations** (4 migrations), then *One-time album jobs* →
     **Look up the altitude of album places** (fills the old albums right away instead of
     waiting for the night). Then try Face ID on your phone: Account → *Turn on for this phone*.
+25. **Replies to comments** (albums and forum): ✅ Done locally, 261 tests passing. *Reply*
+    under any comment opens a box there; replies show indented under it, oldest first, one level
+    deep (a reply to a reply joins the same thread and starts with "@Name"). Who's answered gets
+    "Muto replied to your comment" (bell and phone; setting renamed *Replies to your comments and
+    mentions (@you)*). **To deploy** (quick release, one migration): push, cPanel Git deploy,
+    **Backup + run migrations**.
 15. **Announcement post** (done, written in the chat): write for Matteo an announcement of all these changes, to
     publish as a new post in the forum (what's new, in the site's tone: redesign, maps, likes,
     emails, QR codes, expenses, the app and notifications...).

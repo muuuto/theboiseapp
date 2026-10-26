@@ -6,7 +6,7 @@ use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 
-// "Muto mentioned you": shown in the notification bell (and on the phone), never emailed
+// "Muto mentioned you" / "Muto replied to your comment": in the bell (and on the phone), never emailed
 class Mentioned extends Notification
 {
     use Queueable;
@@ -16,6 +16,7 @@ class Mentioned extends Notification
         public string $excerpt,
         public string $title,
         public string $url,
+        public string $kind = 'mention', // or reply
     ) {
     }
 
@@ -32,6 +33,7 @@ class Mentioned extends Notification
             'excerpt' => $this->excerpt,
             'title' => $this->title,
             'url' => $this->url,
+            'kind' => $this->kind,
         ];
     }
 }
