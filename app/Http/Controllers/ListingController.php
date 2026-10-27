@@ -134,6 +134,7 @@ class ListingController extends Controller
                     'id' => $person->id,
                     'name' => $person->name,
                     'avatar' => Media::url($person->profilePicture),
+                    'isDemo' => (bool) $person->is_demo,
                 ])->values(),
             ],
             'reactions' => $listing->reactionSummary($user, ! $user->is_demo && $membership !== null),

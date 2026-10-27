@@ -13,7 +13,7 @@ class TripNotices
     {
         foreach (collect($users)->reject(fn ($user) => $user->is_demo) as $user) {
             Locale::for($user, function () use ($user, $trip, $message) {
-                [$title, $text, $button] = $message() + [2 => __('Open the trip')];
+                [$title, $text, $button] = $message() + [2 => $trip->isEvent() ? __('Open the event') : __('Open the trip')];
                 Notify::push($user, 'trips', ['title' => $title, 'body' => $text, 'url' => "/trips/{$trip->id}", 'tag' => "trip-{$trip->id}"]);
                 if (! Notify::wants($user, 'trips', 'email')) {
                     return;
@@ -23,12 +23,20 @@ class TripNotices
                     'heading' => $title,
                     'text' => $text,
                     'trip' => $trip,
-                    'dates' => self::dates($trip),
+                    'dates' => self::when($trip),
                     'link' => url("/trips/{$trip->id}"),
                     'button' => $button,
                 ], fn ($mail) => $mail->to($user->email, $user->name)->subject($title . ' - theboise.it')->from('info@theboise.it', 'TheBoise'));
             });
         }
+    }
+
+    // An event's day with its time: "12 December 2026, 20:30"
+    public static function when(Trip $trip): ?string
+    {
+        $dates = self::dates($trip);
+
+        return $dates && $trip->start_time ? $dates . ', ' . substr($trip->start_time, 0, 5) : $dates;
     }
 
     // "1–8 August 2027", "30 July – 2 August 2027", or null while the poll is open

@@ -79,6 +79,17 @@ Route::get('/demo/{secret}', [UserController::class, 'demo'])->middleware(['gues
 Route::put('/account/album-filter', [AccountController::class, 'albumFilter'])->middleware(['auth', 'not-demo']);
 Route::put('/account/home', [AccountController::class, 'home'])->middleware(['auth', 'not-demo']);
 
+// People: everyone, and each person's page (stats, badges, what you share)
+Route::middleware(['auth', 'not-demo'])->group(function () {
+    Route::get('/people', [App\Http\Controllers\PeopleController::class, 'index']);
+    Route::get('/people/{user}', [App\Http\Controllers\PeopleController::class, 'show']);
+});
+
+// Calendar link: trips, events and birthdays for Google Calendar / iPhone (the link is the key)
+Route::get('/calendar/{token}.ics', [App\Http\Controllers\CalendarController::class, 'feed'])->where('token', '[A-Za-z0-9]{40,64}');
+Route::post('/account/calendar', [App\Http\Controllers\CalendarController::class, 'renew'])->middleware(['auth', 'not-demo']);
+Route::delete('/account/calendar', [App\Http\Controllers\CalendarController::class, 'off'])->middleware(['auth', 'not-demo']);
+
 // Passkeys: log in with Face ID / fingerprint on the phone (the password stays as a backup)
 Route::middleware(['auth', 'not-demo'])->group(function () {
     Route::post('/account/passkeys/options', [App\Http\Controllers\PasskeyController::class, 'registerOptions']);
@@ -313,6 +324,10 @@ Route::middleware(['auth', 'not-demo'])->prefix('trips')->scopeBindings()->group
     Route::delete('/{trip}/options/{option}', [App\Http\Controllers\TripController::class, 'deleteOption']);
     Route::post('/{trip}/options/{option}/vote', [App\Http\Controllers\TripController::class, 'vote']);
     Route::post('/{trip}/options/{option}/choose', [App\Http\Controllers\TripController::class, 'choose']);
+    Route::post('/{trip}/rsvp', [App\Http\Controllers\TripController::class, 'rsvp']);
+    Route::post('/{trip}/polls', [App\Http\Controllers\TripController::class, 'addPoll']);
+    Route::post('/{trip}/polls/{poll}/options/{option}/vote', [App\Http\Controllers\TripController::class, 'votePoll']);
+    Route::delete('/{trip}/polls/{poll}', [App\Http\Controllers\TripController::class, 'deletePoll']);
     Route::post('/{trip}/items', [App\Http\Controllers\TripController::class, 'addItem']);
     Route::put('/{trip}/items/{item}', [App\Http\Controllers\TripController::class, 'updateItem']);
     Route::delete('/{trip}/items/{item}', [App\Http\Controllers\TripController::class, 'deleteItem']);

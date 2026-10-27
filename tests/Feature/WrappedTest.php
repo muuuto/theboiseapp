@@ -107,7 +107,21 @@ class WrappedTest extends TestCase
         $this->assertNull(Wrapped::for($me->fresh(), 2025)['highest']);
     }
 
-    public function test_the_current_year_opens_in_december(): void
+    public function test_badges_unlocked_during_the_year(): void
+    {
+        $me = User::factory()->create();
+        // 8 countries before 2025, 2 more in 2025: Explorer (10 countries) is a 2025 badge
+        $countries = ['Francia', 'Spagna', 'Austria', 'Germania', 'Grecia', 'Croazia', 'Slovenia', 'Svizzera', 'Portogallo', 'Irlanda'];
+        foreach ($countries as $i => $country) {
+            $year = $i < 8 ? 2024 : 2025;
+            $this->album("Trip {$i}", "{$year}-0" . ($i % 9 + 1) . '-01', "{$year}-0" . ($i % 9 + 1) . '-02', [[45, 10, "Somewhere, {$country}"]], [$me]);
+        }
+
+        $this->assertSame([['key' => 'explorer', 'target' => 10]], Wrapped::for($me, 2025)['badges']->all());
+        $this->assertSame([], Wrapped::for($me, 2024)['badges']->all());
+    }
+
+        public function test_the_current_year_opens_in_december(): void
     {
         $me = User::factory()->create();
         $this->album('Summer', now()->year . '-07-01', now()->year . '-07-03', [], [$me]);

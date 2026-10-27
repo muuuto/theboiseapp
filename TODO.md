@@ -413,6 +413,24 @@ Steps (one release each):
     linked albums each viewer is in). Linking to an album already linked joins its group.
     **To deploy** (quick release, one migration): push, cPanel Git deploy, **Backup + run
     migrations**.
+29. **Events, polls, weather, calendar link, people pages and badges**: ✅ Done locally, 273 tests
+    passing, tried on a phone before and after the migration.
+    - **Events** live with the trips (menu *Trips & events*), shown apart and lighter: trips first,
+      then *Events*. An event is one day with an optional time (or a vote on days), *Who's invited*
+      (with *Everyone*), RSVP (*I'm in / Maybe / Can't come*), a countdown to the time, the list,
+      documents and shared expenses; never an album. Reminder the day before (not to who said no).
+    - **Polls** on trips and events: any question, options to tick, the bars show the votes.
+    - **Weather**: trips and events within two weeks show the forecast for their *Where*
+      (Open-Meteo); the day-before reminder says "☀️ 24° / 15°".
+    - **Calendar link**: Account → *Your calendar*: Google Calendar / iPhone / Outlook subscribe to
+      trips, events (not the ones said no to) and everyone's birthdays; new link / turn off.
+    - **People** (menu): everyone, and each person's page: albums, countries (flags), badges with
+      progress, and "You and Anna" (albums together, since, countries, map, the albums). Names on
+      the album page open them. 12 badges (Explorer, Globetrotter, Mountaineer, Veteran…, *Never
+      skips leg day* only on your own page or if you share your gym records). Wrapped has a slide
+      with the badges unlocked that year (only when there are some).
+    **To deploy** (quick release, one migration): push, cPanel Git deploy, **Backup + run
+    migrations**.
 15. **Announcement post** (done, written in the chat): write for Matteo an announcement of all these changes, to
     publish as a new post in the forum (what's new, in the site's tone: redesign, maps, likes,
     emails, QR codes, expenses, the app and notifications...).

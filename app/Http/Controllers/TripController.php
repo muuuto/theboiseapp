@@ -6,6 +6,9 @@ use App\Models\ExpenseGroup;
 use App\Models\Trip;
 use App\Models\TripDateOption;
 use App\Models\TripDocument;
+use App\Models\TripPoll;
+use App\Models\TripPollOption;
+use App\Support\Weather;
 use App\Models\TripItem;
 use App\Models\User;
 use App\Support\Media;
@@ -15,21 +18,26 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
-// Upcoming trips: planned together (date poll, checklist, shared expenses), then made an album.
-// Only the people going see a trip; who created it (and admins) manages it
+// Upcoming trips: planned together (date poll, checklist, polls, shared expenses), then made an album.
+// Events (a dinner, a party) are planned the same way but are one day, have RSVP and never become
+// an album. Only the people invited see one; who created it (and admins) manages it
 class TripController extends Controller
 {
     public function index(Request $request)
     {
-        $trips = $request->user()->trips()->with(['members', 'items', 'options', 'listing'])->get()
-            ->map(fn (Trip $trip) => $this->card($trip));
-
-        $active = $trips->whereIn('status', ['planning', 'upcoming', 'ongoing', 'finished']);
+        $user = $request->user();
+        $all = $user->trips()->with(['members', 'items', 'options', 'listing'])->get()
+            ->map(fn (Trip $trip) => $this->card($trip, $user));
+        $trips = $all->where('kind', 'trip');
+        $events = $all->where('kind', 'event');
+        // Soonest first, then the ones still voting dates
+        $soonest = fn ($cards) => $cards->sortBy(fn ($card) => [$card['dateFrom'] === null ? 1 : 0, $card['dateFrom'], $card['time']])->values();
 
         return Inertia::render('Trips/Index', [
-            // Soonest first, then the ones still voting dates
-            'trips' => $active->sortBy(fn ($trip) => [$trip['dateFrom'] === null ? 1 : 0, $trip['dateFrom']])->values(),
+            'trips' => $soonest($trips->whereIn('status', ['planning', 'upcoming', 'ongoing', 'finished'])),
             'done' => $trips->where('status', 'album')->sortByDesc('dateFrom')->values(),
+            'events' => $soonest($events->whereIn('status', ['planning', 'today', 'upcoming'])),
+            'pastEvents' => $events->where('status', 'past')->sortByDesc('dateFrom')->take(10)->values(),
         ]);
     }
 
@@ -41,7 +49,16 @@ class TripController extends Controller
         $managed = $trip->isManagedBy($user);
 
         return Inertia::render('Trips/Show', [
-            'trip' => $this->card($trip) + [
+            // Polls (null until their migration runs)
+            'polls' => Schema::hasTable('trip_polls') ? $trip->polls()->with('options.voters')->get()->map(fn (TripPoll $poll) => [
+                'id' => $poll->id,
+                'question' => $poll->question,
+                'options' => $poll->options->map(fn (TripPollOption $option) => ['id' => $option->id, 'text' => $option->text, 'voters' => $option->voters->pluck('id')]),
+                'canDelete' => $managed || $poll->created_by == $user->id,
+            ]) : null,
+            // The forecast, once it's within the next two weeks
+            'weather' => in_array($trip->status(), ['upcoming', 'ongoing', 'today']) ? Weather::forTrip($trip) : null,
+            'trip' => $this->card($trip, $user) + [
                 'notes' => $trip->notes,
                 'createdBy' => $trip->creator?->name,
                 'album' => $trip->listing ? ['id' => $trip->listing->id, 'title' => $trip->listing->title] : null,
@@ -78,14 +95,14 @@ class TripController extends Controller
             'can' => [
                 'manage' => $managed,
                 // After the start, who can post albums turns it into one
-                'makeAlbum' => ! $trip->listing_id && $trip->date_from && ! $trip->date_from->isFuture() && $user->canPostAlbums(),
+                'makeAlbum' => ! $trip->isEvent() && ! $trip->listing_id && $trip->date_from && ! $trip->date_from->isFuture() && $user->canPostAlbums(),
             ],
         ]);
     }
 
     public function create(Request $request)
     {
-        return Inertia::render('Trips/Form', $this->formProps($request->user(), null));
+        return Inertia::render('Trips/Form', $this->formProps($request->user(), null) + ['kind' => $request->query('kind') === 'event' ? 'event' : 'trip']);
     }
 
     public function store(Request $request)
@@ -100,9 +117,13 @@ class TripController extends Controller
             'date_from' => $data['dates'] === 'fixed' ? $data['date_from'] : null,
             'date_to' => $data['dates'] === 'fixed' ? $data['date_to'] : null,
             'created_by' => $user->id,
-        ]);
+        ] + $this->eventFields($data));
         $members = collect($data['members'] ?? [])->push($user->id)->unique();
         $trip->members()->sync($members->all());
+        // Who organizes an event is in
+        if ($trip->isEvent()) {
+            $trip->members()->updateExistingPivot($user->id, ['rsvp' => 'yes']);
+        }
         if ($data['dates'] === 'poll') {
             foreach ($data['options'] as $option) {
                 $trip->options()->create(['date_from' => $option['from'], 'date_to' => $option['to'], 'created_by' => $user->id]);
@@ -137,7 +158,7 @@ class TripController extends Controller
             'notes' => $data['notes'] ?? null,
             'date_from' => $data['dates'] === 'fixed' ? $data['date_from'] : null,
             'date_to' => $data['dates'] === 'fixed' ? $data['date_to'] : null,
-        ]);
+        ] + $this->eventFields($data, $trip));
         $trip->members()->sync($members->all());
 
         // Who left: their votes and their jobs on the list go too
@@ -197,6 +218,54 @@ class TripController extends Controller
         $this->datesDecided($trip, $request->user());
 
         return back()->with('message', 'Dates decided!');
+    }
+
+    // --- Events: I'm in / maybe / no ---
+
+    public function rsvp(Request $request, Trip $trip)
+    {
+        $user = $request->user();
+        abort_unless($trip->isEvent() && $trip->hasMember($user), 403, 'Unauthorized Action');
+        $data = $request->validate(['answer' => 'required|in:yes,maybe,no']);
+        $trip->members()->updateExistingPivot($user->id, ['rsvp' => $data['answer']]);
+
+        return back();
+    }
+
+    // --- Polls: "Pizza or sushi?" (trips and events) ---
+
+    public function addPoll(Request $request, Trip $trip)
+    {
+        abort_unless($trip->hasMember($request->user()), 403, 'Unauthorized Action');
+        // Empty rows of the form don't count
+        $request->merge(['options' => collect($request->input('options', []))->map(fn ($text) => trim((string) $text))->filter()->values()->all()]);
+        $data = $request->validate([
+            'question' => 'required|string|max:200',
+            'options' => 'required|array|min:2|max:10',
+            'options.*' => 'required|string|max:100',
+        ], ['options.min' => __('Give at least two options.')]);
+        $poll = $trip->polls()->create(['question' => $data['question'], 'created_by' => $request->user()->id]);
+        foreach (collect($data['options'])->map(fn ($text) => trim($text))->filter()->unique() as $text) {
+            $poll->options()->create(['text' => $text]);
+        }
+
+        return back();
+    }
+
+    public function votePoll(Request $request, Trip $trip, TripPoll $poll, TripPollOption $option)
+    {
+        abort_unless($trip->hasMember($request->user()) && $option->trip_poll_id === $poll->id, 403, 'Unauthorized Action');
+        $option->voters()->toggle([$request->user()->id]);
+
+        return back();
+    }
+
+    public function deletePoll(Request $request, Trip $trip, TripPoll $poll)
+    {
+        abort_unless($trip->isManagedBy($request->user()) || ($trip->hasMember($request->user()) && $poll->created_by == $request->user()->id), 403, 'Unauthorized Action');
+        $poll->delete();
+
+        return back();
     }
 
     // --- Checklist ---
@@ -263,10 +332,25 @@ class TripController extends Controller
     {
         TripNotices::send($people, $trip, fn () => [
             __(':name invited you to :trip', ['name' => $by->name, 'trip' => $trip->title]),
-            ($dates = TripNotices::dates($trip))
-                ? __(":dates. See who's going and what to bring.", ['dates' => $dates])
-                : __('Vote the dates that work for you and see what to bring.'),
+            match (true) {
+                $trip->isEvent() && (bool) TripNotices::dates($trip) => __(':dates. Are you in?', ['dates' => TripNotices::when($trip)]),
+                $trip->isEvent() => __('Vote the dates that work for you, and say if you\'re in.'),
+                (bool) ($dates = TripNotices::dates($trip)) => __(":dates. See who's going and what to bring.", ['dates' => $dates]),
+                default => __('Vote the dates that work for you and see what to bring.'),
+            },
         ]);
+    }
+
+    // An event: kind and time (an event is one day: its end is its start). Nothing before the migration
+    private function eventFields(array $data, ?Trip $trip = null): array
+    {
+        if (! Trip::hasEvents()) {
+            return [];
+        }
+        $isEvent = ($trip?->kind ?? $data['kind'] ?? 'trip') === 'event';
+
+        return ['kind' => $isEvent ? 'event' : 'trip', 'start_time' => $isEvent ? ($data['start_time'] ?? null) : null]
+            + ($isEvent && $data['dates'] === 'fixed' ? ['date_to' => $data['date_from']] : []);
     }
 
     private function datesDecided(Trip $trip, User $by): void
@@ -284,7 +368,16 @@ class TripController extends Controller
 
     private function validateTrip(Request $request, ?Trip $trip = null): array
     {
+        // An event's options are single days: the end is the start
+        if ($request->input('kind', $trip?->kind) === 'event') {
+            $request->merge([
+                'date_to' => $request->input('date_from'),
+                'options' => collect($request->input('options', []))->map(fn ($option) => ['from' => $option['from'] ?? null, 'to' => $option['from'] ?? null])->all(),
+            ]);
+        }
         $data = $request->validate([
+            'kind' => 'nullable|in:trip,event',
+            'start_time' => 'nullable|date_format:H:i',
             'title' => 'required|string|max:100',
             'destination' => 'nullable|string|max:255',
             'notes' => 'nullable|string|max:5000',
@@ -310,10 +403,17 @@ class TripController extends Controller
         return $data;
     }
 
-    private function card(Trip $trip): array
+    private function card(Trip $trip, ?User $viewer = null): array
     {
+        $rsvp = fn ($answer) => $trip->members->filter(fn ($member) => ($member->pivot->rsvp ?? null) === $answer)->count();
+
         return [
             'id' => $trip->id,
+            'kind' => $trip->kind ?? 'trip',
+            'time' => $trip->start_time ? substr($trip->start_time, 0, 5) : null,
+            // Events: how many are in, and my answer
+            'goingCount' => $trip->isEvent() ? $rsvp('yes') : null,
+            'myRsvp' => $viewer ? ($trip->members->firstWhere('id', $viewer->id)?->pivot->rsvp ?? null) : null,
             'title' => $trip->title,
             'destination' => $trip->destination,
             'dateFrom' => $trip->date_from?->toDateString(),
@@ -336,6 +436,8 @@ class TripController extends Controller
                 'destination' => $trip->destination,
                 'notes' => $trip->notes,
                 'dates' => $trip->date_from ? 'fixed' : 'poll',
+                'kind' => $trip->kind ?? 'trip',
+                'start_time' => $trip->start_time ? substr($trip->start_time, 0, 5) : '',
                 'date_from' => $trip->date_from?->toDateString(),
                 'date_to' => $trip->date_to?->toDateString(),
                 'members' => $trip->members()->pluck('users.id'),
@@ -349,6 +451,6 @@ class TripController extends Controller
 
     private function person(User $user): array
     {
-        return ['id' => $user->id, 'name' => $user->name, 'avatar' => Media::url($user->profilePicture)];
+        return ['id' => $user->id, 'name' => $user->name, 'avatar' => Media::url($user->profilePicture), 'rsvp' => $user->pivot->rsvp ?? null];
     }
 }

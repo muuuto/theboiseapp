@@ -1,9 +1,10 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 
-// Time left until a date (the trip starts at midnight), ticking every second
+// Time left until a date (a trip starts at midnight, an event at its time), ticking every second
 const props = defineProps({
     to: { type: String, required: true }, // YYYY-MM-DD
+    time: { type: String, default: null }, // HH:MM (events)
     size: { type: String, default: 'large' }, // large | small
 });
 
@@ -14,7 +15,8 @@ onBeforeUnmount(() => clearInterval(timer));
 
 const parts = computed(() => {
     const [year, month, day] = props.to.split('-').map(Number);
-    const left = Math.max(0, new Date(year, month - 1, day).getTime() - now.value);
+    const [hour, minute] = (props.time ?? '00:00').split(':').map(Number);
+    const left = Math.max(0, new Date(year, month - 1, day, hour, minute).getTime() - now.value);
     return {
         days: Math.floor(left / 86400000),
         hours: Math.floor((left / 3600000) % 24),

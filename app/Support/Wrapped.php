@@ -122,6 +122,8 @@ class Wrapped
             'busiestMonth' => $months->isNotEmpty() ? ['name' => ucfirst(Carbon::create($year, $months->keys()->first())->translatedFormat('F')), 'albums' => $months->first()] : null,
             'friends' => $friends,
             'comments' => self::comments($user, $year),
+            // Badges unlocked that year (people pages: /people/{id})
+            'badges' => collect(Badges::earnedIn($user, $year))->map(fn ($badge) => ['key' => $badge['key'], 'target' => $badge['target']])->values(),
         ];
     }
 
@@ -166,6 +168,14 @@ class Wrapped
     }
 
     // "IT" → 🇮🇹
+    // The country at the end of a place's name ("Palermo, Sicilia, Italia" → Italia 🇮🇹), or null
+    public static function country(?string $placeName): ?array
+    {
+        $name = trim((string) Str::afterLast((string) $placeName, ','));
+
+        return $name !== '' ? ['name' => $name, 'flag' => self::flag(self::COUNTRIES[$name] ?? null)] : null;
+    }
+
     private static function flag(?string $code): ?string
     {
         if (! $code) {

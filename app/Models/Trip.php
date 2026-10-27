@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
-// A trip being planned: who's going, a date poll, a checklist, shared expenses; then its album
+// A trip being planned: who's going, a date poll, a checklist, shared expenses; then its album.
+// Or an event (kind "event": a dinner, a party): one day with an optional time, RSVP, never an album
 class Trip extends Model
 {
     protected $casts = ['date_from' => 'date', 'date_to' => 'date'];
@@ -21,7 +23,28 @@ class Trip extends Model
 
     public function members(): BelongsToMany
     {
-        return $this->belongsToMany(User::class)->withTimestamps()->orderBy('name');
+        $members = $this->belongsToMany(User::class)->withTimestamps()->orderBy('name');
+
+        // Their answer to an event (before its migration there's no such column)
+        return self::hasEvents() ? $members->withPivot('rsvp') : $members;
+    }
+
+    public static function hasEvents(): bool
+    {
+        static $ready = null;
+
+        return $ready ??= Schema::hasColumn('trip_user', 'rsvp');
+    }
+
+    public function isEvent(): bool
+    {
+        return $this->kind === 'event';
+    }
+
+    // "Pizza or sushi?"
+    public function polls(): HasMany
+    {
+        return $this->hasMany(TripPoll::class)->orderBy('id');
     }
 
     public function options(): HasMany
@@ -66,9 +89,19 @@ class Trip extends Model
         return $this->created_by == $user->id || $user->isAdmin == 1;
     }
 
-    // planning (dates not decided), upcoming, ongoing, finished (no album yet), album
+    // planning (dates not decided), upcoming, ongoing, finished (no album yet), album.
+    // Events: planning, upcoming, today, past
     public function status(): string
     {
+        if ($this->isEvent()) {
+            return match (true) {
+                ! $this->date_from => 'planning',
+                $this->date_from->isToday() => 'today',
+                $this->date_from->isFuture() => 'upcoming',
+                default => 'past',
+            };
+        }
+
         return match (true) {
             (bool) $this->listing_id => 'album',
             ! $this->date_from => 'planning',

@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
-import { Cake, Camera, Fingerprint, Home, ImagePlus, KeyRound, Loader2, MapPin, Monitor, Moon, Search, Smartphone, Sun, Trash2, Wallet } from 'lucide-vue-next';
+import { CalendarDays, Cake, Camera, Fingerprint, Home, ImagePlus, KeyRound, Loader2, MapPin, Monitor, Moon, Search, Smartphone, Sun, Trash2, Wallet } from 'lucide-vue-next';
 import { addPasskey, isPhone, passkeysAvailable } from '../../passkeys.js';
 import { ago } from '../../time.js';
 import { t } from '../../i18n.js';
@@ -12,7 +12,7 @@ import AppNotifications from '../../components/AppNotifications.vue';
 import LanguageSwitch from '../../components/LanguageSwitch.vue';
 import OwnAlbumsToggle from '../../components/OwnAlbumsToggle.vue';
 
-const props = defineProps({ profile: Object, wallet: Object, push: Object, ownFilter: Object, home: Object, passkeys: Array });
+const props = defineProps({ profile: Object, wallet: Object, push: Object, ownFilter: Object, home: Object, passkeys: Array, calendar: { type: [String, Boolean], default: false } });
 
 const user = computed(() => usePage().props.auth.user);
 const readOnly = computed(() => user.value.isDemo);
@@ -106,6 +106,23 @@ function removePasskey(passkey) {
     if (window.confirm(t('Stop logging in with Face ID / fingerprint on ":name"? The password keeps working.', { name: passkey.name }))) {
         router.delete(`/account/passkeys/${passkey.id}`, { preserveScroll: true });
     }
+}
+
+// Calendar link: trips, events and birthdays in Google Calendar / iPhone (the link is the key)
+const calendarCopied = ref(false);
+const webcal = computed(() => (props.calendar ? props.calendar.replace(/^https?:/, 'webcal:') : null));
+const googleCalendar = computed(() => (webcal.value ? `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(webcal.value)}` : null));
+const calendarOn = () => router.post('/account/calendar', {}, { preserveScroll: true });
+function calendarNew() {
+    if (window.confirm(t('Make a new link? The old one stops working: calendars using it must be added again.'))) calendarOn();
+}
+function calendarOff() {
+    if (window.confirm(t('Turn off the calendar link? Calendars using it stop updating.'))) router.delete('/account/calendar', { preserveScroll: true });
+}
+async function copyCalendar() {
+    await navigator.clipboard.writeText(props.calendar);
+    calendarCopied.value = true;
+    setTimeout(() => (calendarCopied.value = false), 1500);
 }
 
 // Wallet: one personal photo with a name
@@ -314,6 +331,24 @@ const buttonClass = 'inline-flex items-center justify-center gap-2 rounded-xl bg
         <section v-if="push" :class="cardClass" class="lg:col-span-2">
             <h2 class="mb-4 text-lg font-bold">{{ t('App & notifications') }}</h2>
             <AppNotifications v-bind="push" />
+        </section>
+
+        <!-- Calendar link: trips, events, birthdays -->
+        <section v-if="calendar !== false" :class="cardClass" class="space-y-3 lg:col-span-2">
+            <h2 class="flex items-center gap-2 text-lg font-bold"><CalendarDays class="size-5 text-accent" /> {{ t('Your calendar') }}</h2>
+            <p class="text-sm text-slate-500">{{ t('Your trips, your events and everyone\'s birthdays in Google Calendar, on the iPhone or in Outlook. It updates by itself (calendars check it every few hours).') }}</p>
+            <button v-if="!calendar" type="button" :class="buttonClass" @click="calendarOn"><CalendarDays class="size-4" /> {{ t('Turn on') }}</button>
+            <template v-else>
+                <div class="flex flex-wrap gap-2">
+                    <a :href="googleCalendar" target="_blank" rel="noopener" :class="buttonClass">{{ t('Add to Google Calendar') }}</a>
+                    <a :href="webcal" class="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold ring-1 ring-slate-200 hover:bg-slate-50 dark:ring-slate-700 dark:hover:bg-slate-800">{{ t('Add to iPhone / Mac / Outlook') }}</a>
+                    <button type="button" class="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold ring-1 ring-slate-200 hover:bg-slate-50 dark:ring-slate-700 dark:hover:bg-slate-800" @click="copyCalendar">{{ calendarCopied ? t('Copied!') : t('Copy the link') }}</button>
+                </div>
+                <p class="text-xs text-slate-500">{{ t('Keep the link to yourself: whoever has it sees your trips and events.') }}
+                    <button type="button" class="font-semibold underline" @click="calendarNew">{{ t('New link') }}</button> ·
+                    <button type="button" class="font-semibold underline" @click="calendarOff">{{ t('Turn off') }}</button>
+                </p>
+            </template>
         </section>
     </div>
 </template>

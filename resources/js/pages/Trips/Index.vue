@@ -1,9 +1,18 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
-import { CalendarClock, Check, Images, ListChecks, MapPin, Plane, Plus, Vote } from 'lucide-vue-next';
+import { CalendarClock, Check, Clock, Images, ListChecks, MapPin, PartyPopper, Plane, Plus, Users, Vote } from 'lucide-vue-next';
 import Countdown from '../../components/Countdown.vue';
+import { formatDate } from '../../time.js';
 
-defineProps({ trips: Array, done: Array });
+// Trips first (the big plans), then events (a dinner, a party) in their own, lighter list
+defineProps({ trips: Array, done: Array, events: { type: Array, default: () => [] }, pastEvents: { type: Array, default: () => [] } });
+
+const rsvpLabel = { yes: "I'm in", maybe: 'Maybe', no: "Can't come" };
+const rsvpClass = {
+    yes: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
+    maybe: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
+    no: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
+};
 
 const statusLabel = { planning: 'Voting the dates', upcoming: 'Upcoming', ongoing: 'Happening now', finished: 'Back home: make it an album' };
 const statusClass = {
@@ -15,16 +24,21 @@ const statusClass = {
 </script>
 
 <template>
-    <Head :title="t('Trips')" />
+    <Head :title="t('Trips & events')" />
 
     <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center">
         <div>
             <h1 class="text-3xl font-extrabold tracking-tight">{{ t('Trips') }}</h1>
             <p class="text-sm text-slate-500 dark:text-slate-400">{{ t('Plan the next one together: dates, who brings what, shared expenses.') }}</p>
         </div>
-        <Link href="/trips/create" class="inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark sm:ml-auto sm:py-2">
-            <Plus class="size-4" /> {{ t('Plan a trip') }}
-        </Link>
+        <div class="flex gap-2 sm:ml-auto">
+            <Link href="/trips/create?kind=event" class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold ring-1 ring-slate-200 transition hover:bg-white sm:flex-none sm:py-2 dark:ring-slate-700 dark:hover:bg-slate-900">
+                <PartyPopper class="size-4" /> {{ t('New event') }}
+            </Link>
+            <Link href="/trips/create" class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark sm:flex-none sm:py-2">
+                <Plus class="size-4" /> {{ t('Plan a trip') }}
+            </Link>
+        </div>
     </div>
 
     <div v-if="trips.length" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -73,6 +87,53 @@ const statusClass = {
             <Plus class="size-4" /> {{ t('Plan a trip') }}
         </Link>
     </div>
+
+    <!-- Events: lighter, below the trips -->
+    <section class="mt-10">
+        <h2 class="mb-1 flex items-center gap-2 text-xl font-extrabold"><PartyPopper class="size-5 text-fuchsia-600" /> {{ t('Events') }}</h2>
+        <p class="mb-3 text-sm text-slate-500">{{ t('Dinners, parties, nights out: who\'s in, a vote if needed, a reminder the day before.') }}</p>
+        <ul v-if="events.length" class="space-y-2">
+            <li v-for="event in events" :key="event.id">
+                <Link :href="`/trips/${event.id}`" class="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200 transition hover:ring-fuchsia-300 dark:bg-slate-900 dark:ring-slate-800 dark:hover:ring-fuchsia-800">
+                    <span v-if="event.dateFrom" class="flex w-12 shrink-0 flex-col items-center rounded-xl bg-fuchsia-50 py-1.5 text-fuchsia-700 dark:bg-fuchsia-950 dark:text-fuchsia-300">
+                        <span class="text-[10px] font-bold uppercase">{{ formatDate(event.dateFrom, { month: 'short' }) }}</span>
+                        <span class="text-xl leading-none font-extrabold">{{ formatDate(event.dateFrom, { day: 'numeric' }) }}</span>
+                    </span>
+                    <span v-else class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600 dark:bg-violet-950 dark:text-violet-300"><Vote class="size-5" /></span>
+                    <span class="min-w-0 flex-1">
+                        <span class="block truncate font-bold">{{ event.title }}</span>
+                        <span class="flex flex-wrap items-center gap-x-2 text-xs text-slate-500">
+                            <span v-if="event.status === 'today'" class="font-bold text-fuchsia-600">{{ t('Today') }}</span>
+                            <span v-else-if="event.dateFrom" class="capitalize">{{ formatDate(event.dateFrom, { weekday: 'long' }) }}</span>
+                            <span v-else>{{ t(':count date options to vote', { count: event.optionCount }) }}</span>
+                            <span v-if="event.time" class="inline-flex items-center gap-0.5"><Clock class="size-3" /> {{ event.time }}</span>
+                            <span v-if="event.destination" class="inline-flex min-w-0 items-center gap-0.5 truncate"><MapPin class="size-3 shrink-0" /> {{ event.destination }}</span>
+                        </span>
+                    </span>
+                    <span class="flex shrink-0 flex-col items-end gap-1 text-xs">
+                        <span v-if="event.myRsvp" class="rounded-full px-2 py-0.5 font-semibold" :class="rsvpClass[event.myRsvp]">{{ t(rsvpLabel[event.myRsvp]) }}</span>
+                        <span v-else class="rounded-full bg-fuchsia-100 px-2 py-0.5 font-semibold text-fuchsia-800 dark:bg-fuchsia-950 dark:text-fuchsia-300">{{ t('Answer') }}</span>
+                        <span class="inline-flex items-center gap-1 text-slate-500"><Users class="size-3" /> {{ event.goingCount }}/{{ event.members.length }}</span>
+                    </span>
+                </Link>
+            </li>
+        </ul>
+        <p v-else class="rounded-2xl border-2 border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-500 dark:border-slate-800">
+            {{ t('No events coming up.') }}
+            <Link href="/trips/create?kind=event" class="font-semibold text-accent hover:underline">{{ t('Organize one') }}</Link>
+        </p>
+        <details v-if="pastEvents.length" class="mt-3 text-sm">
+            <summary class="cursor-pointer text-slate-500">{{ t('Past events') }}</summary>
+            <ul class="mt-2 space-y-1">
+                <li v-for="event in pastEvents" :key="event.id">
+                    <Link :href="`/trips/${event.id}`" class="flex items-center gap-2 rounded-xl px-3 py-1.5 hover:bg-white dark:hover:bg-slate-900">
+                        <span class="text-slate-500">{{ formatDate(event.dateFrom, { day: 'numeric', month: 'short', year: 'numeric' }) }}</span>
+                        <span class="truncate font-medium">{{ event.title }}</span>
+                    </Link>
+                </li>
+            </ul>
+        </details>
+    </section>
 
     <section v-if="done.length" class="mt-10">
         <h2 class="mb-3 text-lg font-bold">{{ t('Done, now albums') }}</h2>

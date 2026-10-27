@@ -1,4 +1,5 @@
 <script setup>
+import { badgeInfo } from '../badges.js';
 import { canShareFile, shareFile } from '../shareImage.js';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
@@ -27,6 +28,7 @@ const slides = computed(() => {
     if (w.busiestMonth && w.albumCount > 2) list.push('month');
     if (w.friends.length) list.push('crew');
     if (w.comments.best || w.comments.written) list.push('comment');
+    if (w.badges?.length) list.push('badges');
     list.push('summary');
     return list;
 });
@@ -40,6 +42,7 @@ const backgrounds = {
     month: 'from-fuchsia-500 via-purple-600 to-indigo-700',
     crew: 'from-orange-400 via-rose-500 to-fuchsia-600',
     comment: 'from-slate-800 via-slate-900 to-black',
+    badges: 'from-amber-400 via-orange-500 to-rose-600',
     summary: 'from-teal-500 via-teal-700 to-slate-900',
 };
 
@@ -366,6 +369,19 @@ const shareImage = () => shareFile(summaryFile.value, t('My :year on TheBoise', 
                     </template>
 
                     <!-- Comment -->
+                    <template v-else-if="current === 'badges'">
+                        <p class="text-xl font-semibold text-white/80">{{ tc('A badge unlocked this year|:count badges unlocked this year', wrapped.badges.length) }}</p>
+                        <ul class="mt-5 space-y-3">
+                            <li v-for="badge in wrapped.badges.filter((item) => badgeInfo[item.key])" :key="badge.key" class="flex items-center gap-4 rounded-2xl bg-white/15 p-3 backdrop-blur">
+                                <span class="text-5xl">{{ badgeInfo[badge.key].emoji }}</span>
+                                <span>
+                                    <span class="block text-2xl leading-tight font-black">{{ badgeInfo[badge.key].name() }}</span>
+                                    <span class="text-sm text-white/85">{{ badgeInfo[badge.key].goal(badge.target) }}</span>
+                                </span>
+                            </li>
+                        </ul>
+                        <p class="mt-4 text-sm text-white/75">{{ t('All your badges are on your page, in People.') }}</p>
+                    </template>
                     <template v-else-if="current === 'comment'">
                         <template v-if="wrapped.comments.best">
                             <p class="text-xl font-semibold text-white/80">{{ t('Your most liked comment') }}</p>

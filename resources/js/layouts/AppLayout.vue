@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
-import { Dumbbell, Images, LogOut, Map, Menu, MessagesSquare, Monitor, PanelLeftClose, PanelLeftOpen, Plane, PlusCircle, Tags, User, Wallet, Wrench, X } from 'lucide-vue-next';
+import { Dumbbell, Images, LogOut, Map, Menu, MessagesSquare, Monitor, PanelLeftClose, PanelLeftOpen, Plane, PlusCircle, Tags, User, Users, Wallet, Wrench, X } from 'lucide-vue-next';
 import NotificationsBell from '../components/NotificationsBell.vue';
 import ThemeToggle from '../components/ThemeToggle.vue';
 import FlashMessage from '../components/FlashMessage.vue';
@@ -37,7 +37,8 @@ const navigation = computed(() => {
     ];
     if (!user.value?.isDemo) {
         items.push({ label: 'Forum', href: '/forum', icon: MessagesSquare, inertia: true });
-        items.push({ label: 'Trips', href: '/trips', icon: Plane, inertia: true });
+        items.push({ label: 'Trips & events', href: '/trips', icon: Plane, inertia: true });
+        items.push({ label: 'People', href: '/people', icon: Users, inertia: true });
         items.push({ label: 'Expenses', href: '/expenses', icon: Wallet, inertia: true });
         // Only for the people the admins allowed
         if (user.value?.canUseGym) items.push({ label: 'Gym', href: '/gym', icon: Dumbbell, inertia: true });

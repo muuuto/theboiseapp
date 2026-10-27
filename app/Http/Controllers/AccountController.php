@@ -39,6 +39,10 @@ class AccountController extends Controller
                 'createdAt' => $passkey->created_at->toIso8601String(),
                 'lastUsedAt' => $passkey->last_used_at?->toIso8601String(),
             ]) : null,
+            // The calendar link (null: not on; false: not available before its migration / for the demo)
+            'calendar' => ! $user->is_demo && Schema::hasColumn('users', 'calendar_token')
+                ? ($user->calendar_token ? url("/calendar/{$user->calendar_token}.ics") : null)
+                : false,
             // Where their trips start from (null until its migration runs)
             'home' => Schema::hasColumn('users', 'home_name') ? ['name' => $user->home()['name'], 'custom' => $user->home_latitude !== null] : null,
             // Phone notifications (null until their migration runs; never for the demo account).

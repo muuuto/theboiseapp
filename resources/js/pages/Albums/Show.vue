@@ -261,12 +261,15 @@ onMounted(() => {
                     <Users class="size-5 text-accent" /> {{ t('People') }} <span class="text-sm font-medium text-slate-500">{{ album.people.length }}</span>
                 </h2>
                 <ul class="grid grid-cols-2 gap-2">
-                    <li v-for="person in album.people" :key="person.id" class="flex min-w-0 items-center gap-2">
-                        <img v-if="person.avatar" :src="person.avatar" alt="" class="size-8 shrink-0 rounded-full object-cover" />
-                        <span v-else class="flex size-8 shrink-0 items-center justify-center rounded-full bg-slate-200 text-xs font-bold dark:bg-slate-700">
-                            {{ person.name.charAt(0).toUpperCase() }}
-                        </span>
-                        <span class="truncate text-sm">{{ person.name }}</span>
+                    <!-- Each one opens their page (not for the demo account, which has no people pages) -->
+                    <li v-for="person in album.people" :key="person.id" class="min-w-0">
+                        <component :is="usePage().props.auth.user?.isDemo || person.isDemo ? 'span' : Link" :href="`/people/${person.id}`" class="flex min-w-0 items-center gap-2 rounded-lg hover:text-accent">
+                            <img v-if="person.avatar" :src="person.avatar" alt="" class="size-8 shrink-0 rounded-full object-cover" />
+                            <span v-else class="flex size-8 shrink-0 items-center justify-center rounded-full bg-slate-200 text-xs font-bold dark:bg-slate-700">
+                                {{ person.name.charAt(0).toUpperCase() }}
+                            </span>
+                            <span class="truncate text-sm">{{ person.name }}</span>
+                        </component>
                     </li>
                 </ul>
             </div>
