@@ -6,14 +6,14 @@ import LeafletMap from '../../components/LeafletMap.vue';
 import RequiredMark from '../../components/RequiredMark.vue';
 import RequiredNote from '../../components/RequiredNote.vue';
 import RichTextEditor from '../../components/RichTextEditor.vue';
-import TagsInput from '../../components/TagsInput.vue';
+import AlbumTagsInput from '../../components/AlbumTagsInput.vue';
 import PeoplePicker from '../../components/PeoplePicker.vue';
 import { t } from '../../i18n.js';
 
 const props = defineProps({
     album: Object, // null when creating
     users: Array,
-    knownTags: Array,
+    tagLibrary: Array, // [{ name, aliases, userId }]
     // Admins only: different link/description for someone (the others never see this section)
     canPersonalize: Boolean,
     // Not admins: the poster is always in their own album
@@ -33,6 +33,7 @@ const form = useForm({
     places: props.album?.places.map((place) => ({ ...place })) ?? [],
     albumLink: props.album?.albumLink ?? '',
     tags: props.album?.tags.filter((tag) => tag !== 'Youtube') ?? [],
+    newTags: [], // tags not in the library yet, confirmed after "did you mean?"
     description: props.album?.description ?? '',
     videoLinks: props.album?.videoLinks.length ? [...props.album.videoLinks] : [],
     people: props.album?.people ?? props.fromTrip?.people ?? (props.alwaysIn ? [props.alwaysIn] : []),
@@ -87,6 +88,21 @@ function addVersion() {
 // Someone removed from the album loses their version
 watch(() => form.people, (people) => {
     form.personal = form.personal.filter((version) => people.includes(version.userId));
+});
+
+// Tags linked to an account: choosing the person adds their tag, and the tag adds the person
+// (only adding: removing one never removes the other)
+watch(() => [...form.people], (people, before = []) => {
+    for (const id of people.filter((id) => !before.includes(id))) {
+        const tag = props.tagLibrary.find((item) => item.userId === id);
+        if (tag && !form.tags.includes(tag.name)) form.tags = [...form.tags, tag.name];
+    }
+});
+watch(() => [...form.tags], (tags, before = []) => {
+    for (const name of tags.filter((name) => !before.includes(name))) {
+        const userId = props.tagLibrary.find((item) => item.name === name)?.userId;
+        if (userId && props.users.some((user) => user.id === userId) && !form.people.includes(userId)) form.people = [...form.people, userId];
+    }
 });
 
 // Cover preview before uploading
@@ -144,13 +160,14 @@ const labelClass = 'mb-1.5 block text-sm font-semibold';
                     </div>
                 </div>
                 <div>
-                    <label for="albumLink" :class="labelClass">{{ t('Photos link (Amazon Photos)') }}<RequiredMark /></label>
-                    <input id="albumLink" v-model="form.albumLink" type="url" placeholder="https://www.amazon.com/photos/shared/..." :class="inputClass" />
+                    <label for="albumLink" :class="labelClass">{{ t('Photos link') }}</label>
+                    <input id="albumLink" v-model="form.albumLink" type="url" :placeholder="t('Shared album link: Google Photos, Drive, Amazon Photos…')" :class="inputClass" />
                     <p v-if="form.errors.albumLink" class="mt-1 text-sm text-red-600">{{ form.errors.albumLink }}</p>
+                    <p v-else class="mt-1 text-xs text-slate-500">{{ t('The photos link, a video below, or both: at least one.') }}</p>
                 </div>
                 <div>
                     <span :class="labelClass">{{ t('Tags') }}<RequiredMark /></span>
-                    <TagsInput v-model="form.tags" :suggestions="knownTags" />
+                    <AlbumTagsInput v-model="form.tags" v-model:confirmed="form.newTags" :library="tagLibrary" />
                     <p v-if="form.errors.tags" class="mt-1 text-sm text-red-600">{{ form.errors.tags }}</p>
                 </div>
             </section>

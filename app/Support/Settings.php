@@ -14,6 +14,9 @@ class Settings
     // The forum post linked at the top of the home page (news, changelog), or null
     public const PINNED_POST = 'pinned_post';
 
+    // Album tags that look alike but are different people ("Matteo" and "Matt"): ["3-17", …]
+    public const DISTINCT_TAGS = 'distinct_tags';
+
     private static ?array $cache = null;
 
     public static function get(string $key, mixed $default = null): mixed

@@ -198,7 +198,9 @@ onMounted(() => {
                 </div>
                 <LeafletMap v-if="pins.length" :markers="pins" :zoom="11" class="h-48" />
 
+                <!-- An album can be only videos: then there's no photos link -->
                 <a
+                    v-if="album.albumLink"
                     :href="album.albumLink"
                     target="_blank"
                     rel="noopener"
@@ -207,6 +209,7 @@ onMounted(() => {
                     <ExternalLink class="size-4" /> {{ t('Open the photos') }}
                 </a>
                 <button
+                    v-if="album.albumLink"
                     class="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-slate-600 ring-1 ring-slate-200 transition hover:bg-slate-50 dark:text-slate-300 dark:ring-slate-700 dark:hover:bg-slate-800"
                     @click="copyAlbumLink"
                 >

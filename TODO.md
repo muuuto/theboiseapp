@@ -386,6 +386,20 @@ Steps (one release each):
     "Muto replied to your comment" (bell and phone; setting renamed *Replies to your comments and
     mentions (@you)*). **To deploy** (quick release, one migration): push, cPanel Git deploy,
     **Backup + run migrations**.
+26. **Album tags library + albums without a photos link**: ✅ Done locally, 266 tests passing.
+    - Every tag once, one spelling (`tags` table, made from the tags the albums already use).
+      The album form picks from it; other spellings (aliases, e.g. "Matte") become the tag; a new
+      name is checked first ("did you mean Matteo, Matt?") and, if confirmed, added marked *new*.
+      A tag can be linked to an account: choosing the person adds the tag and vice versa.
+    - `/admin/tags` (Admin menu → *Tags*): rename (every album changes), merge ("Sarà" into
+      "Sara"), other spellings, account, *New tags to check*, *The same person?* suggestions
+      (with *Not the same*). Forum tags are unchanged (still free).
+    - An album needs the photos link, a video link, or both ("Photos link" label now generic:
+      Google Photos, Drive, Amazon Photos…). No photos link: the album page hides its buttons.
+    **To deploy** (quick release, one migration): push, cPanel Git deploy, **Backup + run
+    migrations**. Then open *Tags*: merge the duplicates (at least Sarà → Sara) and press *Not
+    the same* on the pairs that are different people (Matteo · Matt…); link the tags of people
+    with an account.
 15. **Announcement post** (done, written in the chat): write for Matteo an announcement of all these changes, to
     publish as a new post in the forum (what's new, in the site's tone: redesign, maps, likes,
     emails, QR codes, expenses, the app and notifications...).

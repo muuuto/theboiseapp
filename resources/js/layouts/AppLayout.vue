@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
-import { Dumbbell, Images, LogOut, Map, Menu, MessagesSquare, Monitor, PanelLeftClose, PanelLeftOpen, Plane, PlusCircle, User, Wallet, Wrench, X } from 'lucide-vue-next';
+import { Dumbbell, Images, LogOut, Map, Menu, MessagesSquare, Monitor, PanelLeftClose, PanelLeftOpen, Plane, PlusCircle, Tags, User, Wallet, Wrench, X } from 'lucide-vue-next';
 import NotificationsBell from '../components/NotificationsBell.vue';
 import ThemeToggle from '../components/ThemeToggle.vue';
 import FlashMessage from '../components/FlashMessage.vue';
@@ -52,6 +52,7 @@ const navigation = computed(() => {
 
 const adminNavigation = [
     { label: 'Post album', href: '/listings/create', icon: PlusCircle, inertia: true },
+    { label: 'Tags', href: '/admin/tags', icon: Tags, inertia: true },
     { label: 'Monitor', href: '/monitor', icon: Monitor, inertia: true },
     { label: 'Maintenance', href: '/admin/maintenance', icon: Wrench, inertia: true },
 ];

@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Validation\ValidationException;
+use App\Support\Tags;
+use App\Models\Tag;
 use App\Models\Listing;
 use App\Models\Slogan;
 use Illuminate\Http\Request;
@@ -470,9 +473,13 @@ class ListingController extends Controller
             'places.*.latitude' => 'required|numeric|between:-90,90',
             'places.*.longitude' => 'required|numeric|between:-180,180',
             'places.*.placeName' => 'nullable|string|max:255',
-            'albumLink' => 'required|url|max:255',
+            // The photos link, a video link, or both (a vlog can be just a YouTube video)
+            'albumLink' => 'nullable|url|max:255',
             'tags' => 'required|array|min:1',
             'tags.*' => 'string|max:50',
+            // New tags the poster confirmed after the "did you mean?" (see Tags)
+            'newTags' => 'nullable|array',
+            'newTags.*' => 'string|max:50',
             'description' => 'required|string',
             'videoLinks' => 'nullable|array',
             'videoLinks.*' => 'url|max:500',
@@ -486,10 +493,16 @@ class ListingController extends Controller
             'cover' => [$listing?->logo ? 'nullable' : 'required', 'image', 'max:20480'],
         ]);
 
-        $tags = collect($data['tags'])->map(fn ($tag) => trim(str_replace(',', ' ', $tag)))->filter();
+        $tags = $this->libraryTags(collect($data['tags'])->map(fn ($tag) => trim(str_replace(',', ' ', $tag)))->filter(), $data['newTags'] ?? []);
         $videoLinks = collect($data['videoLinks'] ?? [])->filter()->values();
+        if (! filled($data['albumLink'] ?? null) && $videoLinks->isEmpty()) {
+            throw ValidationException::withMessages(['albumLink' => __('Add the photos link, a video link, or both.')]);
+        }
         if ($videoLinks->isNotEmpty() && ! $tags->contains('Youtube')) {
             $tags->push('Youtube');
+            if (Schema::hasTable('tags')) {
+                Tag::firstOrCreate(['name' => 'Youtube']);
+            }
         }
 
         return [
@@ -497,11 +510,45 @@ class ListingController extends Controller
             'dateFrom' => $data['dateFrom'],
             'dateTo' => $data['dateTo'],
             'location' => $data['location'],
-            'albumLink' => $data['albumLink'],
+            'albumLink' => $data['albumLink'] ?? '', // the column can't be empty (NULL): "" = no photos link
             'tags' => $tags->unique()->implode(', '),
             'description' => SafeHtml::clean($data['description']),
             'videoLinks' => $videoLinks->isNotEmpty() ? $videoLinks->implode(',') : null,
         ];
+    }
+
+    // The tags as the library writes them ("matte" → "Matteo" when it's an alias). One the library
+    // doesn't have is added (marked new, for the admins), unless it looks like an existing one and
+    // the poster didn't confirm it's someone else: then they're asked "did you mean…?"
+    private function libraryTags(Collection $tags, array $confirmedNew): Collection
+    {
+        if (! Schema::hasTable('tags')) {
+            return $tags;
+        }
+        $library = Tag::all();
+        $confirmed = collect($confirmedNew)->map(fn ($tag) => Tags::plain($tag));
+        $result = collect();
+        $create = collect();
+        foreach ($tags as $typed) {
+            if ($tag = Tags::resolve($typed, $library)) {
+                $result->push($tag->name);
+                continue;
+            }
+            $similar = Tags::similar($typed, $library);
+            if ($similar->isNotEmpty() && ! $confirmed->contains(Tags::plain($typed))) {
+                throw ValidationException::withMessages(['tags' => __('":tag" looks like :similar: pick it, or confirm it\'s someone else.', [
+                    'tag' => $typed,
+                    'similar' => $similar->pluck('name')->implode(', '),
+                ])]);
+            }
+            $result->push($typed);
+            $create->push($typed);
+        }
+        foreach ($create->unique(fn ($tag) => Tags::plain($tag)) as $name) {
+            Tag::create(['name' => $name, 'is_new' => true, 'created_by' => auth()->id()]);
+        }
+
+        return $result->unique()->values();
     }
 
     private function formProps(?Listing $listing): array
@@ -537,12 +584,24 @@ class ListingController extends Controller
             // Everyone, the demo account too (for admins: adding it to an album is how recruiters get to see it)
             'users' => User::orderBy('name')->when(! $isAdmin, fn ($query) => $query->where('is_demo', false))->get()
                 ->map(fn (User $user) => ['id' => $user->id, 'name' => $user->name, 'avatar' => Media::url($user->profilePicture), 'isDemo' => (bool) $user->is_demo]),
-            // Every tag already used, most used first, to suggest them while typing
-            'knownTags' => Listing::pluck('tags')
-                ->flatMap(fn ($tags) => $this->tags($tags))
-                ->reject(fn ($tag) => $tag === 'Youtube')
-                ->countBy()->sortDesc()->keys()->values(),
+            // The tags library, most used first (before its migration: the tags already used)
+            'tagLibrary' => $this->tagLibrary(),
         ];
+    }
+
+    // [{ name, aliases, userId }] for the album form: suggestions, "did you mean?", and the tags of
+    // the people chosen (and the other way round)
+    private function tagLibrary(): Collection
+    {
+        $counts = Tags::counts();
+        if (! Schema::hasTable('tags')) {
+            return $counts->except('Youtube')->sortDesc()->keys()->map(fn ($name) => ['name' => $name, 'aliases' => [], 'userId' => null])->values();
+        }
+
+        return Tag::where('name', '!=', 'Youtube')->get()
+            ->sortByDesc(fn (Tag $tag) => $counts[$tag->name] ?? 0)
+            ->map(fn (Tag $tag) => ['name' => $tag->name, 'aliases' => $tag->aliases ?? [], 'userId' => $tag->user_id])
+            ->values();
     }
 
     private function places(Listing $listing): array

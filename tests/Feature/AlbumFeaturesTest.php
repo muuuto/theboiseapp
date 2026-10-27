@@ -170,13 +170,18 @@ class AlbumFeaturesTest extends TestCase
     {
         Listing::factory()->create(['tags' => 'mountains, friends']);
         Listing::factory()->create(['tags' => 'mountains, Youtube']);
+        foreach (['friends', 'mountains', 'Youtube'] as $name) {
+            \App\Models\Tag::create(['name' => $name]);
+        }
         User::factory()->create(['is_demo' => true, 'name' => 'Guest']);
 
         $this->actingAs(User::factory()->admin()->create())->get('/listings/create')
             ->assertInertia(fn ($page) => $page
                 ->component('Albums/Form')
                 ->where('album', null)
-                ->where('knownTags.0', 'mountains')
+                // The tags library, most used first, without the automatic Youtube
+                ->where('tagLibrary.0.name', 'mountains')
+                ->where('tagLibrary', fn ($tags) => ! collect($tags)->contains('name', 'Youtube'))
                 // The demo account can be added to albums (that's what recruiters see)
                 ->where('users', fn ($users) => collect($users)->firstWhere('name', 'Guest')['isDemo'] === true));
     }

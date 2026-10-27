@@ -173,6 +173,16 @@ Route::get('/wrapped/{year}', [App\Http\Controllers\WrappedController::class, 's
 // All the user's albums on a map
 Route::get('/map', [AlbumMapController::class, 'index'])->middleware('auth');
 
+// Admin: the album tags library (rename, merge, other spellings, linked account)
+Route::middleware(['auth', 'can:admin'])->prefix('admin/tags')->group(function () {
+    Route::get('/', [App\Http\Controllers\TagController::class, 'index']);
+    Route::post('/', [App\Http\Controllers\TagController::class, 'store']);
+    Route::put('/{tag}', [App\Http\Controllers\TagController::class, 'update']);
+    Route::post('/distinct', [App\Http\Controllers\TagController::class, 'distinct']);
+    Route::post('/{tag}/merge', [App\Http\Controllers\TagController::class, 'merge']);
+    Route::delete('/{tag}', [App\Http\Controllers\TagController::class, 'destroy']);
+});
+
 // Admin: confirm or fix the album coordinates suggested from the location text
 Route::middleware(['auth', 'can:admin'])->prefix('admin/locations')->group(function () {
     Route::get('/', [AlbumMapController::class, 'review']);
