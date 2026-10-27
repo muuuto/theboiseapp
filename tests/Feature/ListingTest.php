@@ -75,14 +75,14 @@ class ListingTest extends TestCase
             'dateTo' => '2026-07-05',
             'location' => 'Merano',
             'albumLink' => 'https://www.amazon.com/photos/shared/abc',
-            'tags' => ['summer'],
+            'tags' => ['summer', 'Anna', 'Bob', 'Carlo', 'Dario'],
             'description' => 'Holidays',
             'people' => $friends->pluck('id')->all(),
             'cover' => $this->fakeCover(),
         ]);
 
         $listing = Listing::where('title', 'Summer 2026')->firstOrFail();
-        $this->assertEquals('summer', $listing->tags);
+        $this->assertEquals('Anna, Bob, Carlo, Dario, summer', $listing->tags);
         $this->assertEquals($admin->id, $listing->user_id);
         $this->assertEqualsCanonicalizing($friends->pluck('id')->all(), $listing->users->pluck('id')->all());
     }

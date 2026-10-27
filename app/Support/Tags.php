@@ -11,6 +11,18 @@ use Illuminate\Support\Str;
 // look alike ("Matte" next to "Matteo"), and renaming a tag on every album that has it
 class Tags
 {
+    // Tags are always shown A to Z (no difference for capitals or accents: "Ángel" with the A's)
+    public static function sorted(iterable $tags): array
+    {
+        return collect($tags)->sortBy(fn ($tag) => [self::plain($tag), $tag])->values()->all();
+    }
+
+    // "matteo, Anna" (as stored on an album or post) → ["Anna", "matteo"]
+    public static function split(?string $tags): array
+    {
+        return self::sorted(array_filter(array_map('trim', explode(',', (string) $tags))));
+    }
+
     // "Sarà " → "sara": no case, accents or extra spaces
     public static function plain(string $text): string
     {
@@ -77,8 +89,8 @@ class Tags
             if (! in_array($old, $tags, true)) {
                 return;
             }
-            $tags = collect($tags)->map(fn ($tag) => $tag === $old ? $new : $tag)->filter()->unique()->values();
-            $listing->update(['tags' => $tags->implode(', ')]);
+            $tags = collect($tags)->map(fn ($tag) => $tag === $old ? $new : $tag)->filter()->unique();
+            $listing->update(['tags' => implode(', ', self::sorted($tags))]);
             $changed++;
         });
 

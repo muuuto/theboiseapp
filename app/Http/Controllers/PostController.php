@@ -406,7 +406,7 @@ class PostController extends Controller
         return [
             'title' => $data['title'],
             'description' => $data['description'],
-            'tags' => collect($data['tags'])->map(fn ($tag) => trim(str_replace(',', ' ', $tag)))->filter()->unique()->implode(', '),
+            'tags' => implode(', ', \App\Support\Tags::sorted(collect($data['tags'])->map(fn ($tag) => trim(str_replace(',', ' ', $tag)))->filter()->unique())),
             'content' => SafeHtml::clean($data['content']),
         ];
     }
@@ -448,8 +448,9 @@ class PostController extends Controller
         ];
     }
 
+    // A to Z
     private function tags(?string $tags): array
     {
-        return array_values(array_filter(array_map('trim', explode(',', (string) $tags))));
+        return \App\Support\Tags::split($tags);
     }
 }

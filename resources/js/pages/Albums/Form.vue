@@ -8,7 +8,7 @@ import RequiredNote from '../../components/RequiredNote.vue';
 import RichTextEditor from '../../components/RichTextEditor.vue';
 import AlbumTagsInput from '../../components/AlbumTagsInput.vue';
 import PeoplePicker from '../../components/PeoplePicker.vue';
-import { t } from '../../i18n.js';
+import { t, tc } from '../../i18n.js';
 
 const props = defineProps({
     album: Object, // null when creating
@@ -90,6 +90,8 @@ watch(() => form.people, (people) => {
     form.personal = form.personal.filter((version) => people.includes(version.userId));
 });
 
+const peopleCount = computed(() => form.people.filter((id) => !props.users.find((user) => user.id === id)?.isDemo).length);
+
 // Tags linked to an account: choosing the person adds their tag, and the tag adds the person
 // (only adding: removing one never removes the other)
 watch(() => [...form.people], (people, before = []) => {
@@ -168,6 +170,10 @@ const labelClass = 'mb-1.5 block text-sm font-semibold';
                 <div>
                     <span :class="labelClass">{{ t('Tags') }}<RequiredMark /></span>
                     <AlbumTagsInput v-model="form.tags" v-model:confirmed="form.newTags" :library="tagLibrary" />
+                    <!-- Everyone in the album is tagged (the demo account doesn't count) -->
+                    <p v-if="peopleCount && form.tags.length < peopleCount" class="mt-1 text-xs text-amber-700 dark:text-amber-400">
+                        {{ tc(':count person in the album: tag everyone (:tags so far).|:count people in the album: at least :count tags (:tags so far).', peopleCount, { tags: form.tags.length }) }}
+                    </p>
                     <p v-if="form.errors.tags" class="mt-1 text-sm text-red-600">{{ form.errors.tags }}</p>
                 </div>
             </section>

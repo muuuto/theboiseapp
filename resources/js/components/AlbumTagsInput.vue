@@ -58,8 +58,10 @@ const matches = computed(() => {
         .map((tag) => ({ name: tag.name, alias: plain(tag.name).includes(query) ? null : (tag.aliases ?? []).find((alias) => plain(alias).includes(query)) }));
 });
 
+// Shown A to Z, like everywhere (capitals and accents don't count)
+const sorted = (list) => [...list].sort((a, b) => plain(a).localeCompare(plain(b)) || a.localeCompare(b));
 function addName(name) {
-    if (!has(name)) tags.value = [...tags.value, name];
+    if (!has(name)) tags.value = sorted([...tags.value, name]);
     text.value = '';
     pending.value = null;
 }
@@ -100,7 +102,7 @@ const isNew = (name) => confirmed.value.includes(name) && !resolve(name);
     <div class="relative">
         <div class="flex flex-wrap items-center gap-1.5 rounded-2xl bg-white px-3 py-2 ring-1 ring-slate-200 focus-within:ring-2 focus-within:ring-accent dark:bg-slate-900 dark:ring-slate-700">
             <span
-                v-for="tag in tags"
+                v-for="tag in sorted(tags)"
                 :key="tag"
                 class="inline-flex items-center gap-1 rounded-full py-0.5 pr-1 pl-2.5 text-sm"
                 :class="isNew(tag) ? 'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200' : 'bg-slate-100 dark:bg-slate-800'"

@@ -160,7 +160,7 @@ class CategoryController extends Controller
         return [
             'title' => $data['title'],
             'description' => $data['description'],
-            'tags' => collect($data['tags'])->map(fn ($tag) => trim(str_replace(',', ' ', $tag)))->filter()->unique()->implode(', '),
+            'tags' => implode(', ', \App\Support\Tags::sorted(collect($data['tags'])->map(fn ($tag) => trim(str_replace(',', ' ', $tag)))->filter()->unique())),
         ];
     }
 
@@ -186,8 +186,9 @@ class CategoryController extends Controller
             ->map(fn (User $user) => ['id' => $user->id, 'name' => $user->name, 'avatar' => Media::url($user->profilePicture)]);
     }
 
+    // A to Z
     private function tags(?string $tags): array
     {
-        return array_values(array_filter(array_map('trim', explode(',', (string) $tags))));
+        return \App\Support\Tags::split($tags);
     }
 }

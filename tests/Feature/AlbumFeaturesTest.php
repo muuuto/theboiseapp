@@ -179,9 +179,8 @@ class AlbumFeaturesTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->component('Albums/Form')
                 ->where('album', null)
-                // The tags library, most used first, without the automatic Youtube
-                ->where('tagLibrary.0.name', 'mountains')
-                ->where('tagLibrary', fn ($tags) => ! collect($tags)->contains('name', 'Youtube'))
+                // The tags library, A to Z, without the automatic Youtube
+                ->where('tagLibrary', fn ($tags) => collect($tags)->pluck('name')->all() === ['friends', 'mountains'])
                 // The demo account can be added to albums (that's what recruiters see)
                 ->where('users', fn ($users) => collect($users)->firstWhere('name', 'Guest')['isDemo'] === true));
     }

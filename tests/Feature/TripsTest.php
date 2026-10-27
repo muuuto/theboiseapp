@@ -161,7 +161,7 @@ class TripsTest extends TestCase
 
         $this->actingAs($me)->post('/listings', [
             'title' => 'Sicilia 2027', 'dateFrom' => $trip->date_from->toDateString(), 'dateTo' => $trip->date_to->toDateString(),
-            'location' => 'Palermo', 'albumLink' => 'https://www.amazon.it/photos/share/abc', 'tags' => ['mare'],
+            'location' => 'Palermo', 'albumLink' => 'https://www.amazon.it/photos/share/abc', 'tags' => ['mare', 'Anna', 'Bob', 'Carlo', 'Dario'],
             'description' => '<p>x</p>', 'cover' => $this->fakeCover(), 'people' => [$me->id, $anna->id], 'trip_id' => $trip->id,
         ])->assertSessionHasNoErrors();
 

@@ -35,7 +35,8 @@ class AlbumTagsTest extends TestCase
     public function test_tags_are_written_as_the_library_does(): void
     {
         $this->postAlbum(['tags' => ['matte', 'ANNA']])->assertSessionHasNoErrors();
-        $this->assertSame('Matteo, Anna', Listing::sole()->tags);
+        // Saved A to Z
+        $this->assertSame('Anna, Matteo', Listing::sole()->tags);
     }
 
     public function test_a_new_name_like_an_existing_one_needs_a_confirmation(): void
@@ -49,6 +50,17 @@ class AlbumTagsTest extends TestCase
         // A name like nothing else needs no confirmation
         $this->postAlbum(['tags' => ['Zecca']])->assertSessionHasNoErrors();
         $this->assertTrue(Tag::where('name', 'Zecca')->exists());
+    }
+
+    public function test_everyone_in_the_album_is_tagged(): void
+    {
+        [$anna, $bob] = User::factory()->count(2)->create();
+        $demo = User::factory()->create(['is_demo' => true]);
+        $people = ['people' => [$this->admin->id, $anna->id, $bob->id, $demo->id]];
+
+        // 3 people (the demo account doesn't count): 2 tags aren't enough, nor the automatic Youtube
+        $this->postAlbum(['tags' => ['Matteo', 'Anna', 'Youtube']] + $people)->assertSessionHasErrors('tags');
+        $this->postAlbum(['tags' => ['Matteo', 'Anna', 'Zecca']] + $people)->assertSessionHasNoErrors();
     }
 
     public function test_photos_link_video_link_or_both(): void
@@ -71,7 +83,7 @@ class AlbumTagsTest extends TestCase
             ->where('lookAlikes', fn ($pairs) => collect($pairs)->contains([$sara->id, $typo->id])));
 
         $this->actingAs($this->admin)->post("/admin/tags/{$typo->id}/merge", ['into' => $sara->id])->assertSessionHasNoErrors();
-        $this->assertSame(['Matteo, Sara', 'Sara, Anna'], Listing::orderBy('id')->pluck('tags')->all());
+        $this->assertSame(['Matteo, Sara', 'Anna, Sara'], Listing::orderBy('id')->pluck('tags')->all());
         // Typing "Sarà" gives Sara from now on (same letters without the accent: no alias needed)
         $this->assertSame('Sara', \App\Support\Tags::resolve('Sarà', Tag::all())->name);
         $this->assertNull(Tag::find($typo->id));

@@ -9,7 +9,7 @@ import { t, tc } from '../../i18n.js';
 // is asked about ("did you mean…?") before becoming a new tag, marked new here
 const props = defineProps({
     ready: Boolean, // false until its migration runs
-    tags: Array, // [{ id, name, aliases, userId, albums, isNew }], most used first
+    tags: Array, // [{ id, name, aliases, userId, albums, isNew }], A to Z
     lookAlikes: Array, // [[id, id]]
     users: Array,
 });

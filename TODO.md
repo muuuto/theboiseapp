@@ -400,6 +400,12 @@ Steps (one release each):
     migrations**. Then open *Tags*: merge the duplicates (at least Sarà → Sara) and press *Not
     the same* on the pairs that are different people (Matteo · Matt…); link the tags of people
     with an account.
+27. **Tags A to Z, one tag per person**: ✅ Done locally, 267 tests passing. Tags are shown and
+    saved A to Z everywhere (album cards and page, album form, admin Tags, forum posts and
+    categories; capitals and accents don't count). An album needs at least as many tags as people
+    in it (the demo account and the automatic Youtube don't count); the form shows "5 people in
+    the album: at least 5 tags (3 so far)". Old albums with fewer tags must get them when edited.
+    Quick release, no migration.
 15. **Announcement post** (done, written in the chat): write for Matteo an announcement of all these changes, to
     publish as a new post in the forum (what's new, in the site's tone: redesign, maps, likes,
     emails, QR codes, expenses, the app and notifications...).

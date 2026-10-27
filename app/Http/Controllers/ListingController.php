@@ -50,7 +50,7 @@ class ListingController extends Controller
                 'dateFrom' => $listing->dateFrom,
                 'dateTo' => $listing->dateTo,
                 'location' => $listing->location,
-                'tags' => array_values(array_filter(array_map('trim', explode(',', $listing->tags)))),
+                'tags' => $this->tags($listing->tags),
                 'isNew' => ! $listing->pivot->seen,
             ]);
 
@@ -493,7 +493,15 @@ class ListingController extends Controller
             'cover' => [$listing?->logo ? 'nullable' : 'required', 'image', 'max:20480'],
         ]);
 
-        $tags = $this->libraryTags(collect($data['tags'])->map(fn ($tag) => trim(str_replace(',', ' ', $tag)))->filter(), $data['newTags'] ?? []);
+        $tags = collect($data['tags'])->map(fn ($tag) => trim(str_replace(',', ' ', $tag)))->filter();
+        // Everyone in the album is tagged: at least as many tags as people (not the demo account,
+        // nor the automatic Youtube)
+        $people = User::whereIn('id', $data['people'])->where('is_demo', false)->count();
+        $tagged = $tags->reject(fn ($tag) => $tag === 'Youtube')->unique(fn ($tag) => Tags::plain($tag))->count();
+        if ($tagged < $people) {
+            throw ValidationException::withMessages(['tags' => trans_choice('There\'s :count person in the album: tag everyone who was there (at least :count tag).|There are :count people in the album: tag everyone who was there (at least :count tags).', $people)]);
+        }
+        $tags = $this->libraryTags($tags, $data['newTags'] ?? []);
         $videoLinks = collect($data['videoLinks'] ?? [])->filter()->values();
         if (! filled($data['albumLink'] ?? null) && $videoLinks->isEmpty()) {
             throw ValidationException::withMessages(['albumLink' => __('Add the photos link, a video link, or both.')]);
@@ -511,7 +519,7 @@ class ListingController extends Controller
             'dateTo' => $data['dateTo'],
             'location' => $data['location'],
             'albumLink' => $data['albumLink'] ?? '', // the column can't be empty (NULL): "" = no photos link
-            'tags' => $tags->unique()->implode(', '),
+            'tags' => implode(', ', Tags::sorted($tags->unique())),
             'description' => SafeHtml::clean($data['description']),
             'videoLinks' => $videoLinks->isNotEmpty() ? $videoLinks->implode(',') : null,
         ];
@@ -584,7 +592,7 @@ class ListingController extends Controller
             // Everyone, the demo account too (for admins: adding it to an album is how recruiters get to see it)
             'users' => User::orderBy('name')->when(! $isAdmin, fn ($query) => $query->where('is_demo', false))->get()
                 ->map(fn (User $user) => ['id' => $user->id, 'name' => $user->name, 'avatar' => Media::url($user->profilePicture), 'isDemo' => (bool) $user->is_demo]),
-            // The tags library, most used first (before its migration: the tags already used)
+            // The tags library, A to Z (before its migration: the tags already used)
             'tagLibrary' => $this->tagLibrary(),
         ];
     }
@@ -595,11 +603,11 @@ class ListingController extends Controller
     {
         $counts = Tags::counts();
         if (! Schema::hasTable('tags')) {
-            return $counts->except('Youtube')->sortDesc()->keys()->map(fn ($name) => ['name' => $name, 'aliases' => [], 'userId' => null])->values();
+            return collect(Tags::sorted($counts->except('Youtube')->keys()))->map(fn ($name) => ['name' => $name, 'aliases' => [], 'userId' => null])->values();
         }
 
         return Tag::where('name', '!=', 'Youtube')->get()
-            ->sortByDesc(fn (Tag $tag) => $counts[$tag->name] ?? 0)
+            ->sortBy(fn (Tag $tag) => Tags::plain($tag->name))
             ->map(fn (Tag $tag) => ['name' => $tag->name, 'aliases' => $tag->aliases ?? [], 'userId' => $tag->user_id])
             ->values();
     }
@@ -645,9 +653,10 @@ class ListingController extends Controller
         }
     }
 
+    // A to Z
     private function tags(?string $tags): array
     {
-        return array_values(array_filter(array_map('trim', explode(',', (string) $tags))));
+        return \App\Support\Tags::split($tags);
     }
 
     private function videoLinks(?string $links): array

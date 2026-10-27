@@ -111,7 +111,7 @@ class PersonalVersionsTest extends TestCase
             'dateTo' => '2026-07-05',
             'location' => 'Merano',
             'albumLink' => 'https://photos.example/general',
-            'tags' => ['trip'],
+            'tags' => ['trip', 'Anna', 'Bob', 'Carlo', 'Dario'],
             'description' => '<p>Holidays</p>',
             'people' => array_merge([$this->admin->id, $this->anna->id, $this->zecca->id], $extraPeople),
             'personal' => $personal,

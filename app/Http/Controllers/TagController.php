@@ -25,7 +25,8 @@ class TagController extends Controller
 
         return Inertia::render('Admin/Tags', [
             'ready' => $ready,
-            'tags' => $library->sortBy([fn ($a, $b) => ($counts[$b->name] ?? 0) <=> ($counts[$a->name] ?? 0), fn ($a, $b) => strcasecmp($a->name, $b->name)])
+            // A to Z (like everywhere), each with how many albums have it
+            'tags' => $library->sortBy(fn (Tag $tag) => [Tags::plain($tag->name), $tag->name])
                 ->map(fn (Tag $tag) => [
                     'id' => $tag->id,
                     'name' => $tag->name,

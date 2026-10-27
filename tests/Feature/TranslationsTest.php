@@ -98,7 +98,7 @@ class TranslationsTest extends TestCase
 
         $this->actingAs($admin)->post('/listings', [
             'title' => 'Sicilia', 'dateFrom' => '2026-08-01', 'dateTo' => '2026-08-08', 'location' => 'Palermo',
-            'albumLink' => 'https://www.amazon.it/photos/share/abc', 'tags' => ['mare'], 'description' => '<p>x</p>', 'cover' => $this->fakeCover(),
+            'albumLink' => 'https://www.amazon.it/photos/share/abc', 'tags' => ['mare', 'Anna', 'Bob', 'Carlo', 'Dario'], 'description' => '<p>x</p>', 'cover' => $this->fakeCover(),
             'people' => [$admin->id, $anna->id, $bob->id],
         ])->assertSessionHasNoErrors();
 
