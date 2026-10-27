@@ -132,9 +132,6 @@ Route::get('/monitor', [UserController::class, 'monitor'])->middleware('auth');
 // Show Create Form
 Route::post('/listings/comments', [ListingController::class, 'comments'])->middleware(['auth', 'not-demo']);
 
-// Albums of the same trip, posted by different people
-Route::post('/listings/{listing}/links', [App\Http\Controllers\AlbumLinkController::class, 'store'])->middleware(['auth', 'not-demo']);
-Route::delete('/listings/{listing}/links', [App\Http\Controllers\AlbumLinkController::class, 'destroy'])->middleware(['auth', 'not-demo']);
 
 // Album preview in emails (JPEG): no login, the signed link is the key
 Route::get('/mail/cover/{listing}', function (App\Models\Listing $listing) {

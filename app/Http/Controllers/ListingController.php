@@ -16,6 +16,7 @@ use App\Models\Comment;
 use App\Models\ListingUser;
 use App\Models\AlbumEvent;
 use App\Support\AlbumHistory;
+use App\Support\AlbumLinks;
 use App\Support\Notify;
 use App\Support\Locale;
 use App\Support\AlbumCover;
@@ -147,7 +148,8 @@ class ListingController extends Controller
                 'createdAt' => $comment->created_at?->toIso8601String(),
                 'likes' => $comment->likeSummary($user),
             ]),
-            ...$this->sameTrip($listing, $user),
+            // Albums of the same trip the viewer is in (linked from the album form)
+            'sameTrip' => AlbumLinks::linked($listing, $user),
             'can' => [
                 'comment' => ! $user->is_demo && $membership,
                 'adminView' => is_null($membership),
@@ -186,6 +188,7 @@ class ListingController extends Controller
         if ($poster->isAdmin == 1) {
             $this->savePersonalVersions($listing, $request->input('personal', []));
         }
+        AlbumLinks::save($request, $listing, $poster);
         AlbumEvent::record('created', $listing, ['people' => User::findMany($people)->pluck('name')->sort()->values()->all()]);
 
         // Made from a planned trip: they stay linked, and the trip's expenses point to the album
@@ -271,6 +274,7 @@ class ListingController extends Controller
         if ($editor->isAdmin == 1) {
             $this->savePersonalVersions($listing, $request->input('personal', []));
         }
+        AlbumLinks::save($request, $listing, $editor);
 
         $changes = AlbumHistory::changes($before, AlbumHistory::snapshot($listing->fresh()));
         $added = User::findMany(collect($people)->diff($peopleBefore))->pluck('name')->sort()->values()->all();
@@ -364,41 +368,6 @@ class ListingController extends Controller
         }
 
         return back()->with('message', 'Comment added!');
-    }
-
-    // Albums of the same trip: the linked ones the viewer is in (admins: all), and for who can edit
-    // the album the ones they could link it to (theirs, the ones with dates near this one first)
-    private function sameTrip(Listing $listing, User $user): array
-    {
-        if (! Schema::hasColumn('listings', 'trip_group')) {
-            return ['sameTrip' => [], 'linkable' => null];
-        }
-        $card = fn (Listing $album) => [
-            'id' => $album->id,
-            'title' => $album->title,
-            'cover' => Media::url($album->logo) ?? asset('images/no-image.png'),
-            'dateFrom' => $album->dateFrom,
-            'dateTo' => $album->dateTo,
-            'postedBy' => $album->user?->name,
-        ];
-        $visible = fn ($query) => $user->isAdmin == 1 ? $query : $query->whereHas('users', fn ($users) => $users->where('users.id', $user->id));
-
-        $sameTrip = $listing->trip_group
-            ? $visible(Listing::with('user')->where('trip_group', $listing->trip_group)->where('id', '!=', $listing->id))->orderBy('dateFrom')->get()->map($card)->values()
-            : collect();
-
-        $linkable = null;
-        if ($user->canEditAlbum($listing)) {
-            $from = strtotime($listing->dateFrom);
-            $linkable = $visible(Listing::with('user')->where('id', '!=', $listing->id)
-                ->where(fn ($query) => $query->whereNull('trip_group')->orWhere('trip_group', '!=', $listing->trip_group ?? 0)))
-                ->get(['id', 'title', 'logo', 'dateFrom', 'dateTo', 'user_id'])
-                // Closest dates first: the same trip is usually the same days
-                ->sortBy(fn (Listing $album) => abs(strtotime($album->dateFrom) - $from))
-                ->map($card)->values();
-        }
-
-        return ['sameTrip' => $sameTrip, 'linkable' => $linkable];
     }
 
     // Comments as threads: the top ones in their order, each with 'replies' (oldest first).
@@ -628,6 +597,9 @@ class ListingController extends Controller
             // Everyone, the demo account too (for admins: adding it to an album is how recruiters get to see it)
             'users' => User::orderBy('name')->when(! $isAdmin, fn ($query) => $query->where('is_demo', false))->get()
                 ->map(fn (User $user) => ['id' => $user->id, 'name' => $user->name, 'avatar' => Media::url($user->profilePicture), 'isDemo' => (bool) $user->is_demo]),
+            // "Same trip": the albums it's linked to, and the ones it could be (null before the migration)
+            'sameTrip' => AlbumLinks::linked($listing, auth()->user()),
+            'linkable' => AlbumLinks::linkable($listing, auth()->user()),
             // The tags library, A to Z (before its migration: the tags already used)
             'tagLibrary' => $this->tagLibrary(),
         ];

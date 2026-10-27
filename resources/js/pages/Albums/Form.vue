@@ -1,7 +1,8 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ArrowLeft, ImagePlus, Loader2, Plus, Search, Trash2, UserCog, X } from 'lucide-vue-next';
+import { ArrowLeft, ImagePlus, Link2, Loader2, Plus, Search, Trash2, UserCog, X } from 'lucide-vue-next';
+import { formatDate } from '../../time.js';
 import LeafletMap from '../../components/LeafletMap.vue';
 import RequiredMark from '../../components/RequiredMark.vue';
 import RequiredNote from '../../components/RequiredNote.vue';
@@ -14,6 +15,9 @@ const props = defineProps({
     album: Object, // null when creating
     users: Array,
     tagLibrary: Array, // [{ name, aliases, userId }]
+    // "Same trip": the albums this one is linked to, and the ones it could be (null before the migration)
+    sameTrip: { type: Array, default: () => [] },
+    linkable: { type: Array, default: null },
     // Admins only: different link/description for someone (the others never see this section)
     canPersonalize: Boolean,
     // Not admins: the poster is always in their own album
@@ -34,6 +38,8 @@ const form = useForm({
     albumLink: props.album?.albumLink ?? '',
     tags: props.album?.tags.filter((tag) => tag !== 'Youtube') ?? [],
     newTags: [], // tags not in the library yet, confirmed after "did you mean?"
+    sameTripAs: null, // another album of the same trip, linked on saving
+    unlinkTrip: false, // leave the albums it's linked to
     description: props.album?.description ?? '',
     videoLinks: props.album?.videoLinks.length ? [...props.album.videoLinks] : [],
     people: props.album?.people ?? props.fromTrip?.people ?? (props.alwaysIn ? [props.alwaysIn] : []),
@@ -89,6 +95,21 @@ function addVersion() {
 watch(() => form.people, (people) => {
     form.personal = form.personal.filter((version) => people.includes(version.userId));
 });
+
+// Same trip: someone else's album of this trip. The ones with dates near this album's come first
+const tripSearch = ref('');
+// Already linked: the search opens only if they want to link one more
+const tripPicker = ref(!props.sameTrip.length);
+const chosenTrip = computed(() => props.linkable?.find((album) => album.id === form.sameTripAs) ?? null);
+const tripMatches = computed(() => {
+    const query = tripSearch.value.trim().toLowerCase();
+    const day = form.dateFrom ? new Date(form.dateFrom).getTime() : null;
+    return (props.linkable ?? [])
+        .filter((album) => !query || album.title.toLowerCase().includes(query))
+        .sort((a, b) => (day === null ? b.dateFrom.localeCompare(a.dateFrom) : Math.abs(new Date(a.dateFrom) - day) - Math.abs(new Date(b.dateFrom) - day)))
+        .slice(0, query ? 8 : 4);
+});
+const tripDate = (album) => formatDate(album.dateFrom, { day: 'numeric', month: 'short', year: 'numeric' });
 
 const peopleCount = computed(() => form.people.filter((id) => !props.users.find((user) => user.id === id)?.isDemo).length);
 
@@ -189,6 +210,64 @@ const labelClass = 'mb-1.5 block text-sm font-semibold';
                 <p v-if="alwaysIn" class="text-xs text-slate-500">{{ t("You're always in the albums you post.") }}</p>
                 <PeoplePicker v-model="form.people" :users="users" />
                 <p v-if="form.errors.people" class="text-sm text-red-600">{{ form.errors.people }}</p>
+            </section>
+
+            <!-- Same trip: link someone else's album of this trip -->
+            <section v-if="linkable" class="space-y-2">
+                <span :class="labelClass" class="flex items-center gap-1.5"><Link2 class="size-4 text-accent" /> {{ t('Same trip') }}</span>
+                <p class="text-xs text-slate-500">{{ t('Someone else posted photos of this trip? Link their album: everyone in both sees them side by side.') }}</p>
+
+                <!-- Already linked -->
+                <div v-if="sameTrip.length" class="space-y-2 rounded-2xl bg-white p-3 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
+                    <div v-for="album in sameTrip" :key="album.id" class="flex items-center gap-3" :class="form.unlinkTrip && 'opacity-40'">
+                        <img :src="album.cover" alt="" class="size-10 shrink-0 rounded-lg object-cover" />
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold">{{ album.title }}</span>
+                            <span class="block truncate text-xs text-slate-500">{{ tripDate(album) }}<template v-if="album.postedBy"> · {{ t('Posted by :name', { name: album.postedBy }) }}</template></span>
+                        </span>
+                    </div>
+                    <p v-if="form.unlinkTrip" class="flex flex-wrap items-center gap-2 text-sm text-amber-700 dark:text-amber-400">
+                        {{ t('Unlinked when you save.') }}
+                        <button type="button" class="font-semibold underline" @click="form.unlinkTrip = false">{{ t('Undo') }}</button>
+                    </p>
+                    <button v-else type="button" class="text-sm font-semibold text-slate-500 hover:text-red-600" @click="form.unlinkTrip = true">{{ t('Unlink') }}</button>
+                </div>
+
+                <!-- Chosen: linked on saving -->
+                <div v-if="chosenTrip" class="flex items-center gap-3 rounded-2xl bg-teal-50 p-3 ring-1 ring-teal-200 dark:bg-teal-950/40 dark:ring-teal-900">
+                    <img :src="chosenTrip.cover" alt="" class="size-10 shrink-0 rounded-lg object-cover" />
+                    <span class="min-w-0 flex-1">
+                        <span class="block truncate text-sm font-semibold">{{ chosenTrip.title }}</span>
+                        <span class="block truncate text-xs text-slate-600 dark:text-slate-300">{{ t('Linked when you save') }} · {{ tripDate(chosenTrip) }}</span>
+                    </span>
+                    <button type="button" class="rounded-lg p-1.5 text-slate-500 hover:bg-white dark:hover:bg-slate-800" :aria-label="t('Remove')" @click="form.sameTripAs = null"><X class="size-4" /></button>
+                </div>
+
+                <button v-else-if="!tripPicker" type="button" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold ring-1 ring-slate-200 hover:bg-white dark:ring-slate-700 dark:hover:bg-slate-900" @click="tripPicker = true">
+                    <Plus class="size-4" /> {{ t('Link one more album') }}
+                </button>
+
+                <!-- Pick one -->
+                <div v-else class="space-y-1 rounded-2xl bg-white p-3 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
+                    <label class="relative block">
+                        <Search class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
+                        <input v-model="tripSearch" type="search" :placeholder="t('Search albums')" :class="inputClass" class="pl-9" />
+                    </label>
+                    <p v-if="!tripSearch.trim() && form.dateFrom" class="px-1 pt-1 text-xs text-slate-500">{{ t('Albums with dates near this one:') }}</p>
+                    <ul>
+                        <li v-for="album in tripMatches" :key="album.id">
+                            <button type="button" class="flex w-full items-center gap-3 rounded-xl px-1 py-1.5 text-left hover:bg-slate-50 dark:hover:bg-slate-800" @click="form.sameTripAs = album.id; tripSearch = ''">
+                                <img :src="album.cover" alt="" class="size-10 shrink-0 rounded-lg object-cover" />
+                                <span class="min-w-0 flex-1">
+                                    <span class="block truncate text-sm font-semibold">{{ album.title }}</span>
+                                    <span class="block truncate text-xs text-slate-500">{{ tripDate(album) }}<template v-if="album.postedBy"> · {{ t('Posted by :name', { name: album.postedBy }) }}</template></span>
+                                </span>
+                                <Plus class="size-4 shrink-0 text-accent" />
+                            </button>
+                        </li>
+                    </ul>
+                    <p v-if="!tripMatches.length" class="px-1 py-2 text-sm text-slate-500">{{ t('No albums found.') }}</p>
+                </div>
             </section>
 
             <section v-if="canPersonalize" class="space-y-3">

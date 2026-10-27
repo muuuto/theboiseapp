@@ -2,7 +2,7 @@
 import { computed, nextTick, ref, watch } from 'vue';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import {
-    Brush, Check, CheckCircle2, Copy, Crop, Database, Download, Eye, Dumbbell, History, ImagePlus, Sparkles, Mail, MapPin, MapPinned, Mountain, Pencil, Play, Plus, Trash2, UserPlus, XCircle,
+    Brush, Check, CheckCircle2, ChevronRight, Copy, Crop, Database, Download, Eye, Dumbbell, History, ImagePlus, Sparkles, Mail, MapPin, MapPinned, Mountain, Pencil, Play, Plus, Trash2, UserPlus, XCircle,
 } from 'lucide-vue-next';
 import { formatDate, fullDate } from '../../time.js';
 import AlbumHistory from '../../components/AlbumHistory.vue';
@@ -141,6 +141,13 @@ function setFrom(value) {
 
 const cardClass = 'rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800';
 const buttonClass = 'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition disabled:opacity-40';
+// One-time album jobs: rows of the same width, with what each one does
+const jobClass = 'flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm ring-1 ring-slate-200 transition dark:ring-slate-700';
+const albumJobs = [
+    { action: 'trim-album-covers', icon: Crop, label: 'Remove bars from old album previews', detail: 'Crops the black bars from the old covers' },
+    { action: 'import-album-coordinates', icon: MapPin, label: 'Import suggested album locations', detail: 'Adds the missing places, never undoes the review' },
+    { action: 'import-album-elevations', icon: Mountain, label: 'Look up the altitude of album places', detail: 'For Wrapped\'s highest place (also done every night)' },
+];
 </script>
 
 <template>
@@ -512,24 +519,37 @@ const buttonClass = 'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-
             </template>
         </section>
 
-        <!-- One-time album jobs -->
-        <section :class="cardClass" class="space-y-3">
+        <!-- One-time album jobs (as tall as its content, not as the card next to it) -->
+        <section :class="cardClass" class="space-y-3 lg:self-start">
             <h2 class="text-lg font-bold">{{ t('One-time album jobs') }}</h2>
             <p class="text-sm text-slate-500">
                 {{ t('Safe to run more than once: they skip what\'s already done. The import never undoes the review: it only adds the missing extra places (e.g. Dublin next to London) to albums that still have one of the suggested places, and never brings back a place you removed.') }}
             </p>
-            <div class="flex flex-wrap gap-2">
-                <button :class="buttonClass" class="ring-1 ring-slate-200 hover:bg-slate-50 dark:ring-slate-700 dark:hover:bg-slate-800" :disabled="!!running" @click="run('trim-album-covers')">
-                    <Crop class="size-4" /> {{ t('Remove bars from old album previews') }}
+            <!-- One row each, all the same width -->
+            <div class="grid gap-2">
+                <button
+                    v-for="job in albumJobs"
+                    :key="job.action"
+                    type="button"
+                    :class="jobClass"
+                    class="hover:bg-slate-50 disabled:opacity-40 dark:hover:bg-slate-800"
+                    :disabled="!!running"
+                    @click="run(job.action)"
+                >
+                    <component :is="job.icon" class="size-5 shrink-0 text-accent" />
+                    <span class="min-w-0">
+                        <span class="block font-semibold">{{ t(job.label) }}</span>
+                        <span class="block text-xs text-slate-500">{{ t(job.detail) }}</span>
+                    </span>
+                    <Play class="ml-auto size-4 shrink-0 text-slate-400" />
                 </button>
-                <button :class="buttonClass" class="ring-1 ring-slate-200 hover:bg-slate-50 dark:ring-slate-700 dark:hover:bg-slate-800" :disabled="!!running" @click="run('import-album-coordinates')">
-                    <MapPin class="size-4" /> {{ t('Import suggested album locations') }}
-                </button>
-                <button :class="buttonClass" class="ring-1 ring-slate-200 hover:bg-slate-50 dark:ring-slate-700 dark:hover:bg-slate-800" :disabled="!!running" @click="run('import-album-elevations')">
-                    <Mountain class="size-4" /> {{ t('Look up the altitude of album places') }}
-                </button>
-                <Link href="/admin/locations" :class="buttonClass" class="text-accent hover:underline">
-                    <MapPinned class="size-4" /> {{ t('Review album locations') }}
+                <Link href="/admin/locations" :class="jobClass" class="hover:bg-slate-50 dark:hover:bg-slate-800">
+                    <MapPinned class="size-5 shrink-0 text-accent" />
+                    <span class="min-w-0">
+                        <span class="block font-semibold">{{ t('Review album locations') }}</span>
+                        <span class="block text-xs text-slate-500">{{ t('Confirm or fix the places suggested on the map') }}</span>
+                    </span>
+                    <ChevronRight class="ml-auto size-4 shrink-0 text-slate-400" />
                 </Link>
             </div>
         </section>
