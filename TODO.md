@@ -406,6 +406,12 @@ Steps (one release each):
     in it (the demo account and the automatic Youtube don't count); the form shows "5 people in
     the album: at least 5 tags (3 so far)". Old albums with fewer tags must get them when edited.
     Quick release, no migration.
+28. **Albums of the same trip**: ✅ Done locally, 268 tests passing. Several people post photos of
+    the same trip: on the album page, who can edit it (poster, admins) presses *Link an album* and
+    picks another album they're in (closest dates first). *Same trip* then shows the linked albums
+    (only the ones each viewer is in); linking to an album already linked joins the group;
+    *Unlink* takes it out. **To deploy** (quick release, one migration): push, cPanel Git
+    deploy, **Backup + run migrations**.
 15. **Announcement post** (done, written in the chat): write for Matteo an announcement of all these changes, to
     publish as a new post in the forum (what's new, in the site's tone: redesign, maps, likes,
     emails, QR codes, expenses, the app and notifications...).

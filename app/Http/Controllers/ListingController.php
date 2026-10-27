@@ -147,6 +147,7 @@ class ListingController extends Controller
                 'createdAt' => $comment->created_at?->toIso8601String(),
                 'likes' => $comment->likeSummary($user),
             ]),
+            ...$this->sameTrip($listing, $user),
             'can' => [
                 'comment' => ! $user->is_demo && $membership,
                 'adminView' => is_null($membership),
@@ -363,6 +364,41 @@ class ListingController extends Controller
         }
 
         return back()->with('message', 'Comment added!');
+    }
+
+    // Albums of the same trip: the linked ones the viewer is in (admins: all), and for who can edit
+    // the album the ones they could link it to (theirs, the ones with dates near this one first)
+    private function sameTrip(Listing $listing, User $user): array
+    {
+        if (! Schema::hasColumn('listings', 'trip_group')) {
+            return ['sameTrip' => [], 'linkable' => null];
+        }
+        $card = fn (Listing $album) => [
+            'id' => $album->id,
+            'title' => $album->title,
+            'cover' => Media::url($album->logo) ?? asset('images/no-image.png'),
+            'dateFrom' => $album->dateFrom,
+            'dateTo' => $album->dateTo,
+            'postedBy' => $album->user?->name,
+        ];
+        $visible = fn ($query) => $user->isAdmin == 1 ? $query : $query->whereHas('users', fn ($users) => $users->where('users.id', $user->id));
+
+        $sameTrip = $listing->trip_group
+            ? $visible(Listing::with('user')->where('trip_group', $listing->trip_group)->where('id', '!=', $listing->id))->orderBy('dateFrom')->get()->map($card)->values()
+            : collect();
+
+        $linkable = null;
+        if ($user->canEditAlbum($listing)) {
+            $from = strtotime($listing->dateFrom);
+            $linkable = $visible(Listing::with('user')->where('id', '!=', $listing->id)
+                ->where(fn ($query) => $query->whereNull('trip_group')->orWhere('trip_group', '!=', $listing->trip_group ?? 0)))
+                ->get(['id', 'title', 'logo', 'dateFrom', 'dateTo', 'user_id'])
+                // Closest dates first: the same trip is usually the same days
+                ->sortBy(fn (Listing $album) => abs(strtotime($album->dateFrom) - $from))
+                ->map($card)->values();
+        }
+
+        return ['sameTrip' => $sameTrip, 'linkable' => $linkable];
     }
 
     // Comments as threads: the top ones in their order, each with 'replies' (oldest first).

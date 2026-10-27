@@ -2,7 +2,7 @@
 import { computed, nextTick, onMounted, ref } from 'vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import {
-    ArrowLeft, CalendarDays, Check, Copy, ExternalLink, History, MapPin, Plane, Pencil, PlayCircle, ShieldCheck, Trash2, UserCog, Users, Wallet,
+    ArrowLeft, Plus, Link2, CalendarDays, Check, Copy, ExternalLink, History, MapPin, Plane, Pencil, PlayCircle, ShieldCheck, Trash2, UserCog, Users, Wallet,
 } from 'lucide-vue-next';
 import LeafletMap from '../../components/LeafletMap.vue';
 import CommentBox from '../../components/CommentBox.vue';
@@ -22,6 +22,8 @@ const props = defineProps({
     expenseGroups: { type: Array, default: () => [] },
     history: { type: Array, default: () => [] }, // admins only
     trip: { type: Object, default: null }, // the trip plan it was made from
+    sameTrip: { type: Array, default: () => [] }, // linked albums of the same trip (the ones I'm in)
+    linkable: { type: Array, default: null }, // who can edit it: the albums it could be linked to
 });
 
 const longDate = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
@@ -80,6 +82,21 @@ function startReply(thread, comment) {
         initial: comment.id !== thread.id && comment.author !== me ? `@${comment.author} ` : '',
     };
 }
+
+// Albums of the same trip: link this one to another (search, closest dates first), or unlink it
+const linking = ref(false);
+const linkSearch = ref('');
+const linkMatches = computed(() => {
+    const query = linkSearch.value.trim().toLowerCase();
+    return (props.linkable ?? []).filter((album) => !query || album.title.toLowerCase().includes(query)).slice(0, 8);
+});
+function linkTo(album) {
+    router.post(`/listings/${props.album.id}/links`, { with: album.id }, { preserveScroll: true, onSuccess: () => (linking.value = false) });
+}
+function unlink() {
+    if (window.confirm(t('Take this album out of the group of the same trip?'))) router.delete(`/listings/${props.album.id}/links`, { preserveScroll: true });
+}
+const shortRange = (album) => formatDate(album.dateFrom, { day: 'numeric', month: 'short', year: 'numeric' });
 
 // Arriving from a notification (#comment-12): scroll to that comment and light it up for a moment
 const highlighted = ref(null);
@@ -177,6 +194,57 @@ onMounted(() => {
                         <PlayCircle class="size-5" /> {{ t('Video :number', { number: index + 1 }) }}
                     </a>
                 </template>
+            </section>
+
+            <!-- Albums of the same trip, posted by other people -->
+            <section v-if="sameTrip.length || linkable" class="space-y-3">
+                <div class="flex flex-wrap items-center gap-2">
+                    <h2 class="flex items-center gap-2 text-lg font-bold"><Link2 class="size-5 text-accent" /> {{ t('Same trip') }}</h2>
+                    <div v-if="linkable" class="flex w-full items-center gap-2 sm:ml-auto sm:w-auto">
+                        <button v-if="!linking" type="button" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-sm font-semibold ring-1 ring-slate-200 hover:bg-white dark:ring-slate-700 dark:hover:bg-slate-900" @click="linking = true">
+                            <Plus class="size-4" /> {{ t('Link an album') }}
+                        </button>
+                        <button v-if="sameTrip.length" type="button" class="ml-auto rounded-xl px-3 py-1.5 text-sm font-semibold text-slate-500 hover:text-red-600 sm:ml-0" @click="unlink">{{ t('Unlink') }}</button>
+                    </div>
+                </div>
+                <p v-if="!sameTrip.length && !linking" class="text-sm text-slate-500">{{ t('Someone else posted photos of this trip? Link their album: everyone in both sees them side by side.') }}</p>
+
+                <div v-if="sameTrip.length" class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <Link
+                        v-for="other in sameTrip"
+                        :key="other.id"
+                        :href="`/listings/${other.id}`"
+                        class="flex items-center gap-3 rounded-2xl bg-white p-2 pr-3 shadow-sm ring-1 ring-slate-200 transition hover:ring-accent dark:bg-slate-900 dark:ring-slate-800"
+                    >
+                        <img :src="other.cover" alt="" class="size-16 shrink-0 rounded-xl object-cover" />
+                        <span class="min-w-0">
+                            <span class="block truncate font-semibold">{{ other.title }}</span>
+                            <span class="block truncate text-xs text-slate-500">{{ other.postedBy ? t('Posted by :name', { name: other.postedBy }) : '' }} · {{ shortRange(other) }}</span>
+                        </span>
+                    </Link>
+                </div>
+
+                <!-- Linking: pick the other album -->
+                <div v-if="linking" class="space-y-2 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800">
+                    <div class="flex items-center gap-2">
+                        <input v-model="linkSearch" type="search" :placeholder="t('Search albums')" class="h-10 min-w-0 flex-1 rounded-xl border-0 bg-slate-50 px-3 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-accent focus:outline-none dark:bg-slate-950 dark:ring-slate-700" />
+                        <button type="button" class="rounded-xl px-3 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800" @click="linking = false">{{ t('Cancel') }}</button>
+                    </div>
+                    <p class="text-xs text-slate-500">{{ t('Albums you\'re in, the ones with the closest dates first.') }}</p>
+                    <ul class="divide-y divide-slate-100 dark:divide-slate-800">
+                        <li v-for="other in linkMatches" :key="other.id">
+                            <button type="button" class="flex w-full items-center gap-3 py-2 text-left hover:text-accent" @click="linkTo(other)">
+                                <img :src="other.cover" alt="" class="size-11 shrink-0 rounded-lg object-cover" />
+                                <span class="min-w-0 flex-1">
+                                    <span class="block truncate text-sm font-semibold">{{ other.title }}</span>
+                                    <span class="block truncate text-xs text-slate-500">{{ shortRange(other) }}<template v-if="other.postedBy"> · {{ t('Posted by :name', { name: other.postedBy }) }}</template></span>
+                                </span>
+                                <Plus class="size-4 shrink-0" />
+                            </button>
+                        </li>
+                    </ul>
+                    <p v-if="!linkMatches.length" class="py-2 text-sm text-slate-500">{{ t('No albums found.') }}</p>
+                </div>
             </section>
         </div>
 
