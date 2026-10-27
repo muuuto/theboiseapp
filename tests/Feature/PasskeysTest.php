@@ -87,7 +87,9 @@ class PasskeysTest extends TestCase
         $this->assertSame('required', $options['authenticatorSelection']['userVerification']);
 
         $details = openssl_pkey_get_details($this->key)['ec'];
-        $coseKey = $this->cbor([1 => 2, 3 => -7, -1 => 1, -2 => new CborBytes($details['x']), -3 => new CborBytes($details['y'])]);
+        // Always 32 bytes, like a real phone sends (PHP drops leading zero bytes: ~1 key in 100)
+        $coordinate = fn ($bytes) => new CborBytes(str_pad($bytes, 32, "\0", STR_PAD_LEFT));
+        $coseKey = $this->cbor([1 => 2, 3 => -7, -1 => 1, -2 => $coordinate($details['x']), -3 => $coordinate($details['y'])]);
         // rpIdHash, flags (user present + verified + key included), counter, AAGUID, the key
         $authData = hash('sha256', 'localhost', true) . chr(0x45) . pack('N', 0) . str_repeat("\0", 16)
             . pack('n', strlen($this->credentialId)) . $this->credentialId . $coseKey;
