@@ -1,11 +1,11 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import { ArrowLeft, Check, CircleAlert, Copy, LoaderCircle, Plus, Repeat, Search, Trash2, X } from 'lucide-vue-next';
+import { ArrowLeft, Check, CircleAlert, Copy, LoaderCircle, Plus, Repeat, Search, Timer, Trash2, X } from 'lucide-vue-next';
 import { locale, t } from '../../i18n.js';
 import { formatDate } from '../../time.js';
 import { request } from '../../http.js';
-import { autoFocus, focusLabel, focusNames, groupLabel, groupNames, kg, number, rowText } from '../../gym.js';
+import { autoFocus, duration, focusLabel, focusNames, groupLabel, groupNames, kg, number, rowText } from '../../gym.js';
 import ExercisePhoto from '../../components/ExercisePhoto.vue';
 import RequiredMark from '../../components/RequiredMark.vue';
 import WorkoutShare from '../../components/WorkoutShare.vue';
@@ -31,13 +31,37 @@ const form = reactive({
     date: props.workout.date,
     focus: props.workout.focus, // null: from the exercises
     notes: props.workout.notes,
+    startTime: props.workout.startTime ?? '', // "18:32" (null from the server: not available yet)
+    endTime: props.workout.endTime ?? '',
     exercises: props.workout.exercises.map((exercise) => ({ key: nextKey++, exerciseId: exercise.exerciseId, rows: exercise.rows.map(newRow) })),
 });
+const hasTimes = props.workout.startTime !== null && props.workout.startTime !== undefined;
+
+// The time passed since the start, while it's going (today, started, not done yet)
+const now = ref(Date.now());
+let clock = null;
+onMounted(() => (clock = setInterval(() => (now.value = Date.now()), 15000)));
+onBeforeUnmount(() => clearInterval(clock));
+const minutesOf = (time) => Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5));
+// Times are Italian time (like the site's dates), whatever the phone's time zone (e.g. on a trip)
+const italianTime = (at = Date.now()) => new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date(at));
+const elapsed = computed(() => {
+    if (!form.startTime) return null;
+    if (form.endTime) {
+        const length = minutesOf(form.endTime) - minutesOf(form.startTime);
+        return length < 0 ? length + 1440 : length;
+    }
+    if (form.date !== props.today) return null;
+    const length = minutesOf(italianTime(now.value)) - minutesOf(form.startTime);
+    return length >= 0 ? length : null;
+});
+const clockTime = () => italianTime();
 
 const payload = () => ({
     date: form.date,
     focus: form.focus,
     notes: form.notes,
+    ...(hasTimes ? { start_time: form.startTime || null, end_time: form.endTime || null } : {}),
     exercises: form.exercises.map((exercise) => ({
         exerciseId: exercise.exerciseId,
         rows: exercise.rows.map((row) => ({ weight: number(row.weight), sets: parseInt(row.sets, 10) || null, reps: parseInt(row.reps, 10) || null })),
@@ -89,7 +113,9 @@ onBeforeUnmount(() => {
 });
 
 async function finish() {
-    if (unsaved() || status.value === 'saving') await save();
+    // Done today: that's when it ended
+    if (hasTimes && form.date === props.today && form.startTime && !form.endTime) form.endTime = clockTime();
+    if (unsaved() || status.value === 'saving' || timer) await save();
     if (status.value !== 'error') router.visit('/gym');
 }
 
@@ -212,7 +238,7 @@ watch(picking, (on) => (on ? window.addEventListener('keydown', closeOnEscape) :
 onBeforeUnmount(() => window.removeEventListener('keydown', closeOnEscape));
 
 const cardClass = 'rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-800';
-const inputClass = 'h-12 w-full rounded-xl border-0 bg-slate-50 px-2 text-center text-lg font-semibold ring-1 ring-slate-200 placeholder:font-normal placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-accent focus:outline-none dark:bg-slate-950 dark:ring-slate-700 dark:placeholder:text-slate-600';
+const inputClass = 'h-12 w-full rounded-xl border-0 bg-slate-50 px-2 text-center text-lg font-semibold ring-1 ring-slate-200 placeholder:font-normal placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-accent focus:outline-none dark:bg-slate-950 dark:focus:bg-slate-900 dark:ring-slate-700 dark:placeholder:text-slate-600';
 </script>
 
 <template>
@@ -235,10 +261,22 @@ const inputClass = 'h-12 w-full rounded-xl border-0 bg-slate-50 px-2 text-center
             </span>
         </div>
 
-        <label class="mb-4 flex items-center gap-3 text-sm">
-            <span class="font-semibold">{{ t('Date') }}<RequiredMark /></span>
-            <input v-model="form.date" type="date" required class="h-10 rounded-xl border-0 bg-white px-3 ring-1 ring-slate-200 focus:ring-2 focus:ring-accent focus:outline-none dark:bg-slate-950 dark:ring-slate-700" />
-        </label>
+        <div class="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+            <label class="flex items-center gap-3">
+                <span class="font-semibold">{{ t('Date') }}<RequiredMark /></span>
+                <input v-model="form.date" type="date" required class="h-10 rounded-xl border-0 bg-white px-3 ring-1 ring-slate-200 focus:ring-2 focus:ring-accent focus:outline-none dark:bg-slate-950 dark:ring-slate-700" />
+            </label>
+            <!-- Start and end (tap to correct them); the time passed, live while it's going -->
+            <div v-if="hasTimes" class="flex items-center gap-1.5">
+                <Timer class="size-4 text-accent" />
+                <input v-model="form.startTime" type="time" :aria-label="t('Started at')" class="h-10 rounded-xl border-0 bg-white px-2 ring-1 ring-slate-200 focus:ring-2 focus:ring-accent focus:outline-none dark:bg-slate-950 dark:ring-slate-700" />
+                <span class="text-slate-400">–</span>
+                <input v-model="form.endTime" type="time" :aria-label="t('Ended at')" class="h-10 rounded-xl border-0 bg-white px-2 ring-1 ring-slate-200 focus:ring-2 focus:ring-accent focus:outline-none dark:bg-slate-950 dark:ring-slate-700" />
+                <span v-if="elapsed !== null" class="ml-1 rounded-full px-2.5 py-1 text-xs font-bold whitespace-nowrap tabular-nums" :class="form.endTime ? 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200' : 'bg-teal-50 text-teal-800 dark:bg-teal-950 dark:text-teal-300'">
+                    {{ form.endTime ? duration(elapsed) : t(':time so far', { time: duration(elapsed) }) }}
+                </span>
+            </div>
+        </div>
 
         <div class="mb-4 flex flex-wrap items-center gap-1.5" role="group" :aria-label="t('Focus')">
             <button
@@ -383,7 +421,7 @@ const inputClass = 'h-12 w-full rounded-xl border-0 bg-slate-50 px-2 text-center
                     </div>
                     <label class="relative block">
                         <Search class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-400" />
-                        <input ref="searchInput" v-model="search" type="search" :placeholder="t('Search exercises')" class="h-11 w-full rounded-xl border-0 bg-slate-50 pr-3 pl-9 ring-1 ring-slate-200 focus:bg-white focus:ring-2 focus:ring-accent focus:outline-none dark:bg-slate-950 dark:ring-slate-700" />
+                        <input ref="searchInput" v-model="search" type="search" :placeholder="t('Search exercises')" class="h-11 w-full rounded-xl border-0 bg-slate-50 pr-3 pl-9 ring-1 ring-slate-200 focus:bg-white focus:ring-2 focus:ring-accent focus:outline-none dark:bg-slate-950 dark:focus:bg-slate-900 dark:ring-slate-700" />
                     </label>
                     <div class="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-0.5">
                         <button

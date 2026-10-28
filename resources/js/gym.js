@@ -44,3 +44,6 @@ export function number(value) {
     const text = String(value ?? '').trim().replace(',', '.');
     return text === '' || Number.isNaN(Number(text)) ? null : Number(text);
 }
+
+// How long a workout lasted: "47 min", "1 h 9 min"
+export const duration = (minutes) => (minutes >= 60 ? t(':hours h :minutes min', { hours: Math.floor(minutes / 60), minutes: minutes % 60 }) : t(':minutes min', { minutes }));

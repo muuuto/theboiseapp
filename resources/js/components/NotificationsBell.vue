@@ -28,8 +28,17 @@ function toggle() {
 const closeOnOutsideClick = (event) => {
     if (root.value && !root.value.contains(event.target)) open.value = false;
 };
-onMounted(() => document.addEventListener('click', closeOnOutsideClick));
-onBeforeUnmount(() => document.removeEventListener('click', closeOnOutsideClick));
+// Going to another page (a notification, a menu link, back) always closes it: the bell stays on
+// screen across pages, so it would otherwise still be open there
+let stopListening = null;
+onMounted(() => {
+    document.addEventListener('click', closeOnOutsideClick);
+    stopListening = router.on('navigate', () => (open.value = false));
+});
+onBeforeUnmount(() => {
+    document.removeEventListener('click', closeOnOutsideClick);
+    stopListening?.();
+});
 </script>
 
 <template>

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Schema;
 
 // A day at the gym: its rows (kg × sets × reps), in order
 class GymWorkout extends Model
@@ -49,5 +50,25 @@ class GymWorkout extends Model
     public function volume(): int
     {
         return (int) round($this->sets->sum(fn (GymSet $set) => $set->volume()));
+    }
+
+    // Start and end times (before their migration there are none)
+    public static function hasTimes(): bool
+    {
+        static $ready = null;
+
+        return $ready ??= Schema::hasColumn('gym_workouts', 'start_time');
+    }
+
+    // How long it lasted, in minutes (null without both times; past midnight counts)
+    public function minutes(): ?int
+    {
+        if (! $this->start_time || ! $this->end_time) {
+            return null;
+        }
+        $minutes = fn ($time) => (int) substr($time, 0, 2) * 60 + (int) substr($time, 3, 2);
+        $length = $minutes($this->end_time) - $minutes($this->start_time);
+
+        return $length < 0 ? $length + 1440 : $length;
     }
 }

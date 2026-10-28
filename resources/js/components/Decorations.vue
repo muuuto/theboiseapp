@@ -70,7 +70,7 @@ const particles = computed(() =>
                 :style="{ left: `${p.left}%`, animationDuration: `${p.duration}s`, animationDelay: `${p.delay}s` }"
             >
                 <span class="sway block" :style="{ '--sway': `${p.sway}px`, animationDuration: `${p.swayTime}s`, opacity: p.opacity }">
-                    <span v-if="p.emoji" :style="{ fontSize: `${p.emoji && snow ? 14 : p.size}px` }">{{ p.emoji }}</span>
+                    <span v-if="p.emoji" :class="snow && 'flake-emoji'" :style="{ fontSize: `${p.emoji && snow ? 14 : p.size}px` }">{{ p.emoji }}</span>
                     <span v-else class="flake block rounded-full" :style="{ width: `${p.size}px`, height: `${p.size}px` }" />
                 </span>
             </span>
@@ -91,10 +91,19 @@ const particles = computed(() =>
     animation-iteration-count: infinite;
     animation-direction: alternate;
 }
-/* White with a soft edge: visible on the light page and on the teal banner */
+/* White with a thin dark outline, so it shows on the light page too; in dark mode a soft glow */
 .flake {
     background: #fff;
-    box-shadow: 0 0 3px rgba(100, 116, 139, 0.55);
+    box-shadow: 0 0 0 1px rgba(51, 65, 85, 0.55), 0 1px 3px rgba(15, 23, 42, 0.35);
+}
+.flake-emoji {
+    filter: drop-shadow(0 0 1px rgba(15, 23, 42, 0.7));
+}
+:global(.dark) .flake {
+    box-shadow: 0 0 4px rgba(255, 255, 255, 0.45);
+}
+:global(.dark) .flake-emoji {
+    filter: none;
 }
 @keyframes fall {
     from { transform: translateY(-10vh); }

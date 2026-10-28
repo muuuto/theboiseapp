@@ -431,6 +431,12 @@ Steps (one release each):
       with the badges unlocked that year (only when there are some).
     **To deploy** (quick release, one migration): push, cPanel Git deploy, **Backup + run
     migrations**.
+30. **Fixes and the workout clock**: ✅ Done locally, 275 tests passing. Gym kg/sets/reps boxes
+    readable in dark mode (they turned white when typing); the notifications panel closes when
+    you go to another page (phones); snowflakes with a thin dark outline in light mode; workouts
+    record their start (New workout) and end (Done) time, editable, with "47 min so far" while
+    it's going (Italian time, also abroad) and the duration in the list. **To deploy** (quick
+    release, one migration): push, cPanel Git deploy, **Backup + run migrations**.
 15. **Announcement post** (done, written in the chat): write for Matteo an announcement of all these changes, to
     publish as a new post in the forum (what's new, in the site's tone: redesign, maps, likes,
     emails, QR codes, expenses, the app and notifications...).
@@ -442,6 +448,11 @@ Steps (one release each):
   `type=exact` 800×600, which pads vertical photos. Plan (redesign phase): the site resizes and
   crops the preview itself (fill 4:3, no bars, no external tool), and auto-trim the 60 existing
   ones. Also make email images responsive (now fixed `width="800" height="600"`).
+
+- **Gym → Garmin Connect** (asked by Matteo, not decided): a "Download for Garmin" button on a
+  finished workout making a .fit file (strength activity with the sets, reps and weights, the
+  start time and duration), imported by hand on connect.garmin.com → Import data. Automatic sync
+  would need Garmin's developer program (for companies): not realistic.
 
 ## Still open
 

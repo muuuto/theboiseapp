@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { Dumbbell, ListChecks, Plus, Repeat, Trophy } from 'lucide-vue-next';
 import { formatDate } from '../../time.js';
-import { focusLabel, total } from '../../gym.js';
+import { duration, focusLabel, total } from '../../gym.js';
 import Pagination from '../../components/Pagination.vue';
 
 defineProps({ workouts: Object, done: Array, stats: Object, today: String });
@@ -102,6 +102,7 @@ const cardClass = 'rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 dark:bg-
                 <p class="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
                     <span v-if="workout.focus" class="rounded-full bg-slate-100 px-2 py-0.5 font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-300">{{ focusLabel(workout.focus) }}</span>
                     <span>{{ tc(':count set|:count sets', workout.sets) }}</span>
+                    <span v-if="workout.minutes">⏱ {{ duration(workout.minutes) }}</span>
                     <span v-if="workout.volume" :title="t('Weight × reps of every set')">{{ total(workout.volume) }}</span>
                     <span v-if="workout.records" class="font-semibold text-amber-600 dark:text-amber-400">🏆 {{ tc(':count record|:count records', workout.records) }}</span>
                     <!-- Above the card's link -->

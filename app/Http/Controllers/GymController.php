@@ -35,6 +35,7 @@ class GymController extends Controller
                 'sets' => (int) $workout->sets->sum('sets'),
                 'volume' => $workout->volume(),
                 'records' => $records[$workout->id] ?? 0,
+                'minutes' => $workout->minutes(),
             ]);
 
         // The exercises done most, for their progress pages
@@ -77,7 +78,7 @@ class GymController extends Controller
                 'date' => now()->toDateString(),
                 'focus' => $from?->focus,
                 'copied_from_id' => $from?->id,
-            ]);
+            ] + (GymWorkout::hasTimes() ? ['start_time' => now()->format('H:i')] : []));
             foreach ($from?->sets ?? [] as $set) {
                 $workout->sets()->create(['gym_exercise_id' => $set->gym_exercise_id, 'position' => $set->position, 'sets' => $set->sets, 'reps' => $set->reps]);
             }
@@ -120,6 +121,9 @@ class GymController extends Controller
                 'date' => $workout->date->toDateString(),
                 'focus' => $workout->focus, // null: from the exercises
                 'notes' => $workout->notes ?? '',
+                // When it started and ended ("18:32"); null before the migration
+                'startTime' => GymWorkout::hasTimes() ? ($workout->start_time ? substr($workout->start_time, 0, 5) : '') : null,
+                'endTime' => $workout->end_time ? substr($workout->end_time, 0, 5) : '',
                 'exercises' => $workout->sets->groupBy('gym_exercise_id')->map(fn (Collection $sets) => [
                     'exerciseId' => $sets->first()->gym_exercise_id,
                     'rows' => $sets->map->row()->values(),
@@ -142,6 +146,8 @@ class GymController extends Controller
             'date' => 'required|date',
             'focus' => ['nullable', Rule::in(GymWorkout::FOCUSES)],
             'notes' => 'nullable|string|max:2000',
+            'start_time' => 'nullable|date_format:H:i',
+            'end_time' => 'nullable|date_format:H:i',
             'exercises' => 'array|max:40',
             'exercises.*.exerciseId' => ['required', 'integer', Rule::exists('gym_exercises', 'id')],
             'exercises.*.rows' => 'array|max:30',
@@ -151,7 +157,8 @@ class GymController extends Controller
         ]);
 
         DB::transaction(function () use ($workout, $data) {
-            $workout->update(['date' => $data['date'], 'focus' => $data['focus'] ?? null, 'notes' => $data['notes'] ?? null]);
+            $workout->update(['date' => $data['date'], 'focus' => $data['focus'] ?? null, 'notes' => $data['notes'] ?? null]
+                + (GymWorkout::hasTimes() ? ['start_time' => $data['start_time'] ?? null, 'end_time' => $data['end_time'] ?? null] : []));
             $workout->sets()->delete();
             $position = 0;
             foreach ($data['exercises'] ?? [] as $exercise) {
