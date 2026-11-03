@@ -113,12 +113,16 @@ const tripDate = (album) => formatDate(album.dateFrom, { day: 'numeric', month: 
 
 const peopleCount = computed(() => form.people.filter((id) => !props.users.find((user) => user.id === id)?.isDemo).length);
 
-// Tags linked to an account: choosing the person adds their tag, and the tag adds the person
-// (only adding: removing one never removes the other)
+// Tags linked to an account: choosing the person adds their tag, and the tag adds the person.
+// Removing the person removes their tag too (removing the tag keeps the person)
 watch(() => [...form.people], (people, before = []) => {
     for (const id of people.filter((id) => !before.includes(id))) {
         const tag = props.tagLibrary.find((item) => item.userId === id);
         if (tag && !form.tags.includes(tag.name)) form.tags = [...form.tags, tag.name];
+    }
+    for (const id of before.filter((id) => !people.includes(id))) {
+        const tag = props.tagLibrary.find((item) => item.userId === id);
+        if (tag) form.tags = form.tags.filter((name) => name !== tag.name);
     }
 });
 watch(() => [...form.tags], (tags, before = []) => {
