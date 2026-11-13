@@ -112,9 +112,10 @@ onBeforeUnmount(() => {
     saveOnLeave();
 });
 
-async function finish() {
+// Done (ended: true) stamps the end time; the back arrow only saves and leaves, the clock keeps going
+async function finish({ ended = true } = {}) {
     // Done today: that's when it ended
-    if (hasTimes && form.date === props.today && form.startTime && !form.endTime) form.endTime = clockTime();
+    if (ended && hasTimes && form.date === props.today && form.startTime && !form.endTime) form.endTime = clockTime();
     if (unsaved() || status.value === 'saving' || timer) await save();
     if (status.value !== 'error') router.visit('/gym');
 }
@@ -247,7 +248,7 @@ const inputClass = 'h-12 w-full rounded-xl border-0 bg-slate-50 px-2 text-center
     <div class="mx-auto max-w-2xl">
         <!-- Top: back, the day, saving -->
         <div class="mb-4 flex items-center gap-2">
-            <button type="button" class="-ml-2 rounded-full p-2 hover:bg-slate-200/70 dark:hover:bg-slate-800" :aria-label="t('Back to the gym')" @click="finish">
+            <button type="button" class="-ml-2 rounded-full p-2 hover:bg-slate-200/70 dark:hover:bg-slate-800" :aria-label="t('Back to the gym')" @click="finish({ ended: false })">
                 <ArrowLeft class="size-5" />
             </button>
             <h1 class="min-w-0 flex-1 text-xl leading-tight font-extrabold tracking-tight capitalize sm:text-2xl">{{ formatDate(form.date, { weekday: 'long', day: 'numeric', month: 'long' }) }}</h1>
@@ -404,7 +405,7 @@ const inputClass = 'h-12 w-full rounded-xl border-0 bg-slate-50 px-2 text-center
             <div :class="!canRepeat && 'col-span-2'">
                 <WorkoutShare :date="form.date" :name="page.props.auth.user?.name" :focus="shownFocus" :exercises="shareExercises" />
             </div>
-            <button type="button" class="order-first col-span-2 inline-flex items-center justify-center gap-1.5 rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-700 sm:order-none sm:ml-auto sm:py-2.5 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200" @click="finish">
+            <button type="button" class="order-first col-span-2 inline-flex items-center justify-center gap-1.5 rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-700 sm:order-none sm:ml-auto sm:py-2.5 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200" @click="finish()">
                 <Check class="size-4" /> {{ t('Done') }}
             </button>
         </div>
